@@ -1,0 +1,11 @@
+{
+  "name": "gobang",
+  "version": "1.0.0",
+  "description": "",
+  "main": "evaluate.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Hongxun Lee <lihongxun945@gmail.com> (http://light7.org/)",
+  "license": "ISC"
+}
