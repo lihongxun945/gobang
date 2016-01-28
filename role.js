@@ -1,5 +1,5 @@
 module.exports = {
-  white: 2,
-  black: 1,
+  com: 2,
+  hum: 1,
   empty: 0
 }

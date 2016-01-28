@@ -1,9 +1,13 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var flat = require("./flat");
+var r = require("./role");
 
-var evaluate = function(board, role) {
+var evaluate = function(board) {
   var rows = flat(board);
-  return eRows(rows, role);
+  var humScore = eRows(rows, r.hum);
+  var comScore = eRows(rows, r.com);
+
+  return comScore - humScore;
 }
 
 var eRows = function(rows, role) {
@@ -32,7 +36,6 @@ var eRow = function(line, role) {
       value += score(count, block);
     }
   }
-  console.log("evaluate row:"+value);
   return value;
 }
 
@@ -62,7 +65,7 @@ var score = function(count, block) {
 
 module.exports = evaluate;
 
-},{"./flat":2}],2:[function(require,module,exports){
+},{"./flat":2,"./role":3}],2:[function(require,module,exports){
 //一维化，把二位的棋盘四个一位数组。
 var flat = function(board) {
   var result = [];
@@ -110,34 +113,47 @@ var flat = function(board) {
 module.exports = flat;
 
 },{}],3:[function(require,module,exports){
+module.exports = {
+  com: 2,
+  hum: 1,
+  empty: 0
+}
+
+},{}],4:[function(require,module,exports){
 var e = require("./evaluate.js");
 
 var b = [
   [0, 0, 0],
+  [0, 2, 0],
+  [0, 0, 0],
+]
+
+console.log(e(b));
+
+b = [
+  [0, 0, 0],
   [0, 1, 0],
   [0, 0, 0],
 ]
 
-console.log(e(b, 1));
-console.log(e(b, 2));
+console.log(e(b));
 
 
-var c = [
-  [0, 1, 0],
+b = [
+  [0, 2, 0],
   [0, 1, 0],
   [0, 0, 0],
 ]
 
-console.log(e(c, 1));
-console.log(e(c, 2));
+console.log(e(b));
 
-var d = [
-  [0, 0, 0, 0],
-  [0, 1, 1, 0],
-  [0, 1, 1, 0],
-  [0, 0, 0, 0],
+
+b = [
+  [0, 1, 0],
+  [0, 2, 0],
+  [0, 0, 0],
 ]
-console.log(e(d, 1));
-console.log(e(d, 2));
 
-},{"./evaluate.js":1}]},{},[3]);
+console.log(e(b));
+
+},{"./evaluate.js":1}]},{},[4]);

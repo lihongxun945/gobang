@@ -2,28 +2,34 @@ var e = require("./evaluate.js");
 
 var b = [
   [0, 0, 0],
+  [0, 2, 0],
+  [0, 0, 0],
+]
+
+console.log(e(b));
+
+b = [
+  [0, 0, 0],
   [0, 1, 0],
   [0, 0, 0],
 ]
 
-console.log(e(b, 1));
-console.log(e(b, 2));
+console.log(e(b));
 
 
-var c = [
-  [0, 1, 0],
+b = [
+  [0, 2, 0],
   [0, 1, 0],
   [0, 0, 0],
 ]
 
-console.log(e(c, 1));
-console.log(e(c, 2));
+console.log(e(b));
 
-var d = [
-  [0, 0, 0, 0],
-  [0, 1, 1, 0],
-  [0, 1, 1, 0],
-  [0, 0, 0, 0],
+
+b = [
+  [0, 1, 0],
+  [0, 2, 0],
+  [0, 0, 0],
 ]
-console.log(e(d, 1));
-console.log(e(d, 2));
+
+console.log(e(b));

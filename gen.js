@@ -2,7 +2,7 @@ var gen = function(board) {
   var points = [];
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
-      if(hasNeighbor(board, [i, j])) {
+      if(board[i][j] == 0 && hasNeighbor(board, [i, j])) {
         points.push([i, j]);
       }
     }

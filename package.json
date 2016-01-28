@@ -4,8 +4,11 @@
   "description": "",
   "main": "evaluate.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "browserify test-evaluate.js > t.js && node t.js"
   },
   "author": "Hongxun Lee <lihongxun945@gmail.com> (http://light7.org/)",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^13.0.0"
+  }
 }

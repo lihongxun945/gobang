@@ -1,8 +1,12 @@
 var flat = require("./flat");
+var r = require("./role");
 
-var evaluate = function(board, role) {
+var evaluate = function(board) {
   var rows = flat(board);
-  return eRows(rows, role);
+  var humScore = eRows(rows, r.hum);
+  var comScore = eRows(rows, r.com);
+
+  return comScore - humScore;
 }
 
 var eRows = function(rows, role) {
@@ -31,7 +35,6 @@ var eRow = function(line, role) {
       value += score(count, block);
     }
   }
-  console.log("evaluate row:"+value);
   return value;
 }
 
