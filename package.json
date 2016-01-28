@@ -4,7 +4,7 @@
   "description": "",
   "main": "evaluate.js",
   "scripts": {
-    "test": "browserify test-evaluate.js > t.js && node t.js"
+    "test": "browserify test-max-min.js > t.js && node t.js"
   },
   "author": "Hongxun Lee <lihongxun945@gmail.com> (http://light7.org/)",
   "license": "ISC",

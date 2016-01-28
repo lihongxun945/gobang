@@ -65,7 +65,7 @@ var score = function(count, block) {
 
 module.exports = evaluate;
 
-},{"./flat":2,"./role":3}],2:[function(require,module,exports){
+},{"./flat":2,"./role":5}],2:[function(require,module,exports){
 //一维化，把二位的棋盘四个一位数组。
 var flat = function(board) {
   var result = [];
@@ -113,47 +113,118 @@ var flat = function(board) {
 module.exports = flat;
 
 },{}],3:[function(require,module,exports){
+var gen = function(board) {
+  var points = [];
+  for(var i=0;i<board.length;i++) {
+    for(var j=0;j<board[i].length;j++) {
+      if(board[i][j] == 0 && hasNeighbor(board, [i, j])) {
+        points.push([i, j]);
+      }
+    }
+  }
+  return points;
+}
+
+var hasNeighbor = function(board, point) {
+  return true;
+}
+
+module.exports = gen;
+
+},{}],4:[function(require,module,exports){
+var evaluate = require("./evaluate");
+var gen = require("./gen");
+var role = require("./role");
+
+var MAX = 9999999;
+var MIN = -1*MAX;
+
+/*
+ * max min search
+ * white is max, black is min
+ */
+var maxmin = function(board, deep) {
+  var best = MIN;
+  var points = gen(board);
+  var result;
+
+  points.forEach(function(p) {
+    board[p[0]][p[1]] = role.com;
+    var v = min(board, deep-1, MIN, MAX);
+    if(v > best) {
+      best = v;
+      result = p;
+    }
+    board[p[0]][p[1]] = 0;
+  });
+  console.log(best);
+  return result;
+}
+
+var min = function(board, deep, alpha, beta) {
+  var v = evaluate(board);
+  if(deep <= 0 || v >= 100000 || v <= -100000 || alpha >= beta) {
+    return v;
+  }
+
+  var best = MAX;
+  var points = gen(board);
+
+  points.forEach(function(p) {
+    board[p[0]][p[1]] = role.hum;
+    var v = max(board, deep-1, alpha, best < beta ? best : beta);
+    if(v < best ) {
+      best = v;
+    }
+    board[p[0]][p[1]] = 0;
+  });
+  return best ;
+}
+
+
+var max = function(board, deep, alpha, beta) {
+  var v = evaluate(board);
+  if(deep <= 0 || v >= 100000 || v <= -100000 || alpha >= beta) {
+    return v;
+  }
+
+  var best = MIN;
+  var points = gen(board);
+
+  points.forEach(function(p) {
+    board[p[0]][p[1]] = role.com;
+    var v = max(board, deep-1, best > alpha ? best : alpha, beta);
+    if(v > best) {
+      best = v;
+    }
+    board[p[0]][p[1]] = 0;
+  });
+  return best;
+}
+
+module.exports = maxmin;
+
+},{"./evaluate":1,"./gen":3,"./role":5}],5:[function(require,module,exports){
 module.exports = {
   com: 2,
   hum: 1,
   empty: 0
 }
 
-},{}],4:[function(require,module,exports){
-var e = require("./evaluate.js");
+},{}],6:[function(require,module,exports){
+var maxmin = require("./max-min.js");
 
 var b = [
-  [0, 0, 0],
-  [0, 2, 0],
-  [0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 1, 1, 0, 0, 0],
+  [0, 0, 0, 0, 2, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
-console.log(e(b));
+console.log(maxmin(b, 4));
 
-b = [
-  [0, 0, 0],
-  [0, 1, 0],
-  [0, 0, 0],
-]
-
-console.log(e(b));
-
-
-b = [
-  [0, 2, 0],
-  [0, 1, 0],
-  [0, 0, 0],
-]
-
-console.log(e(b));
-
-
-b = [
-  [0, 1, 0],
-  [0, 2, 0],
-  [0, 0, 0],
-]
-
-console.log(e(b));
-
-},{"./evaluate.js":1}]},{},[4]);
+},{"./max-min.js":4}]},{},[6]);
