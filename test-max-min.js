@@ -11,4 +11,4 @@ var b = [
   [0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
-console.log(maxmin(b, 4));
+console.log(maxmin(b, 1));

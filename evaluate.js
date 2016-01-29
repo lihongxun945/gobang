@@ -30,6 +30,7 @@ var eRow = function(line, role) {
       else if(line[i-1] != 0) block = 1;
       for(;i<line.length;i++) {
         if(line[i] == role) count ++
+        else break;
       }
       if(i==line.length || line[i] != 0) block++;
       value += score(count, block);

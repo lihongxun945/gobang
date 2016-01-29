@@ -12,18 +12,20 @@ var MIN = -1*MAX;
 var maxmin = function(board, deep) {
   var best = MIN;
   var points = gen(board);
-  var result;
+  var bestPoints = [];
 
   points.forEach(function(p) {
     board[p[0]][p[1]] = role.com;
     var v = min(board, deep-1, MIN, MAX);
-    if(v > best) {
+    if(v >= best) {
       best = v;
-      result = p;
+      bestPoints.push(p);
     }
     board[p[0]][p[1]] = 0;
   });
+  var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   console.log(best);
+  console.log(bestPoints);
   return result;
 }
 
@@ -59,7 +61,7 @@ var max = function(board, deep, alpha, beta) {
 
   points.forEach(function(p) {
     board[p[0]][p[1]] = role.com;
-    var v = max(board, deep-1, best > alpha ? best : alpha, beta);
+    var v = min(board, deep-1, best > alpha ? best : alpha, beta);
     if(v > best) {
       best = v;
     }
