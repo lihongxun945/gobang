@@ -3,12 +3,23 @@
   "version": "1.0.0",
   "description": "",
   "main": "evaluate.js",
+  "watch": {
+    "less": "less/main.less",
+    "js": "js/main.js"
+  },
   "scripts": {
-    "test": "browserify test-max-min.js > t.js && node t.js"
+    "test": "mocha tests/*.js",
+    "test-gen": "mocha tests/test-gen.js",
+    "test-evaluate": "mocha tests/test-evaluate.js",
+    "test-evaluate-row": "mocha tests/test-evaluate-row.js",
+    "less": "lessc less/main.less > dist/main.css",
+    "js": "browserify js/main.js > dist/main.js",
+    "watch": "npm-watch"
   },
   "author": "Hongxun Lee <lihongxun945@gmail.com> (http://light7.org/)",
   "license": "ISC",
   "devDependencies": {
-    "browserify": "^13.0.0"
+    "browserify": "^13.0.0",
+    "mocha": "^2.4.5"
   }
 }

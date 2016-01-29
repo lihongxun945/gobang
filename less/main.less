@@ -1,0 +1,43 @@
+html {
+  font-size: 10px;
+}
+
+h1 {
+  color: #3cc51f;
+  font-size: 2rem;
+  margin: 1rem;
+  text-align: center;
+}
+
+p {
+  font-size: 1.6rem;
+  color: #999;
+  text-align: center;
+}
+
+.board {
+  position: relative;
+  background: url("../img/board.jpg");
+  width: 32rem;
+  height: 32rem;
+  margin: 3rem auto;
+  background-size: 100%;
+  .chessman {
+    height: 1.5rem;
+    width: 1.5rem;
+    margin-left: -.75rem;
+    margin-top: -.75rem;
+    border-radius: .75rem;
+    background: white;
+    position: absolute;
+
+    &.black {
+      background: black;
+    }
+  }
+}
+
+.buttons {
+  width: 30rem;
+  margin: auto;
+}

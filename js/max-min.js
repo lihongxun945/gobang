@@ -1,6 +1,7 @@
 var evaluate = require("./evaluate");
 var gen = require("./gen");
 var role = require("./role");
+var SCORE = require("./score.js");
 
 var MAX = 9999999;
 var MIN = -1*MAX;
@@ -13,11 +14,13 @@ var maxmin = function(board, deep) {
   var best = MIN;
   var points = gen(board);
   var bestPoints = [];
+  deep = deep === undefined ? 3 : deep;
 
   points.forEach(function(p) {
     board[p[0]][p[1]] = role.com;
     var v = min(board, deep-1, MIN, MAX);
 
+    //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
     if(v == best) {
       bestPoints.push(p);
@@ -28,7 +31,7 @@ var maxmin = function(board, deep) {
       bestPoints = [];
       bestPoints.push(p);
     }
-    board[p[0]][p[1]] = 0;
+    board[p[0]][p[1]] = role.empty;
   });
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   return result;
@@ -36,7 +39,7 @@ var maxmin = function(board, deep) {
 
 var min = function(board, deep, alpha, beta) {
   var v = evaluate(board);
-  if(deep <= 0 || v >= 100000 || v <= -100000 || alpha >= beta) {
+  if(deep <= 0 || v >= SCORE.FIVE || v <= -1 * SCORE.FIVE || alpha >= beta) {
     return v;
   }
 
@@ -49,7 +52,7 @@ var min = function(board, deep, alpha, beta) {
     if(v < best ) {
       best = v;
     }
-    board[p[0]][p[1]] = 0;
+    board[p[0]][p[1]] = role.empty;
   });
   return best ;
 }
@@ -57,7 +60,7 @@ var min = function(board, deep, alpha, beta) {
 
 var max = function(board, deep, alpha, beta) {
   var v = evaluate(board);
-  if(deep <= 0 || v >= 100000 || v <= -100000 || alpha >= beta) {
+  if(deep <= 0 || v >= SCORE.FIVE || v <= -1 * SCORE.FIVE || alpha >= beta) {
     return v;
   }
 
@@ -70,7 +73,7 @@ var max = function(board, deep, alpha, beta) {
     if(v > best) {
       best = v;
     }
-    board[p[0]][p[1]] = 0;
+    board[p[0]][p[1]] = role.empty;
   });
   return best;
 }
