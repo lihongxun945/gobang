@@ -17,15 +17,20 @@ var maxmin = function(board, deep) {
   points.forEach(function(p) {
     board[p[0]][p[1]] = role.com;
     var v = min(board, deep-1, MIN, MAX);
-    if(v >= best) {
+
+    //如果跟之前的一个好，则把当前位子加入待选位子
+    if(v == best) {
+      bestPoints.push(p);
+    }
+    //找到一个更好的分，就把以前存的位子全部清除
+    if(v > best) {
       best = v;
+      bestPoints = [];
       bestPoints.push(p);
     }
     board[p[0]][p[1]] = 0;
   });
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
-  console.log(best);
-  console.log(bestPoints);
   return result;
 }
 

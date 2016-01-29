@@ -152,8 +152,13 @@ var maxmin = function(board, deep) {
   points.forEach(function(p) {
     board[p[0]][p[1]] = role.com;
     var v = min(board, deep-1, MIN, MAX);
-    if(v >= best) {
+    if(v == best) {
+      bestPoints.push(p);
+    }
+    //找到一个更好的分，就把以前存的全部清除
+    if(v > best) {
       best = v;
+      bestPoints = [];
       bestPoints.push(p);
     }
     board[p[0]][p[1]] = 0;
