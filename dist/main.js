@@ -168,8 +168,8 @@ Board.prototype.init = function() {
     }
     this.board.push(row);
   }
+  this.board[7][7] = r.com;
   this.draw();
-  this._set(7, 7, r.com);
 }
 
 Board.prototype.draw = function() {
