@@ -1,4 +1,3 @@
-var m = require("./max-min.js");
 var e = require("./evaluate.js");
 var S = require("./score.js");
 var r = require("./role.js");
@@ -6,19 +5,29 @@ var win = require("./win.js");
 
 var Board = function(container) {
   this.container = container;
-  this.init();
   this.step = 300 / 14.4;
-
   this.offset = 14;
 
+
   var self = this;
+  if(self.lock) return;
   this.container.on("click", function(e) {
+    if(self.lock) return;
     var x = e.offsetX, y = e.offsetY;
     x = Math.floor((x+self.offset)/self.step) - 1;
     y = Math.floor((y+self.offset)/self.step) - 1;
 
     self.set(x, y, 1);
   });
+
+  this.worker = new Worker("./dist/computer.js");
+
+  this.worker.onmessage = function(e) {
+    self._set(e.data[0], e.data[1], r.com);
+    self.lock = false;
+  }
+
+  this.init();
 }
 
 Board.prototype.init = function() {
@@ -31,6 +40,7 @@ Board.prototype.init = function() {
     this.board.push(row);
   }
   this.draw();
+  this._set(7, 7, r.com);
 }
 
 Board.prototype.draw = function() {
@@ -70,8 +80,11 @@ Board.prototype.set = function(x, y, role) {
     throw new Error("此位置不为空");
   }
   this._set(x, y, role);
-  var p = m(this.board, 3);
-  this._set(p[0], p[1], 2);
+  this.lock = true;
+  this.worker.postMessage({
+    board: this.board,
+    deep: 3
+  });
 }
 
 var b = new Board($("#board"));

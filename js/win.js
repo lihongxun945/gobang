@@ -12,7 +12,7 @@ module.exports = function(board) {
       return r.com;
     } 
     value = eRow(rows[i], r.hum);
-    if (value <= -1*S.FIVE) {
+    if (value >= S.FIVE) {
       return r.hum;
     }
   }
