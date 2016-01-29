@@ -2,6 +2,7 @@ var evaluate = require("./evaluate");
 var gen = require("./gen");
 var role = require("./role");
 var SCORE = require("./score.js");
+var win = require("./win.js");
 
 var MAX = 9999999;
 var MIN = -1*MAX;
@@ -39,7 +40,7 @@ var maxmin = function(board, deep) {
 
 var min = function(board, deep, alpha, beta) {
   var v = evaluate(board);
-  if(deep <= 0 || v >= SCORE.FIVE || v <= -1 * SCORE.FIVE || alpha >= beta) {
+  if(deep <= 0 || win(board) || alpha >= beta) {
     return v;
   }
 
@@ -60,7 +61,7 @@ var min = function(board, deep, alpha, beta) {
 
 var max = function(board, deep, alpha, beta) {
   var v = evaluate(board);
-  if(deep <= 0 || v >= SCORE.FIVE || v <= -1 * SCORE.FIVE || alpha >= beta) {
+  if(deep <= 0 || win(board) || alpha >= beta) {
     return v;
   }
 

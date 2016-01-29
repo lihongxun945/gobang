@@ -3,7 +3,7 @@ module.exports = {
   TWO: 100,
   THREE: 1000,
   FOUR: 10000,
-  FIVE: 100000,
+  FIVE: 10000000,
   BLOCKED_ONE: 1,
   BLOCKED_TWO: 10/2,
   BLOCKED_THREE: 100/2,
