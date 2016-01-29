@@ -126,8 +126,17 @@ var gen = function(board) {
   return points;
 }
 
+//简单的规则，如果周围有邻居就作为可选的位子
 var hasNeighbor = function(board, point) {
-  return true;
+  var len = board.length;
+  for(var i=point[0]-2;i<=point[0]+2;i++) {
+    for(var j=point[1]-2;j<=point[1]+2;j++) {
+      if(i<0||i==point[0]||i>=len) continue;
+      if(j<0||j==point[1]||j>=len) continue;
+      if(board[i][j] != 0) return true;
+    }
+  }
+  return false;
 }
 
 module.exports = gen;
@@ -152,10 +161,12 @@ var maxmin = function(board, deep) {
   points.forEach(function(p) {
     board[p[0]][p[1]] = role.com;
     var v = min(board, deep-1, MIN, MAX);
+
+    //如果跟之前的一个好，则把当前位子加入待选位子
     if(v == best) {
       bestPoints.push(p);
     }
-    //找到一个更好的分，就把以前存的全部清除
+    //找到一个更好的分，就把以前存的位子全部清除
     if(v > best) {
       best = v;
       bestPoints = [];
@@ -164,8 +175,6 @@ var maxmin = function(board, deep) {
     board[p[0]][p[1]] = 0;
   });
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
-  console.log(best);
-  console.log(bestPoints);
   return result;
 }
 
@@ -233,6 +242,6 @@ var b = [
   [0, 0, 0, 0, 0, 0, 0, 0],
 ]
 
-console.log(maxmin(b, 1));
+console.log(maxmin(b, 4));
 
 },{"./max-min.js":4}]},{},[6]);
