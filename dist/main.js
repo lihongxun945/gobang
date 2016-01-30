@@ -217,12 +217,15 @@ Board.prototype._set = function(x, y, role) {
   this.draw();
   var value = e(this.board);
   var w = win(this.board);
+  var self = this;
   if(w == r.com) {
-    alert("电脑赢了！");
-    this.init();
+    $.alert("电脑赢了！", function() {
+      self.stop();
+    });
   } else if (w == r.hum) {
-    alert("你赢了！");
-    this.init();
+    $.alert("恭喜你赢了！", function() {
+      self.stop();
+    });
   }
 }
 
@@ -269,7 +272,7 @@ module.exports = {
   TWO: 100,
   THREE: 1000,
   FOUR: 10000,
-  FIVE: 1000000,
+  FIVE: 100000,
   BLOCKED_ONE: 1,
   BLOCKED_TWO: 10,
   BLOCKED_THREE: 100,
