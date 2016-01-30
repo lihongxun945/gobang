@@ -12,12 +12,6 @@ var s = function(board, p) {
 
   var len = board.length;
 
-  //方便起见，不考虑边界
-
-  if(p[0] == 0 || p[0] == len-1) return result;
-  if(p[1] == 0 || p[1] == len-1) return result;
-
-
   line=[];
   for(var i=p[0]-4;i<=p[0]+4;i++) {//只截最近的一段。不然可能会把同一行的其他的分加上
     if(i<0 || i>=len) continue;

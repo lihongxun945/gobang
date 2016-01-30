@@ -22,7 +22,7 @@ var gen = function(board, deep) {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == role.empty) {
-        if(hasNeighbor(board, [i, j], 1, 1)) {
+        if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
           var _s = scorePoint(board, [i,j]);
           if(_s >= score.FIVE) {
             return [[i, j]];

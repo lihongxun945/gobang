@@ -160,7 +160,7 @@ var gen = function(board, deep) {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == role.empty) {
-        if(hasNeighbor(board, [i, j], 1, 1)) {
+        if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
           var _s = scorePoint(board, [i,j]);
           if(_s >= score.FIVE) {
             return [[i, j]];
@@ -338,12 +338,6 @@ var s = function(board, p) {
   var line = [];
 
   var len = board.length;
-
-  //方便起见，不考虑边界
-
-  if(p[0] == 0 || p[0] == len-1) return result;
-  if(p[1] == 0 || p[1] == len-1) return result;
-
 
   line=[];
   for(var i=p[0]-4;i<=p[0]+4;i++) {//只截最近的一段。不然可能会把同一行的其他的分加上
