@@ -13,7 +13,7 @@ var Board = function(container) {
   if(self.lock) return;
   this.container.on("click", function(e) {
     if(self.lock) return;
-    var x = e.offsetX, y = e.offsetY;
+    var y = e.offsetX, x = e.offsetY;
     x = Math.floor((x+self.offset)/self.step) - 1;
     y = Math.floor((y+self.offset)/self.step) - 1;
 
@@ -39,12 +39,7 @@ Board.prototype.init = function() {
     }
     this.board.push(row);
   }
-  this.board[4][7] = r.hum;
-  this.board[5][7] = r.hum;
-  this.board[6][7] = r.hum;
-
-  this.board[4][9] = r.com;
-  this.board[5][9] = r.com;
+  this.board[7][7] = r.com;
 
   this.draw();
 }
@@ -60,8 +55,8 @@ Board.prototype.draw = function() {
       if(board[i][j] != 0) {
         var chessman = $("<div class='chessman'></div>").appendTo(container);
         if(board[i][j] == 2) chessman.addClass("black");
-        chessman.css("left", this.offset + i*this.step);
-        chessman.css("top", this.offset + j*this.step);
+        chessman.css("top", this.offset + i*this.step);
+        chessman.css("left", this.offset + j*this.step);
       }
     }
   }
@@ -93,10 +88,8 @@ Board.prototype.com = function(x, y, role) {
   this.lock = true;
   this.worker.postMessage({
     board: this.board,
-    deep: 3
+    deep: 4
   });
 }
 
 var b = new Board($("#board"));
-
-b.com();

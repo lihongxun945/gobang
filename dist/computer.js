@@ -135,6 +135,11 @@ var flat = function(board) {
 module.exports = flat;
 
 },{}],6:[function(require,module,exports){
+/*
+ * 产生待选的节点
+ * 这个函数的优化非常重要，如果能对返回的节点排序，先返回优先级高的节点。那么能极大提升剪枝效率，从而缩短计算时间。
+ */
+
 var role = require("./role.js");
 
 var gen = function(board) {
@@ -166,18 +171,23 @@ var hasNeighbor = function(board, point) {
       if(board[i][j] != role.empty) return true;
     }
   }
+  return false;
 }
 
 
-//隔一个空位有邻居
+//隔一个空位有邻居，为了提高效率，至少有两个邻居才行。
 var hasNextNeighbor = function(board, point) {
   var len = board.length;
+  var count = 0;
   for(var i=point[0]-2;i<=point[0]+2;i++) {
     if(i<0||i>=len) continue;
     for(var j=point[1]-2;j<=point[1]+2;j++) {
       if(j<0||j>=len) continue;
       if(i==point[0] && j==point[1]) continue;
-      if(board[i][j] != role.empty) return true;
+      if(board[i][j] != role.empty) {
+        count ++;
+        if(count >= 2) return true;
+      }
     }
   }
   return false;
@@ -206,7 +216,7 @@ var maxmin = function(board, deep) {
   var best = MIN;
   var points = gen(board);
   var bestPoints = [];
-  deep = deep === undefined ? 3 : deep;
+  deep = deep === undefined ? 4 : deep;
 
   total = 0;
   cut = 0;
@@ -231,7 +241,7 @@ var maxmin = function(board, deep) {
   }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   console.log('当前局面分数：' + best);
-  console.log('总节点数:'+ total+ ' 剪枝掉的节点数:'+cut); //注意，减掉的节点数实际远远不止 cut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('搜索节点数:'+ total+ ' 剪枝掉的节点数:'+cut); //注意，减掉的节点数实际远远不止 cut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   return result;
 }
 
