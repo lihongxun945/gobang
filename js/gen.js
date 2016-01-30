@@ -4,9 +4,8 @@
  * 如果能减少产生的节点数，那么能指数级减少搜索时间
  * 如果能对返回的节点排序，先返回优先级高的节点。那么能极大提升剪枝效率，从而缩短计算时间。
  * 目前优化方式：
- * 1. 优先级排序，按邻居的个数和远近排序
+ * 1. 优先级排序，按估值进行排序
  * 2. 当搜索最后两层的时候，只搜索有相邻邻居的节点
- * 3. 若果发现有能成五个或者能成活四的节点，直接返回此节点。不用浪费时间去计算其他节点了
  */
 
 var role = require("./role.js");
@@ -15,28 +14,40 @@ var score = require("./score.js");
 
 var gen = function(board, deep) {
   
-  var bestPoints = [];  //最优先考虑的点
+  var fours = [];
+  var threes = [];
+  var twos = [];
   var neighbors = [];
   var nextNeighbors = [];
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == role.empty) {
-        var _s = scorePoint(board, [i,j]);
-        if(_s >= score.FIVE) {
-          return [[i, j]];
-        } else if(_s >= score.FOUR) {
-          return [[i, j]];
-        } else if(_s >= score.TWO) {
-          bestPoints.push([i, j]);
-        } else if(hasNeighbor(board, [i, j], 1, 1)) {
-          neighbors.push([i, j]);
+        if(hasNeighbor(board, [i, j], 1, 1)) {
+          var _s = scorePoint(board, [i,j]);
+          if(_s >= score.FIVE) {
+            return [[i, j]];
+          } else if(_s >= score.FOUR) {
+            fours.push([i, j]);
+          } else if(_s >= score.THREE) {
+            threes.push([i, j]);
+          } else if(_s >= score.TWO) {
+            twos.push([i, j]);
+          } else {
+            neighbors.push([i, j]);
+          }
         } else if(deep >= 2 && hasNeighbor(board, [i, j], 2, 2)) {
           nextNeighbors.push([i, j]);
         }
       }
     }
   }
-  return bestPoints.concat(neighbors.concat(nextNeighbors));
+  return fours.concat(
+            threes.concat(
+              twos.concat(
+                neighbors.concat(nextNeighbors)
+              )
+            )
+  );
 }
 
 //有邻居
