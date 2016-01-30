@@ -36,3 +36,11 @@ p {
   width: 30rem;
   margin: auto;
 }
+.status {
+  text-align: center;
+  margin: 2rem 1rem;
+  font-size: 1.5rem;
+  height: 2.5rem;
+  line-height: 2.5rem;
+  color: #666;
+}

@@ -3,16 +3,18 @@ var S = require("./score.js");
 var r = require("./role.js");
 var win = require("./win.js");
 
-var Board = function(container) {
+var Board = function(container, status) {
   this.container = container;
+  this.status = status;
   this.step = 300 / 14.4;
   this.offset = 14;
 
+  this.started = false;
+
 
   var self = this;
-  if(self.lock) return;
   this.container.on("click", function(e) {
-    if(self.lock) return;
+    if(self.lock || !self.started) return;
     var y = e.offsetX, x = e.offsetY;
     x = Math.floor((x+self.offset)/self.step) - 1;
     y = Math.floor((y+self.offset)/self.step) - 1;
@@ -25,12 +27,34 @@ var Board = function(container) {
   this.worker.onmessage = function(e) {
     self._set(e.data[0], e.data[1], r.com);
     self.lock = false;
+    self.setStatus("电脑下子("+e.data[0]+","+e.data[1]+"), 该你了");
   }
+  this.setStatus("请点击开始按钮");
 
-  this.init();
 }
 
-Board.prototype.init = function() {
+Board.prototype.start = function() {
+
+  if(this.started) return;
+  this.initBoard();
+  
+  this.board[7][7] = r.com;
+
+  this.draw();
+
+  this.setStatus("欢迎加入五子棋游戏");
+
+  this.started = true;
+}
+
+Board.prototype.stop = function() {
+  if(!this.started) return;
+  this.initBoard();
+  this.setStatus("请点击开始按钮");
+  this.draw();
+  this.started = false;
+}
+Board.prototype.initBoard = function() {
   this.board = [];
   for(var i=0;i<15;i++) {
     var row = [];
@@ -39,9 +63,6 @@ Board.prototype.init = function() {
     }
     this.board.push(row);
   }
-  this.board[7][7] = r.com;
-
-  this.draw();
 }
 
 Board.prototype.draw = function() {
@@ -90,6 +111,18 @@ Board.prototype.com = function(x, y, role) {
     board: this.board,
     deep: 4
   });
+  this.setStatus("电脑正在思考...");
+}
+Board.prototype.setStatus = function(s) {
+  this.status.text(s);
 }
 
-var b = new Board($("#board"));
+
+var b = new Board($("#board"), $(".status"));
+$("#start").click(function() {
+  b.start();
+});
+
+$("#fail").click(function() {
+  b.stop();
+});
