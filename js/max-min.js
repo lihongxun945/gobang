@@ -4,8 +4,11 @@ var role = require("./role");
 var SCORE = require("./score.js");
 var win = require("./win.js");
 
-var MAX = 9999999;
+var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
+
+var total,  //总节点数
+    cut;  //剪枝掉的节点数
 
 /*
  * max min search
@@ -17,9 +20,13 @@ var maxmin = function(board, deep) {
   var bestPoints = [];
   deep = deep === undefined ? 3 : deep;
 
-  points.forEach(function(p) {
+  total = 0;
+  cut = 0;
+
+  for(var i=0;i<points.length;i++) {
+    var p = points[i];
     board[p[0]][p[1]] = role.com;
-    var v = min(board, deep-1, MIN, MAX);
+    var v = min(board, deep-1, MAX, best > MIN ? best : MIN);
 
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
@@ -33,49 +40,62 @@ var maxmin = function(board, deep) {
       bestPoints.push(p);
     }
     board[p[0]][p[1]] = role.empty;
-  });
+  }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
+  console.log('总节点数:'+ total+ ' 剪枝掉的节点数:'+cut); //注意，减掉的节点数实际远远不止 cut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   return result;
 }
 
 var min = function(board, deep, alpha, beta) {
   var v = evaluate(board);
-  if(deep <= 0 || win(board) || alpha >= beta) {
+  total ++;
+  if(deep <= 0 || win(board)) {
     return v;
   }
 
   var best = MAX;
   var points = gen(board);
 
-  points.forEach(function(p) {
+  for(var i=0;i<points.length;i++) {
+    var p = points[i];
     board[p[0]][p[1]] = role.hum;
-    var v = max(board, deep-1, alpha, best < beta ? best : beta);
+    var v = max(board, deep-1, best < alpha ? best : alpha, beta);
+    board[p[0]][p[1]] = role.empty;
     if(v < best ) {
       best = v;
     }
-    board[p[0]][p[1]] = role.empty;
-  });
+    if(v < beta) {
+      cut ++;
+      break;
+    }
+  }
   return best ;
 }
 
 
 var max = function(board, deep, alpha, beta) {
   var v = evaluate(board);
-  if(deep <= 0 || win(board) || alpha >= beta) {
+  total ++;
+  if(deep <= 0 || win(board)) {
     return v;
   }
 
   var best = MIN;
   var points = gen(board);
 
-  points.forEach(function(p) {
+  for(var i=0;i<points.length;i++) {
+    var p = points[i];
     board[p[0]][p[1]] = role.com;
-    var v = min(board, deep-1, best > alpha ? best : alpha, beta);
+    var v = min(board, deep-1, alpha, best > beta ? best : beta);
+    board[p[0]][p[1]] = role.empty;
     if(v > best) {
       best = v;
     }
-    board[p[0]][p[1]] = role.empty;
-  });
+    if(v > alpha) {
+      cut ++;
+      break;
+    }
+  }
   return best;
 }
 

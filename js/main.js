@@ -39,7 +39,6 @@ Board.prototype.init = function() {
     }
     this.board.push(row);
   }
-  this.board[7][7] = r.com;
   this.draw();
 }
 

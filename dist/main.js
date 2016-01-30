@@ -168,7 +168,6 @@ Board.prototype.init = function() {
     }
     this.board.push(row);
   }
-  this.board[7][7] = r.com;
   this.draw();
 }
 
@@ -231,11 +230,11 @@ module.exports = {
   TWO: 100,
   THREE: 1000,
   FOUR: 10000,
-  FIVE: 10000000,
+  FIVE: 1000000,
   BLOCKED_ONE: 1,
-  BLOCKED_TWO: 5,
-  BLOCKED_THREE: 10,
-  BLOCKED_FOUR: 100
+  BLOCKED_TWO: 10,
+  BLOCKED_THREE: 100,
+  BLOCKED_FOUR: 1000
 }
 
 },{}],8:[function(require,module,exports){
