@@ -21,6 +21,7 @@ var eRow = function(line, role) {
       value += score(count, block);
     }
   }
+
   return value;
 }
 
@@ -135,8 +136,8 @@ var win = require("./win.js");
 var Board = function(container, status) {
   this.container = container;
   this.status = status;
-  this.step = 300 / 14.4;
-  this.offset = 14;
+  this.step = this.container.width() * 0.065;
+  this.offset = this.container.width() * 0.044;
 
   this.started = false;
 
@@ -256,7 +257,9 @@ $("#start").click(function() {
 });
 
 $("#fail").click(function() {
-  b.stop();
+  $.confirm("确定认输吗?", function() {
+    b.stop();
+  });
 });
 
 },{"./evaluate.js":3,"./role.js":6,"./score.js":7,"./win.js":8}],6:[function(require,module,exports){

@@ -6,8 +6,8 @@ var win = require("./win.js");
 var Board = function(container, status) {
   this.container = container;
   this.status = status;
-  this.step = 300 / 14.4;
-  this.offset = 14;
+  this.step = this.container.width() * 0.065;
+  this.offset = this.container.width() * 0.044;
 
   this.started = false;
 
@@ -127,5 +127,7 @@ $("#start").click(function() {
 });
 
 $("#fail").click(function() {
-  b.stop();
+  $.confirm("确定认输吗?", function() {
+    b.stop();
+  });
 });

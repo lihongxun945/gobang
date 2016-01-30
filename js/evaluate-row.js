@@ -20,6 +20,7 @@ var eRow = function(line, role) {
       value += score(count, block);
     }
   }
+
   return value;
 }
 

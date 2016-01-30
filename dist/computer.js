@@ -29,6 +29,7 @@ var eRow = function(line, role) {
       value += score(count, block);
     }
   }
+
   return value;
 }
 
@@ -138,20 +139,22 @@ module.exports = flat;
 /*
  * 产生待选的节点
  * 这个函数的优化非常重要，如果能对返回的节点排序，先返回优先级高的节点。那么能极大提升剪枝效率，从而缩短计算时间。
+ * 目前优化方式：
+ * 1. 优先级排序，按邻居的个数和远近排序
+ * 2. 当搜索最后两层的时候，只搜索有相邻邻居的节点
  */
 
 var role = require("./role.js");
 
-var gen = function(board) {
+var gen = function(board, deep) {
   var neighbors = [];
   var nextNeighbors = [];
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == role.empty) {
-        if(hasNeighbor(board, [i, j])) {
+        if(hasNeighbor(board, [i, j], 1, 1)) {
           neighbors.push([i, j]);
-        }
-        if(hasNextNeighbor(board, [i, j])) {
+        } else if(deep >= 2 && hasNeighbor(board, [i, j], 2, 2)) {
           nextNeighbors.push([i, j]);
         }
       }
@@ -161,32 +164,16 @@ var gen = function(board) {
 }
 
 //有邻居
-var hasNeighbor = function(board, point) {
+var hasNeighbor = function(board, point, distance, count) {
   var len = board.length;
-  for(var i=point[0]-1;i<=point[0]+1;i++) {
+  for(var i=point[0]-distance;i<=point[0]+distance;i++) {
     if(i<0||i>=len) continue;
-    for(var j=point[1]-1;j<=point[1]+1;j++) {
-      if(j<0||j>=len) continue;
-      if(i==point[0] && j==point[1]) continue;
-      if(board[i][j] != role.empty) return true;
-    }
-  }
-  return false;
-}
-
-
-//隔一个空位有邻居，为了提高效率，至少有两个邻居才行。
-var hasNextNeighbor = function(board, point) {
-  var len = board.length;
-  var count = 0;
-  for(var i=point[0]-2;i<=point[0]+2;i++) {
-    if(i<0||i>=len) continue;
-    for(var j=point[1]-2;j<=point[1]+2;j++) {
+    for(var j=point[1]-distance;j<=point[1]+distance;j++) {
       if(j<0||j>=len) continue;
       if(i==point[0] && j==point[1]) continue;
       if(board[i][j] != role.empty) {
-        count ++;
-        if(count >= 2) return true;
+        count --;
+        if(count <= 0) return true;
       }
     }
   }
@@ -214,7 +201,7 @@ var total,  //总节点数
  */
 var maxmin = function(board, deep) {
   var best = MIN;
-  var points = gen(board);
+  var points = gen(board, deep);
   var bestPoints = [];
   deep = deep === undefined ? 4 : deep;
 
@@ -253,7 +240,7 @@ var min = function(board, deep, alpha, beta) {
   }
 
   var best = MAX;
-  var points = gen(board);
+  var points = gen(board, deep);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -280,7 +267,7 @@ var max = function(board, deep, alpha, beta) {
   }
 
   var best = MIN;
-  var points = gen(board);
+  var points = gen(board, deep);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];

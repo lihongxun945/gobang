@@ -21,6 +21,7 @@
   "devDependencies": {
     "browserify": "^13.0.0",
     "less": "^2.6.0",
-    "mocha": "^2.4.5"
+    "mocha": "^2.4.5",
+    "npm-watch": "^0.1.1"
   }
 }

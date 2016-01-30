@@ -2,6 +2,26 @@ html {
   font-size: 10px;
 }
 
+@media (min-width: 370px) {
+  html {
+    font-size: 11px;
+  }
+}
+
+
+@media (min-width: 400px) {
+  html {
+    font-size: 12px;
+  }
+}
+
+
+@media (min-width: 600px) {
+  html {
+    font-size: 14px;
+  }
+}
+
 h1 {
   color: #3cc51f;
   font-size: 2rem;
@@ -23,11 +43,11 @@ p {
   margin: 3rem auto;
   background-size: 100%;
   .chessman {
-    height: 1.5rem;
-    width: 1.5rem;
-    margin-left: -.75rem;
-    margin-top: -.75rem;
-    border-radius: .75rem;
+    height: 1.7rem;
+    width: 1.7rem;
+    margin-left: -.85rem;
+    margin-top: -.85rem;
+    border-radius: .85rem;
     background: white;
     position: absolute;
 
@@ -49,4 +69,10 @@ p {
   height: 2.5rem;
   line-height: 2.5rem;
   color: #666;
+}
+
+@media screen and (min-width: 1024px) {
+  .weui_dialog, .weui_toast {
+    left: 32.5%;
+  }
 }

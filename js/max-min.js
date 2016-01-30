@@ -16,7 +16,7 @@ var total,  //总节点数
  */
 var maxmin = function(board, deep) {
   var best = MIN;
-  var points = gen(board);
+  var points = gen(board, deep);
   var bestPoints = [];
   deep = deep === undefined ? 4 : deep;
 
@@ -55,7 +55,7 @@ var min = function(board, deep, alpha, beta) {
   }
 
   var best = MAX;
-  var points = gen(board);
+  var points = gen(board, deep);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -82,7 +82,7 @@ var max = function(board, deep, alpha, beta) {
   }
 
   var best = MIN;
-  var points = gen(board);
+  var points = gen(board, deep);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
