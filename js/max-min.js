@@ -42,6 +42,7 @@ var maxmin = function(board, deep) {
     board[p[0]][p[1]] = role.empty;
   }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
+  console.log('当前局面分数：' + best);
   console.log('总节点数:'+ total+ ' 剪枝掉的节点数:'+cut); //注意，减掉的节点数实际远远不止 cut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   return result;
 }

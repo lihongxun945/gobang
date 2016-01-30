@@ -39,6 +39,13 @@ Board.prototype.init = function() {
     }
     this.board.push(row);
   }
+  this.board[4][7] = r.hum;
+  this.board[5][7] = r.hum;
+  this.board[6][7] = r.hum;
+
+  this.board[4][9] = r.com;
+  this.board[5][9] = r.com;
+
   this.draw();
 }
 
@@ -79,6 +86,10 @@ Board.prototype.set = function(x, y, role) {
     throw new Error("此位置不为空");
   }
   this._set(x, y, role);
+  this.com();
+}
+
+Board.prototype.com = function(x, y, role) {
   this.lock = true;
   this.worker.postMessage({
     board: this.board,
@@ -87,3 +98,5 @@ Board.prototype.set = function(x, y, role) {
 }
 
 var b = new Board($("#board"));
+
+b.com();

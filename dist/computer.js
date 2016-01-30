@@ -138,19 +138,39 @@ module.exports = flat;
 var role = require("./role.js");
 
 var gen = function(board) {
-  var points = [];
+  var neighbors = [];
+  var nextNeighbors = [];
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
-      if(board[i][j] == role.empty && hasNeighbor(board, [i, j])) {
-        points.push([i, j]);
+      if(board[i][j] == role.empty) {
+        if(hasNeighbor(board, [i, j])) {
+          neighbors.push([i, j]);
+        }
+        if(hasNextNeighbor(board, [i, j])) {
+          nextNeighbors.push([i, j]);
+        }
       }
     }
   }
-  return points;
+  return neighbors.concat(nextNeighbors);
 }
 
-//简单的规则，如果周围有邻居就作为可选的位子
+//有邻居
 var hasNeighbor = function(board, point) {
+  var len = board.length;
+  for(var i=point[0]-1;i<=point[0]+1;i++) {
+    if(i<0||i>=len) continue;
+    for(var j=point[1]-1;j<=point[1]+1;j++) {
+      if(j<0||j>=len) continue;
+      if(i==point[0] && j==point[1]) continue;
+      if(board[i][j] != role.empty) return true;
+    }
+  }
+}
+
+
+//隔一个空位有邻居
+var hasNextNeighbor = function(board, point) {
   var len = board.length;
   for(var i=point[0]-2;i<=point[0]+2;i++) {
     if(i<0||i>=len) continue;
@@ -210,7 +230,8 @@ var maxmin = function(board, deep) {
     board[p[0]][p[1]] = role.empty;
   }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
-  console.log('总节点数:'+ total+ ' 剪枝掉的节点数:'+cut);
+  console.log('当前局面分数：' + best);
+  console.log('总节点数:'+ total+ ' 剪枝掉的节点数:'+cut); //注意，减掉的节点数实际远远不止 cut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   return result;
 }
 
