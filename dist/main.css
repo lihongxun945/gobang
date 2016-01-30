@@ -1,6 +1,14 @@
 html {
   font-size: 10px;
 }
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 @media (min-width: 370px) {
   html {
     font-size: 11px;
@@ -14,6 +22,11 @@ html {
 @media (min-width: 600px) {
   html {
     font-size: 14px;
+  }
+}
+@media (min-width: 800px) {
+  html {
+    font-size: 16px;
   }
 }
 h1 {
