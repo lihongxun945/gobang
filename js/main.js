@@ -8,6 +8,7 @@ var Board = function(container, status) {
   this.status = status;
   this.step = this.container.width() * 0.065;
   this.offset = this.container.width() * 0.044;
+  this.steps = [];  //存储
 
   this.started = false;
 
@@ -39,6 +40,7 @@ Board.prototype.start = function() {
   this.initBoard();
   
   this.board[7][7] = r.com;
+  this.steps.push([7, 7]);
 
   this.draw();
 
@@ -63,13 +65,14 @@ Board.prototype.initBoard = function() {
     }
     this.board.push(row);
   }
+  this.steps = [];
 }
 
 Board.prototype.draw = function() {
   var container = this.container;
   var board = this.board;
   
-  container.find(".chessman").remove();
+  container.find(".chessman, .indicator").remove();
 
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
@@ -81,10 +84,20 @@ Board.prototype.draw = function() {
       }
     }
   }
+
+  if(this.steps.length > 0) {
+    var lastStep = this.steps[this.steps.length-1];
+    $("<div class='indicator'></div>")
+      .appendTo(container)
+      .css("top", this.offset + this.step * lastStep[0])
+      .css("left", this.offset + this.step * lastStep[1])
+  }
+
 }
 
 Board.prototype._set = function(x, y, role) {
   this.board[x][y] = role;
+  this.steps.push([x,y]);
   this.draw();
   var value = e(this.board);
   var w = win(this.board);
@@ -112,12 +125,29 @@ Board.prototype.com = function(x, y, role) {
   this.lock = true;
   this.worker.postMessage({
     board: this.board,
-    deep: 5
+    deep: 4
   });
   this.setStatus("电脑正在思考...");
 }
+
 Board.prototype.setStatus = function(s) {
   this.status.text(s);
+}
+
+Board.prototype.back = function(step) {
+  if(this.lock) {
+    this.setStatus("电脑正在思考，请稍等..");
+    return;
+  }
+  step = step || 1;
+  while(step && this.steps.length >= 2) {
+    var s = this.steps.pop();
+    this.board[s[0]][s[1]] = r.empty;
+    s = this.steps.pop();
+    this.board[s[0]][s[1]] = r.empty;
+    step --;
+  }
+  this.draw();
 }
 
 
@@ -130,4 +160,8 @@ $("#fail").click(function() {
   $.confirm("确定认输吗?", function() {
     b.stop();
   });
+});
+
+$("#back").click(function() {
+  b.back();
 });
