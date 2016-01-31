@@ -280,6 +280,7 @@ var min = function(board, deep, alpha, beta) {
     if(v < best ) {
       best = v;
     }
+    if(v < -1*SCORE.FIVE) break;
     if(v < beta) {
       cut ++;
       break;
@@ -307,6 +308,7 @@ var max = function(board, deep, alpha, beta) {
     if(v > best) {
       best = v;
     }
+    if(v > SCORE.FIVE) break;
     if(v > alpha) {
       cut ++;
       break;
