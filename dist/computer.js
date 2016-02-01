@@ -408,17 +408,16 @@ var gen = function(board, deep) {
 
   //如果成五，是必杀棋，直接返回
   if(fives[0]) return [fives[0]];
-  //如果活四，是必杀棋，直接返回
-  if(fours[0]) return [fours[0]];
 
   //其他情况都不一定，即使是活双三也不一定，容易被冲四破解。
-  return twothrees.concat(
+  return fours.concat(twothrees.concat(
     threes.concat(
       twos.concat(
         neighbors.concat(nextNeighbors)
       )
     )
-  );
+  )
+ );
 }
 
 //有邻居
