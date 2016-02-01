@@ -359,7 +359,8 @@ var S = require("./score.js");
 
 var gen = function(board, deep) {
   
-  var fours = [];
+  var four;
+  var twothree;
   var threes = [];
   var twos = [];
   var neighbors = [];
@@ -378,16 +379,40 @@ var gen = function(board, deep) {
           //只要出现这三种情况，直接返回。
           //否则就返回所有可能的节点。
           //如果当前可以成五，则直接赢，没必要算其他节点
+          //
+          //注意一个容易犯的错误：不要碰到了必杀棋直接返回，比如碰到双三直接返回是不对的，因为后面有可能还有成五的情况，所以要先存起来。
+          //只有碰到五才能直接返回，对于活四和双三都要存起来。不能因为碰到活四就直接返回而漏掉了后面可能出现的五
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             return [[i, j]];
           } else if(scoreHum >= S.FIVE) {//再看玩家能不能连成5
             return [[i, j]];
           } else if(scoreCom >= S.FOUR) {
             //进到这里说明不能成五，那么只要能成活四，也没有必要算其他的节点。
-            return [[i, j]];
+            four = [i,j];
           } else if(scoreHum >= S.FOUR) {
-            return [[i, j]];
-          } else if(scoreCom >= S.THREE) {
+            if(!four) four = [i,j];
+          } else if(scoreCom >= 2*S.THREE) {
+            //能成双三也行
+            twothree = [i,j];
+          } else if(scoreHum >= 2*S.THREE) {
+            if(!twothree) twothree = [i,j];
+          }
+        }
+      }
+    }
+  }
+
+  if(four) return [four];
+  if(twothree) return [twothree];
+
+  //没有必杀棋，就看看其他的棋有没有可以走的
+  for(var i=0;i<board.length;i++) {
+    for(var j=0;j<board[i].length;j++) {
+      if(board[i][j] == R.empty) {
+        if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
+          var scoreHum = scorePoint(board, [i,j], R.hum);
+          var scoreCom= scorePoint(board, [i,j], R.com);
+          if(scoreCom >= S.THREE) {
             threes.unshift([i, j]);
           } else if(scoreHum >= S.THREE) {
             threes.push([i, j]);
@@ -404,12 +429,11 @@ var gen = function(board, deep) {
       }
     }
   }
-  return fours.concat(
-            threes.concat(
-              twos.concat(
-                neighbors.concat(nextNeighbors)
-              )
-            )
+
+  return threes.concat(
+    twos.concat(
+      neighbors.concat(nextNeighbors)
+    )
   );
 }
 
@@ -458,7 +482,7 @@ var maxmin = function(board, deep) {
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
-  deep = deep === undefined ? 4 : deep;
+  deep = deep === undefined ? 5 : deep;
 
   total = 0;
   ABcut = 0;

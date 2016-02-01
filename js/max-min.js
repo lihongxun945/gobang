@@ -18,7 +18,7 @@ var maxmin = function(board, deep) {
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
-  deep = deep === undefined ? 4 : deep;
+  deep = deep === undefined ? 5 : deep;
 
   total = 0;
   ABcut = 0;
