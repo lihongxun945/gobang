@@ -5,7 +5,7 @@
   "main": "evaluate.js",
   "watch": {
     "less": "less/main.less",
-    "js": "js/main.js"
+    "js": "js/*.js"
   },
   "scripts": {
     "test": "mocha tests/*.js",
