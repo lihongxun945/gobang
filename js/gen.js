@@ -8,9 +8,9 @@
  * 2. 当搜索最后两层的时候，只搜索有相邻邻居的节点
  */
 
-var role = require("./role.js");
+var R = require("./role.js");
 var scorePoint = require("./score-point.js");
-var score = require("./score.js");
+var S = require("./score.js");
 
 var gen = function(board, deep) {
   
@@ -21,16 +21,16 @@ var gen = function(board, deep) {
   var nextNeighbors = [];
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
-      if(board[i][j] == role.empty) {
+      if(board[i][j] == R.empty) {
         if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
           var _s = scorePoint(board, [i,j]);
-          if(_s >= score.FIVE) {
+          if(_s >= S.FIVE) {
             return [[i, j]];
-          } else if(_s >= score.FOUR) {
+          } else if(_s >= S.FOUR) {
             fours.push([i, j]);
-          } else if(_s >= score.THREE) {
+          } else if(_s >= S.THREE) {
             threes.push([i, j]);
-          } else if(_s >= score.TWO) {
+          } else if(_s >= S.TWO) {
             twos.push([i, j]);
           } else {
             neighbors.push([i, j]);
@@ -62,7 +62,7 @@ var hasNeighbor = function(board, point, distance, count) {
     for(var j=startY;j<=endY;j++) {
       if(j<0||j>=len) continue;
       if(i==point[0] && j==point[1]) continue;
-      if(board[i][j] != role.empty) {
+      if(board[i][j] != R.empty) {
         count --;
         if(count <= 0) return true;
       }

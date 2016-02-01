@@ -75,13 +75,13 @@ module.exports = eRows;
 
 },{"./evaluate-row.js":2}],4:[function(require,module,exports){
 var flat = require("./flat");
-var r = require("./role");
+var R = require("./role");
 var eRows = require("./evaluate-rows.js");
 
 var evaluate = function(board) {
   var rows = flat(board);
-  var humScore = eRows(rows, r.hum);
-  var comScore = eRows(rows, r.com);
+  var humScore = eRows(rows, R.hum);
+  var comScore = eRows(rows, R.com);
 
   return comScore - humScore;
 }
@@ -146,9 +146,9 @@ module.exports = flat;
  * 2. 当搜索最后两层的时候，只搜索有相邻邻居的节点
  */
 
-var role = require("./role.js");
+var R = require("./role.js");
 var scorePoint = require("./score-point.js");
-var score = require("./score.js");
+var S = require("./score.js");
 
 var gen = function(board, deep) {
   
@@ -159,16 +159,16 @@ var gen = function(board, deep) {
   var nextNeighbors = [];
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
-      if(board[i][j] == role.empty) {
+      if(board[i][j] == R.empty) {
         if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
           var _s = scorePoint(board, [i,j]);
-          if(_s >= score.FIVE) {
+          if(_s >= S.FIVE) {
             return [[i, j]];
-          } else if(_s >= score.FOUR) {
+          } else if(_s >= S.FOUR) {
             fours.push([i, j]);
-          } else if(_s >= score.THREE) {
+          } else if(_s >= S.THREE) {
             threes.push([i, j]);
-          } else if(_s >= score.TWO) {
+          } else if(_s >= S.TWO) {
             twos.push([i, j]);
           } else {
             neighbors.push([i, j]);
@@ -200,7 +200,7 @@ var hasNeighbor = function(board, point, distance, count) {
     for(var j=startY;j<=endY;j++) {
       if(j<0||j>=len) continue;
       if(i==point[0] && j==point[1]) continue;
-      if(board[i][j] != role.empty) {
+      if(board[i][j] != R.empty) {
         count --;
         if(count <= 0) return true;
       }
@@ -215,7 +215,7 @@ module.exports = gen;
 },{"./role.js":8,"./score-point.js":9,"./score.js":10}],7:[function(require,module,exports){
 var evaluate = require("./evaluate");
 var gen = require("./gen");
-var role = require("./role");
+var R = require("./role");
 var SCORE = require("./score.js");
 var win = require("./win.js");
 
@@ -223,7 +223,8 @@ var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
 
 var total,  //总节点数
-    cut;  //剪枝掉的节点数
+    ABcut,  //AB剪枝次数
+    WINcut; //WIN剪枝次数
 
 /*
  * max min search
@@ -236,11 +237,12 @@ var maxmin = function(board, deep) {
   deep = deep === undefined ? 4 : deep;
 
   total = 0;
-  cut = 0;
+  ABcut = 0;
+  WINcut = 0;
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = role.com;
+    board[p[0]][p[1]] = R.com;
     var v = min(board, deep-1, MAX, best > MIN ? best : MIN);
 
     //console.log(v, p);
@@ -254,11 +256,11 @@ var maxmin = function(board, deep) {
       bestPoints = [];
       bestPoints.push(p);
     }
-    board[p[0]][p[1]] = role.empty;
+    board[p[0]][p[1]] = R.empty;
   }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   console.log('当前局面分数：' + best);
-  console.log('搜索节点数:'+ total+ ' 剪枝掉的节点数:'+cut); //注意，减掉的节点数实际远远不止 cut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('搜索节点数:'+ total+ ',AB剪枝次数:'+ABcut+',WIN剪枝次数：'+WINcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   return result;
 }
 
@@ -274,15 +276,20 @@ var min = function(board, deep, alpha, beta) {
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = role.hum;
+    board[p[0]][p[1]] = R.hum;
     var v = max(board, deep-1, best < alpha ? best : alpha, beta);
-    board[p[0]][p[1]] = role.empty;
+    //WIN剪枝，如果这里可以赢，后面的就不用算了。能赢就赢，赢多少分无所谓
+    if(win(board) == R.hum) {
+      board[p[0]][p[1]] = R.empty;
+      WINcut ++;
+      return v;
+    }
+    board[p[0]][p[1]] = R.empty;
     if(v < best ) {
       best = v;
     }
-    if(v < -1*SCORE.FIVE) break;
-    if(v < beta) {
-      cut ++;
+    if(v < beta) {  //AB剪枝
+      ABcut ++;
       break;
     }
   }
@@ -302,15 +309,21 @@ var max = function(board, deep, alpha, beta) {
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = role.com;
+    board[p[0]][p[1]] = R.com;
     var v = min(board, deep-1, alpha, best > beta ? best : beta);
-    board[p[0]][p[1]] = role.empty;
+    //WIN剪枝，如果这里可以赢，后面的就不用算了。能赢就赢，赢多少分无所谓
+    if(win(board) == R.com) {
+      board[p[0]][p[1]] = R.empty;
+      WINcut ++;
+      return v;
+    }
+    board[p[0]][p[1]] = R.empty;
     if(v > best) {
       best = v;
     }
     if(v > SCORE.FIVE) break;
-    if(v > alpha) {
-      cut ++;
+    if(v > alpha) { //AB 剪枝
+      ABcut ++;
       break;
     }
   }

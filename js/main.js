@@ -1,6 +1,6 @@
 var e = require("./evaluate.js");
 var S = require("./score.js");
-var r = require("./role.js");
+var R = require("./role.js");
 var win = require("./win.js");
 
 var Board = function(container, status) {
@@ -26,9 +26,9 @@ var Board = function(container, status) {
   this.worker = new Worker("./dist/computer.js");
 
   this.worker.onmessage = function(e) {
-    self._set(e.data[0], e.data[1], r.com);
+    self._set(e.data[0], e.data[1], R.com);
     self.lock = false;
-    self.setStatus("电脑下子("+e.data[0]+","+e.data[1]+"), 该你了");
+    self.setStatus("电脑下子("+e.data[0]+","+e.data[1]+"), 用时"+((new Date() - self.time)/1000)+"秒");
   }
   this.setStatus("请点击开始按钮");
 
@@ -39,7 +39,7 @@ Board.prototype.start = function() {
   if(this.started) return;
   this.initBoard();
   
-  this.board[7][7] = r.com;
+  this.board[7][7] = R.com;
   this.steps.push([7, 7]);
 
   this.draw();
@@ -102,11 +102,11 @@ Board.prototype._set = function(x, y, role) {
   var value = e(this.board);
   var w = win(this.board);
   var self = this;
-  if(w == r.com) {
+  if(w == R.com) {
     $.alert("电脑赢了！", function() {
       self.stop();
     });
-  } else if (w == r.hum) {
+  } else if (w == R.hum) {
     $.alert("恭喜你赢了！", function() {
       self.stop();
     });
@@ -123,6 +123,7 @@ Board.prototype.set = function(x, y, role) {
 
 Board.prototype.com = function(x, y, role) {
   this.lock = true;
+  this.time = new Date();
   this.worker.postMessage({
     board: this.board,
     deep: 4
@@ -142,9 +143,9 @@ Board.prototype.back = function(step) {
   step = step || 1;
   while(step && this.steps.length >= 2) {
     var s = this.steps.pop();
-    this.board[s[0]][s[1]] = r.empty;
+    this.board[s[0]][s[1]] = R.empty;
     s = this.steps.pop();
-    this.board[s[0]][s[1]] = r.empty;
+    this.board[s[0]][s[1]] = R.empty;
     step --;
   }
   this.draw();

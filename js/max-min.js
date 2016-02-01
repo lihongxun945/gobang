@@ -1,6 +1,6 @@
 var evaluate = require("./evaluate");
 var gen = require("./gen");
-var role = require("./role");
+var R = require("./role");
 var SCORE = require("./score.js");
 var win = require("./win.js");
 
@@ -8,7 +8,8 @@ var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
 
 var total,  //总节点数
-    cut;  //剪枝掉的节点数
+    ABcut,  //AB剪枝次数
+    WINcut; //WIN剪枝次数
 
 /*
  * max min search
@@ -21,11 +22,12 @@ var maxmin = function(board, deep) {
   deep = deep === undefined ? 4 : deep;
 
   total = 0;
-  cut = 0;
+  ABcut = 0;
+  WINcut = 0;
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = role.com;
+    board[p[0]][p[1]] = R.com;
     var v = min(board, deep-1, MAX, best > MIN ? best : MIN);
 
     //console.log(v, p);
@@ -39,11 +41,11 @@ var maxmin = function(board, deep) {
       bestPoints = [];
       bestPoints.push(p);
     }
-    board[p[0]][p[1]] = role.empty;
+    board[p[0]][p[1]] = R.empty;
   }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   console.log('当前局面分数：' + best);
-  console.log('搜索节点数:'+ total+ ' 剪枝掉的节点数:'+cut); //注意，减掉的节点数实际远远不止 cut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('搜索节点数:'+ total+ ',AB剪枝次数:'+ABcut+',WIN剪枝次数：'+WINcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   return result;
 }
 
@@ -59,15 +61,20 @@ var min = function(board, deep, alpha, beta) {
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = role.hum;
+    board[p[0]][p[1]] = R.hum;
     var v = max(board, deep-1, best < alpha ? best : alpha, beta);
-    board[p[0]][p[1]] = role.empty;
+    //WIN剪枝，如果这里可以赢，后面的就不用算了。能赢就赢，赢多少分无所谓
+    if(win(board) == R.hum) {
+      board[p[0]][p[1]] = R.empty;
+      WINcut ++;
+      return v;
+    }
+    board[p[0]][p[1]] = R.empty;
     if(v < best ) {
       best = v;
     }
-    if(v < -1*SCORE.FIVE) break;
-    if(v < beta) {
-      cut ++;
+    if(v < beta) {  //AB剪枝
+      ABcut ++;
       break;
     }
   }
@@ -87,15 +94,21 @@ var max = function(board, deep, alpha, beta) {
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = role.com;
+    board[p[0]][p[1]] = R.com;
     var v = min(board, deep-1, alpha, best > beta ? best : beta);
-    board[p[0]][p[1]] = role.empty;
+    //WIN剪枝，如果这里可以赢，后面的就不用算了。能赢就赢，赢多少分无所谓
+    if(win(board) == R.com) {
+      board[p[0]][p[1]] = R.empty;
+      WINcut ++;
+      return v;
+    }
+    board[p[0]][p[1]] = R.empty;
     if(v > best) {
       best = v;
     }
     if(v > SCORE.FIVE) break;
-    if(v > alpha) {
-      cut ++;
+    if(v > alpha) { //AB 剪枝
+      ABcut ++;
       break;
     }
   }
