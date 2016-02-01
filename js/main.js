@@ -124,7 +124,7 @@ Board.prototype.com = function(x, y, role) {
   this.time = new Date();
   this.worker.postMessage({
     board: this.board,
-    deep: 5
+    deep: 4
   });
   this.setStatus("电脑正在思考...");
 }

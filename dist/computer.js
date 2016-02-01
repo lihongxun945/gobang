@@ -399,7 +399,7 @@ var gen = function(board, deep) {
           } else {
             neighbors.push([i, j]);
           }
-        } else if(hasNeighbor(board, [i, j], 2, 2)) {
+        } else if(deep >= 2 && hasNeighbor(board, [i, j], 2, 2)) {
           nextNeighbors.push([i, j]);
         }
       }
