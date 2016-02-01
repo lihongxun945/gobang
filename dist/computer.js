@@ -359,60 +359,36 @@ var S = require("./score.js");
 
 var gen = function(board, deep) {
   
-  var four;
-  var twothree;
+  var fives = [];
+  var fours=[];
+  var twothrees=[];
   var threes = [];
   var twos = [];
   var neighbors = [];
   var nextNeighbors = [];
+
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
         if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
-          //永远是先看电脑的利益，再看同一层级下玩家的利益。
           var scoreHum = scorePoint(board, [i,j], R.hum);
           var scoreCom= scorePoint(board, [i,j], R.com);
 
-
-          //对必杀好棋，只要发现就直接返回，不用遍历其他节点。
-          //必杀好棋为：成五，活四，双三。
-          //只要出现这三种情况，直接返回。
-          //否则就返回所有可能的节点。
-          //如果当前可以成五，则直接赢，没必要算其他节点
-          //
-          //注意一个容易犯的错误：不要碰到了必杀棋直接返回，比如碰到双三直接返回是不对的，因为后面有可能还有成五的情况，所以要先存起来。
-          //只有碰到五才能直接返回，对于活四和双三都要存起来。不能因为碰到活四就直接返回而漏掉了后面可能出现的五
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             return [[i, j]];
           } else if(scoreHum >= S.FIVE) {//再看玩家能不能连成5
-            return [[i, j]];
+            //别急着返回，因为遍历还没完成，说不定电脑自己能成五。
+            fives.push([i, j]);
           } else if(scoreCom >= S.FOUR) {
-            //进到这里说明不能成五，那么只要能成活四，也没有必要算其他的节点。
-            four = [i,j];
+            fours.unshift([i,j]);
           } else if(scoreHum >= S.FOUR) {
-            if(!four) four = [i,j];
+            fours.push([i,j]);
           } else if(scoreCom >= 2*S.THREE) {
             //能成双三也行
-            twothree = [i,j];
+            twothrees.unshift([i,j]);
           } else if(scoreHum >= 2*S.THREE) {
-            if(!twothree) twothree = [i,j];
-          }
-        }
-      }
-    }
-  }
-
-  if(four) return [four];
-  if(twothree) return [twothree];
-
-  //没有必杀棋，就看看其他的棋有没有可以走的
-  for(var i=0;i<board.length;i++) {
-    for(var j=0;j<board[i].length;j++) {
-      if(board[i][j] == R.empty) {
-        if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
-          var scoreHum = scorePoint(board, [i,j], R.hum);
-          var scoreCom= scorePoint(board, [i,j], R.com);
-          if(scoreCom >= S.THREE) {
+            twothrees.push([i,j]);
+          } else if(scoreCom >= S.THREE) {
             threes.unshift([i, j]);
           } else if(scoreHum >= S.THREE) {
             threes.push([i, j]);
@@ -423,16 +399,24 @@ var gen = function(board, deep) {
           } else {
             neighbors.push([i, j]);
           }
-        } else if(deep >= 2 && hasNeighbor(board, [i, j], 2, 2)) {
+        } else if(hasNeighbor(board, [i, j], 2, 2)) {
           nextNeighbors.push([i, j]);
         }
       }
     }
   }
 
-  return threes.concat(
-    twos.concat(
-      neighbors.concat(nextNeighbors)
+  //如果成五，是必杀棋，直接返回
+  if(fives[0]) return [fives[0]];
+  //如果活四，是必杀棋，直接返回
+  if(fours[0]) return [fours[0]];
+
+  //其他情况都不一定，即使是活双三也不一定，容易被冲四破解。
+  return twothrees.concat(
+    threes.concat(
+      twos.concat(
+        neighbors.concat(nextNeighbors)
+      )
     )
   );
 }

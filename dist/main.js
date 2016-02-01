@@ -188,9 +188,7 @@ Board.prototype.start = function() {
 
 Board.prototype.stop = function() {
   if(!this.started) return;
-  this.initBoard();
   this.setStatus("请点击开始按钮");
-  this.draw();
   this.started = false;
 }
 Board.prototype.initBoard = function() {
