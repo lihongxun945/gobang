@@ -9,7 +9,7 @@
  */
 
 var R = require("./role.js");
-var scorePoint = require("./score-point.js");
+var scorePoint = require("./evaluate-point.js");
 var S = require("./score.js");
 
 var gen = function(board, deep) {
@@ -23,14 +23,32 @@ var gen = function(board, deep) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
         if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
-          var _s = scorePoint(board, [i,j]);
-          if(_s >= S.FIVE) {
+          //永远是先看电脑的利益，再看同一层级下玩家的利益。
+          var scoreHum = scorePoint(board, [i,j], R.hum);
+          var scoreCom= scorePoint(board, [i,j], R.com);
+
+
+          //对必杀好棋，只要发现就直接返回，不用遍历其他节点。
+          //必杀好棋为：成五，活四，双三。
+          //只要出现这三种情况，直接返回。
+          //否则就返回所有可能的节点。
+          //如果当前可以成五，则直接赢，没必要算其他节点
+          if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             return [[i, j]];
-          } else if(_s >= S.FOUR) {
-            fours.push([i, j]);
-          } else if(_s >= S.THREE) {
+          } else if(scoreHum >= S.FIVE) {//再看玩家能不能连成5
+            return [[i, j]];
+          } else if(scoreCom >= S.FOUR) {
+            //进到这里说明不能成五，那么只要能成活四，也没有必要算其他的节点。
+            return [[i, j]];
+          } else if(scoreHum >= S.FOUR) {
+            return [[i, j]];
+          } else if(scoreCom >= S.THREE) {
+            threes.unshift([i, j]);
+          } else if(scoreHum >= S.THREE) {
             threes.push([i, j]);
-          } else if(_s >= S.TWO) {
+          } else if(scoreCom >= S.TWO) {
+            twos.unshift([i, j]);
+          } else if(scoreHum >= S.TWO) {
             twos.push([i, j]);
           } else {
             neighbors.push([i, j]);

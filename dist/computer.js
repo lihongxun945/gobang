@@ -6,32 +6,8 @@ onmessage = function(e) {
   postMessage(p);
 }
 
-},{"./max-min.js":7}],2:[function(require,module,exports){
-var r = require("./role");
+},{"./max-min.js":9}],2:[function(require,module,exports){
 var SCORE = require("./score.js");
-
-var eRow = function(line, role) {
-  var count = 0; // 连子数
-  var block = 0; // 封闭数
-  var value = 0;  //分数
-
-  for(var i=0;i<line.length;i++) {
-    if(line[i] == role) { // 发现第一个己方棋子
-      count=1;
-      block=0;
-      if(i==0) block=1;
-      else if(line[i-1] != r.empty) block = 1;
-      for(i=i+1;i<line.length;i++) {
-        if(line[i] == role) count ++
-        else break;
-      }
-      if(i==line.length || line[i] != r.empty) block++;
-      value += score(count, block);
-    }
-  }
-
-  return value;
-}
 
 var score = function(count, block) {
 
@@ -58,9 +34,240 @@ var score = function(count, block) {
   return 0;
 }
 
+module.exports = score;
+
+},{"./score.js":11}],3:[function(require,module,exports){
+/*
+ * 启发式评价函数
+ * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
+ * 并且是只给某一个角色打分
+ */
+var S = require("./score.js");
+var R = require("./role.js");
+var score = require("./count-to-score.js");
+
+/*
+ * 表示在当前位置下一个棋子后的分数
+ */
+
+var s = function(board, p, role) {
+  var result = 0;
+  var count = 0, block = 0;
+
+  var len = board.length;
+
+  //横向
+  count = 1;  //默认把当前位置当做己方棋子。因为算的是当前下了一个己方棋子后的分数
+  block = 0;
+
+  for(var i=p[1]+1;true;i++) {
+    if(i>=len) {
+      block ++;
+      break;
+    }
+    var t = board[p[0]][i];
+    if(t === R.empty) {
+      break;
+    }
+    if(t === role) {
+      count ++;
+      continue;
+    } else {
+      block ++;
+      break;
+    }
+  }
+
+  for(var i=p[1]-1;true;i--) {
+    if(i<0) {
+      block ++;
+      break;
+    }
+    var t = board[p[0]][i];
+    if(t === R.empty) {
+      break;
+    }
+    if(t === role) {
+      count ++;
+      continue;
+    } else {
+      block ++;
+      break;
+    }
+  }
+
+  result += score(count, block);
+
+  //纵向
+  count = 1;
+  block = 0;
+
+  for(var i=p[0]+1;true;i++) {
+    if(i>=len) {
+      block ++;
+      break;
+    }
+    var t = board[i][p[1]];
+    if(t === R.empty) {
+      break;
+    }
+    if(t === role) {
+      count ++;
+      continue;
+    } else {
+      block ++;
+      break;
+    }
+  }
+
+  for(var i=p[0]-1;true;i--) {
+    if(i<0) {
+      block ++;
+      break;
+    }
+    var t = board[i][p[1]];
+    if(t === R.empty) {
+      break;
+    }
+    if(t === role) {
+      count ++;
+      continue;
+    } else {
+      block ++;
+      break;
+    }
+  }
+
+  result += score(count, block);
+
+
+  // \\
+  count = 1;
+  block = 0;
+
+  for(var i=1;true;i++) {
+    var x = p[0]+i, y = p[1]+i;
+    if(x>=len || y>=len) {
+      block ++;
+      break;
+    }
+    var t = board[x][y];
+    if(t === R.empty) {
+      break;
+    }
+    if(t === role) {
+      count ++;
+      continue;
+    } else {
+      block ++;
+      break;
+    }
+  }
+
+  for(var i=1;true;i++) {
+    var x = p[0]-i, y = p[1]-i;
+    if(x<0||y<0) {
+      block ++;
+      break;
+    }
+    var t = board[x][y];
+    if(t === R.empty) {
+      break;
+    }
+    if(t === role) {
+      count ++;
+      continue;
+    } else {
+      block ++;
+      break;
+    }
+  }
+
+  result += score(count, block);
+
+
+  // \/
+  count = 1;
+  block = 0;
+
+  for(var i=1; true;i++) {
+    var x = p[0]+i, y = p[1]-i;
+    if(x>=len || y>=len) {
+      block ++;
+      break;
+    }
+    var t = board[x][y];
+    if(t === R.empty) {
+      break;
+    }
+    if(t === role) {
+      count ++;
+      continue;
+    } else {
+      block ++;
+      break;
+    }
+  }
+
+  for(var i=1;true;i++) {
+    var x = p[0]-i, y = p[1]+i;
+    if(x<0||y<0) {
+      block ++;
+      break;
+    }
+    var t = board[x][y];
+    if(t === R.empty) {
+      break;
+    }
+    if(t === role) {
+      count ++;
+      continue;
+    } else {
+      block ++;
+      break;
+    }
+  }
+
+  result += score(count, block);
+
+  return result;
+
+}
+
+module.exports = s;
+
+},{"./count-to-score.js":2,"./role.js":10,"./score.js":11}],4:[function(require,module,exports){
+var r = require("./role");
+var SCORE = require("./score.js");
+var score = require("./count-to-score.js");
+
+
+var eRow = function(line, role) {
+  var count = 0; // 连子数
+  var block = 0; // 封闭数
+  var value = 0;  //分数
+
+  for(var i=0;i<line.length;i++) {
+    if(line[i] == role) { // 发现第一个己方棋子
+      count=1;
+      block=0;
+      if(i==0) block=1;
+      else if(line[i-1] != r.empty) block = 1;
+      for(i=i+1;i<line.length;i++) {
+        if(line[i] == role) count ++
+        else break;
+      }
+      if(i==line.length || line[i] != r.empty) block++;
+      value += score(count, block);
+    }
+  }
+
+  return value;
+}
+
 module.exports = eRow;
 
-},{"./role":8,"./score.js":10}],3:[function(require,module,exports){
+},{"./count-to-score.js":2,"./role":10,"./score.js":11}],5:[function(require,module,exports){
 var eRow = require("./evaluate-row.js");
 
 var eRows = function(rows, role) {
@@ -73,7 +280,7 @@ var eRows = function(rows, role) {
 
 module.exports = eRows;
 
-},{"./evaluate-row.js":2}],4:[function(require,module,exports){
+},{"./evaluate-row.js":4}],6:[function(require,module,exports){
 var flat = require("./flat");
 var R = require("./role");
 var eRows = require("./evaluate-rows.js");
@@ -88,7 +295,7 @@ var evaluate = function(board) {
 
 module.exports = evaluate;
 
-},{"./evaluate-rows.js":3,"./flat":5,"./role":8}],5:[function(require,module,exports){
+},{"./evaluate-rows.js":5,"./flat":7,"./role":10}],7:[function(require,module,exports){
 //一维化，把二位的棋盘四个一位数组。
 var flat = function(board) {
   var result = [];
@@ -135,7 +342,7 @@ var flat = function(board) {
 
 module.exports = flat;
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*
  * 产生待选的节点
  * 这个函数的优化非常重要，这个函数产生的节点数，实际就是搜索总数的底数。比如这里平均产生50个节点，进行4层搜索，则平均搜索节点数为50的4次方（在没有剪枝的情况下）
@@ -147,7 +354,7 @@ module.exports = flat;
  */
 
 var R = require("./role.js");
-var scorePoint = require("./score-point.js");
+var scorePoint = require("./evaluate-point.js");
 var S = require("./score.js");
 
 var gen = function(board, deep) {
@@ -161,14 +368,32 @@ var gen = function(board, deep) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
         if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
-          var _s = scorePoint(board, [i,j]);
-          if(_s >= S.FIVE) {
+          //永远是先看电脑的利益，再看同一层级下玩家的利益。
+          var scoreHum = scorePoint(board, [i,j], R.hum);
+          var scoreCom= scorePoint(board, [i,j], R.com);
+
+
+          //对必杀好棋，只要发现就直接返回，不用遍历其他节点。
+          //必杀好棋为：成五，活四，双三。
+          //只要出现这三种情况，直接返回。
+          //否则就返回所有可能的节点。
+          //如果当前可以成五，则直接赢，没必要算其他节点
+          if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             return [[i, j]];
-          } else if(_s >= S.FOUR) {
-            fours.push([i, j]);
-          } else if(_s >= S.THREE) {
+          } else if(scoreHum >= S.FIVE) {//再看玩家能不能连成5
+            return [[i, j]];
+          } else if(scoreCom >= S.FOUR) {
+            //进到这里说明不能成五，那么只要能成活四，也没有必要算其他的节点。
+            return [[i, j]];
+          } else if(scoreHum >= S.FOUR) {
+            return [[i, j]];
+          } else if(scoreCom >= S.THREE) {
+            threes.unshift([i, j]);
+          } else if(scoreHum >= S.THREE) {
             threes.push([i, j]);
-          } else if(_s >= S.TWO) {
+          } else if(scoreCom >= S.TWO) {
+            twos.unshift([i, j]);
+          } else if(scoreHum >= S.TWO) {
             twos.push([i, j]);
           } else {
             neighbors.push([i, j]);
@@ -212,7 +437,7 @@ var hasNeighbor = function(board, point, distance, count) {
 
 module.exports = gen;
 
-},{"./role.js":8,"./score-point.js":9,"./score.js":10}],7:[function(require,module,exports){
+},{"./evaluate-point.js":3,"./role.js":10,"./score.js":11}],9:[function(require,module,exports){
 var evaluate = require("./evaluate");
 var gen = require("./gen");
 var R = require("./role");
@@ -223,8 +448,7 @@ var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
 
 var total,  //总节点数
-    ABcut,  //AB剪枝次数
-    WINcut; //WIN剪枝次数
+    ABcut  //AB剪枝次数
 
 /*
  * max min search
@@ -238,7 +462,6 @@ var maxmin = function(board, deep) {
 
   total = 0;
   ABcut = 0;
-  WINcut = 0;
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -260,7 +483,7 @@ var maxmin = function(board, deep) {
   }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   console.log('当前局面分数：' + best);
-  console.log('搜索节点数:'+ total+ ',AB剪枝次数:'+ABcut+',WIN剪枝次数：'+WINcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('搜索节点数:'+ total+ ',AB剪枝次数:'+ABcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   return result;
 }
 
@@ -278,12 +501,6 @@ var min = function(board, deep, alpha, beta) {
     var p = points[i];
     board[p[0]][p[1]] = R.hum;
     var v = max(board, deep-1, best < alpha ? best : alpha, beta);
-    //WIN剪枝，如果这里可以赢，后面的就不用算了。能赢就赢，赢多少分无所谓
-    if(win(board) == R.hum) {
-      board[p[0]][p[1]] = R.empty;
-      WINcut ++;
-      return v;
-    }
     board[p[0]][p[1]] = R.empty;
     if(v < best ) {
       best = v;
@@ -311,12 +528,6 @@ var max = function(board, deep, alpha, beta) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
     var v = min(board, deep-1, alpha, best > beta ? best : beta);
-    //WIN剪枝，如果这里可以赢，后面的就不用算了。能赢就赢，赢多少分无所谓
-    if(win(board) == R.com) {
-      board[p[0]][p[1]] = R.empty;
-      WINcut ++;
-      return v;
-    }
     board[p[0]][p[1]] = R.empty;
     if(v > best) {
       best = v;
@@ -332,76 +543,14 @@ var max = function(board, deep, alpha, beta) {
 
 module.exports = maxmin;
 
-},{"./evaluate":4,"./gen":6,"./role":8,"./score.js":10,"./win.js":11}],8:[function(require,module,exports){
+},{"./evaluate":6,"./gen":8,"./role":10,"./score.js":11,"./win.js":12}],10:[function(require,module,exports){
 module.exports = {
   com: 2,
   hum: 1,
   empty: 0
 }
 
-},{}],9:[function(require,module,exports){
-/*
- * 启发式评价函数
- * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
- */
-var score = require("./score.js");
-var role = require("./role.js");
-var eRow = require("./evaluate-row.js");
-
-var s = function(board, p) {
-  var result = 0;
-  var line = [];
-
-  var len = board.length;
-
-  line=[];
-  for(var i=p[0]-4;i<=p[0]+4;i++) {//只截最近的一段。不然可能会把同一行的其他的分加上
-    if(i<0 || i>=len) continue;
-    line.push(board[p[0]][i]);
-  }
-  result += eRow(line, role.com);
-  result += eRow(line, role.hum);
-
-
-  line=[];
-  for(var i=p[1]-4;i<=p[1]+4;i++) {
-    if(i<0 || i>=len) continue;
-    line.push(board[i][p[1]]);
-  }
-  result += eRow(line, role.com);
-  result += eRow(line, role.hum);
-
-
-  line=[];
-  for(var i=-4;i<=4;i++) {
-    var x=p[0]+i;
-    var y=p[1]+i;
-    if(x<0 || x>=len) continue;
-    if(y<0 || y>=len) continue;
-    line.push(board[x][y]);
-  }
-  result += eRow(line, role.com);
-  result += eRow(line, role.hum);
-
-
-  line=[];
-  for(var i=-4;i<=4;i++) {
-    var x=p[0]-i;
-    var y=p[1]+i;
-    if(x<0 || x>=len) continue;
-    if(y<0 || y>=len) continue;
-    line.push(board[x][y]);
-  }
-  result += eRow(line, role.com);
-  result += eRow(line, role.hum);
-
-  return result;
-
-}
-
-module.exports = s;
-
-},{"./evaluate-row.js":2,"./role.js":8,"./score.js":10}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = {
   ONE: 10,
   TWO: 100,
@@ -414,7 +563,7 @@ module.exports = {
   BLOCKED_FOUR: 1000
 }
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var flat = require("./flat.js");
 var eRow = require("./evaluate-row.js");
 var r = require("./role");
@@ -436,4 +585,4 @@ module.exports = function(board) {
   return r.empty;
 }
 
-},{"./evaluate-row.js":2,"./flat.js":5,"./role":8,"./score.js":10}]},{},[1]);
+},{"./evaluate-row.js":4,"./flat.js":7,"./role":10,"./score.js":11}]},{},[1]);

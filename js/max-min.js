@@ -8,8 +8,7 @@ var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
 
 var total,  //总节点数
-    ABcut,  //AB剪枝次数
-    WINcut; //WIN剪枝次数
+    ABcut  //AB剪枝次数
 
 /*
  * max min search
@@ -23,7 +22,6 @@ var maxmin = function(board, deep) {
 
   total = 0;
   ABcut = 0;
-  WINcut = 0;
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -45,7 +43,7 @@ var maxmin = function(board, deep) {
   }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   console.log('当前局面分数：' + best);
-  console.log('搜索节点数:'+ total+ ',AB剪枝次数:'+ABcut+',WIN剪枝次数：'+WINcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('搜索节点数:'+ total+ ',AB剪枝次数:'+ABcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   return result;
 }
 
@@ -63,12 +61,6 @@ var min = function(board, deep, alpha, beta) {
     var p = points[i];
     board[p[0]][p[1]] = R.hum;
     var v = max(board, deep-1, best < alpha ? best : alpha, beta);
-    //WIN剪枝，如果这里可以赢，后面的就不用算了。能赢就赢，赢多少分无所谓
-    if(win(board) == R.hum) {
-      board[p[0]][p[1]] = R.empty;
-      WINcut ++;
-      return v;
-    }
     board[p[0]][p[1]] = R.empty;
     if(v < best ) {
       best = v;
@@ -96,12 +88,6 @@ var max = function(board, deep, alpha, beta) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
     var v = min(board, deep-1, alpha, best > beta ? best : beta);
-    //WIN剪枝，如果这里可以赢，后面的就不用算了。能赢就赢，赢多少分无所谓
-    if(win(board) == R.com) {
-      board[p[0]][p[1]] = R.empty;
-      WINcut ++;
-      return v;
-    }
     board[p[0]][p[1]] = R.empty;
     if(v > best) {
       best = v;
