@@ -92,7 +92,6 @@ var max = function(board, deep, alpha, beta) {
     if(v > best) {
       best = v;
     }
-    if(v > SCORE.FIVE) break;
     if(v > alpha) { //AB 剪枝
       ABcut ++;
       break;
