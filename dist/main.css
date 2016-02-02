@@ -84,3 +84,8 @@ p {
     left: 32.5%;
   }
 }
+footer {
+  margin: 1rem;
+  text-align: center;
+  color: gray;
+}
