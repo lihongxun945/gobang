@@ -407,17 +407,17 @@ var gen = function(board, deep) {
   }
 
   //如果成五，是必杀棋，直接返回
-  if(fives[0]) return [fives[0]];
+  if(fives.length) return [fives[0]];
+  
+  if(fours.length) return fours;
 
-  //其他情况都不一定，即使是活双三也不一定，容易被冲四破解。
-  return fours.concat(twothrees.concat(
-    threes.concat(
+  if(twothrees.length) return twothrees;
+
+  return threes.concat(
       twos.concat(
         neighbors.concat(nextNeighbors)
       )
-    )
-  )
- );
+    );
 }
 
 //有邻居
@@ -539,7 +539,6 @@ var max = function(board, deep, alpha, beta) {
     if(v > best) {
       best = v;
     }
-    if(v > SCORE.FIVE) break;
     if(v > alpha) { //AB 剪枝
       ABcut ++;
       break;
