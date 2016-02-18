@@ -65,7 +65,7 @@ var min = function(board, deep, alpha, beta) {
     if(v < best ) {
       best = v;
     }
-    if(v < beta) {  //AB剪枝
+    if(v <= beta) {  //AB剪枝
       ABcut ++;
       break;
     }
@@ -92,7 +92,7 @@ var max = function(board, deep, alpha, beta) {
     if(v > best) {
       best = v;
     }
-    if(v > alpha) { //AB 剪枝
+    if(v >= alpha) { //AB 剪枝
       ABcut ++;
       break;
     }

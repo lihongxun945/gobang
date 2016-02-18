@@ -36,7 +36,7 @@ var score = function(count, block) {
 
 module.exports = score;
 
-},{"./score.js":11}],3:[function(require,module,exports){
+},{"./score.js":12}],3:[function(require,module,exports){
 /*
  * 启发式评价函数
  * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
@@ -236,7 +236,7 @@ var s = function(board, p, role) {
 
 module.exports = s;
 
-},{"./count-to-score.js":2,"./role.js":10,"./score.js":11}],4:[function(require,module,exports){
+},{"./count-to-score.js":2,"./role.js":11,"./score.js":12}],4:[function(require,module,exports){
 var r = require("./role");
 var SCORE = require("./score.js");
 var score = require("./count-to-score.js");
@@ -267,7 +267,7 @@ var eRow = function(line, role) {
 
 module.exports = eRow;
 
-},{"./count-to-score.js":2,"./role":10,"./score.js":11}],5:[function(require,module,exports){
+},{"./count-to-score.js":2,"./role":11,"./score.js":12}],5:[function(require,module,exports){
 var eRow = require("./evaluate-row.js");
 
 var eRows = function(rows, role) {
@@ -295,7 +295,7 @@ var evaluate = function(board) {
 
 module.exports = evaluate;
 
-},{"./evaluate-rows.js":5,"./flat":7,"./role":10}],7:[function(require,module,exports){
+},{"./evaluate-rows.js":5,"./flat":7,"./role":11}],7:[function(require,module,exports){
 //一维化，把二位的棋盘四个一位数组。
 var flat = function(board) {
   var result = [];
@@ -355,6 +355,7 @@ module.exports = flat;
 
 var R = require("./role.js");
 var scorePoint = require("./evaluate-point.js");
+var hasNeighbor = require("./neighbor.js");
 var S = require("./score.js");
 
 var gen = function(board, deep) {
@@ -420,31 +421,9 @@ var gen = function(board, deep) {
     );
 }
 
-//有邻居
-var hasNeighbor = function(board, point, distance, count) {
-  var len = board.length;
-  var startX = point[0]-distance;
-  var endX = point[0]+distance;
-  var startY = point[1]-distance;
-  var endY = point[1]+distance;
-  for(var i=startX;i<=endX;i++) {
-    if(i<0||i>=len) continue;
-    for(var j=startY;j<=endY;j++) {
-      if(j<0||j>=len) continue;
-      if(i==point[0] && j==point[1]) continue;
-      if(board[i][j] != R.empty) {
-        count --;
-        if(count <= 0) return true;
-      }
-    }
-  }
-  return false;
-}
-
-
 module.exports = gen;
 
-},{"./evaluate-point.js":3,"./role.js":10,"./score.js":11}],9:[function(require,module,exports){
+},{"./evaluate-point.js":3,"./neighbor.js":10,"./role.js":11,"./score.js":12}],9:[function(require,module,exports){
 var evaluate = require("./evaluate");
 var gen = require("./gen");
 var R = require("./role");
@@ -512,7 +491,7 @@ var min = function(board, deep, alpha, beta) {
     if(v < best ) {
       best = v;
     }
-    if(v < beta) {  //AB剪枝
+    if(v <= beta) {  //AB剪枝
       ABcut ++;
       break;
     }
@@ -539,7 +518,7 @@ var max = function(board, deep, alpha, beta) {
     if(v > best) {
       best = v;
     }
-    if(v > alpha) { //AB 剪枝
+    if(v >= alpha) { //AB 剪枝
       ABcut ++;
       break;
     }
@@ -549,14 +528,39 @@ var max = function(board, deep, alpha, beta) {
 
 module.exports = maxmin;
 
-},{"./evaluate":6,"./gen":8,"./role":10,"./score.js":11,"./win.js":12}],10:[function(require,module,exports){
+},{"./evaluate":6,"./gen":8,"./role":11,"./score.js":12,"./win.js":13}],10:[function(require,module,exports){
+var R = require("./role");
+//有邻居
+var hasNeighbor = function(board, point, distance, count) {
+  var len = board.length;
+  var startX = point[0]-distance;
+  var endX = point[0]+distance;
+  var startY = point[1]-distance;
+  var endY = point[1]+distance;
+  for(var i=startX;i<=endX;i++) {
+    if(i<0||i>=len) continue;
+    for(var j=startY;j<=endY;j++) {
+      if(j<0||j>=len) continue;
+      if(i==point[0] && j==point[1]) continue;
+      if(board[i][j] != R.empty) {
+        count --;
+        if(count <= 0) return true;
+      }
+    }
+  }
+  return false;
+}
+
+module.exports = hasNeighbor;
+
+},{"./role":11}],11:[function(require,module,exports){
 module.exports = {
   com: 2,
   hum: 1,
   empty: 0
 }
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = {
   ONE: 10,
   TWO: 100,
@@ -569,7 +573,7 @@ module.exports = {
   BLOCKED_FOUR: 1000
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var flat = require("./flat.js");
 var eRow = require("./evaluate-row.js");
 var r = require("./role");
@@ -591,4 +595,4 @@ module.exports = function(board) {
   return r.empty;
 }
 
-},{"./evaluate-row.js":4,"./flat.js":7,"./role":10,"./score.js":11}]},{},[1]);
+},{"./evaluate-row.js":4,"./flat.js":7,"./role":11,"./score.js":12}]},{},[1]);
