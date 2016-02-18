@@ -23,21 +23,21 @@ var maxmin = function(board, deep) {
   total = 0;
   ABcut = 0;
 
+
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
     var v = min(board, deep-1, MAX, best > MIN ? best : MIN);
 
     //console.log(v, p);
-    //如果跟之前的一个好，则把当前位子加入待选位子
+    //如果跟之前的一个一样好，则把当前位子加入待选位子
     if(v == best) {
       bestPoints.push(p);
     }
     //找到一个更好的分，就把以前存的位子全部清除
     if(v > best) {
       best = v;
-      bestPoints = [];
-      bestPoints.push(p);
+      bestPoints = [p];
     }
     board[p[0]][p[1]] = R.empty;
   }

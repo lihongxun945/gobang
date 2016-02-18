@@ -28,7 +28,10 @@ var Board = function(container, status) {
   this.worker.onmessage = function(e) {
     self._set(e.data[0], e.data[1], R.com);
     self.lock = false;
-    self.setStatus("电脑下子("+e.data[0]+","+e.data[1]+"), 用时"+((new Date() - self.time)/1000)+"秒");
+    var s = "电脑下子("+e.data[0]+","+e.data[1]+"), 用时"+((new Date() - self.time)/1000)+"秒";
+    self.setStatus(s);
+    console.log(s);
+    console.log("==============================");
   }
   this.setStatus("请点击开始按钮");
 
