@@ -4,6 +4,7 @@ var R = require("./role");
 var SCORE = require("./score.js");
 var win = require("./win.js");
 var math = require("./math.js");
+var checkmate = require("./checkmate.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
@@ -11,13 +12,17 @@ var MIN = -1*MAX;
 var total=0, //总节点数
     steps=0,  //总步数
     count,  //每次思考的节点数
-    ABcut  //AB剪枝次数
+    ABcut;  //AB剪枝次数
 
 /*
  * max min search
  * white is max, black is min
  */
 var maxmin = function(board, deep) {
+  var mate = checkmate(board, R.com, 8);
+  if(mate) {
+    return mate;
+  }
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
