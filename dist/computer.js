@@ -17,13 +17,23 @@ var find = function(board, role, score) {
   var result = [];
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
-      var p = [i, j];
       if(board[i][j] == R.empty) {
+        var p = [i, j];
         if(hasNeighbor(board, p, 2, 1)) { //必须是有邻居的才行
-          var s = scorePoint(board, p, role);
-          if(s >= score) {
-            p.score = s;
-            result.push(p);
+          if(role) {
+            var s = scorePoint(board, p, role);
+            if(s >= score) {
+              p.score = s;
+              result.push(p);
+            }
+          } else {
+            var s1 = scorePoint(board, p, R.com);
+            var s2 = scorePoint(board, p, R.hum);
+            var s = Math.max(s1, s2);
+            if(s > score) {
+              p.score = s;
+              result.push(p);
+            }
           }
         }
       }
@@ -39,6 +49,7 @@ var find = function(board, role, score) {
 var max = function(board, role, deep, steps) {
   var w = win(board);
   if(w == role) return true;
+  if(w == R.reverse(role)) return false;
   if(deep < 0) return false;
   var points = find(board, role, S.BLOCKED_FOUR);
   if(points.length == 0) return false;
@@ -62,8 +73,9 @@ var max = function(board, role, deep, steps) {
 var min = function(board, role, deep, steps) {
   var w = win(board);
   if(w == role) return true;
+  if(w == R.reverse(role)) return false;
   if(deep < 0) return false;
-  var points = find(board, role, S.FOUR);
+  var points = find(board, 0, S.FOUR);
   if(points.length == 0) return false;
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -71,10 +83,10 @@ var min = function(board, role, deep, steps) {
     steps.push(p);
     var m = max(board, role, deep-1, steps);
     board[p[0]][p[1]] = R.empty;
+    steps.pop();
     if(m) {
       continue;
     } else {
-      steps.pop();
       return false; //只要有一种能防守住
     }
   }
