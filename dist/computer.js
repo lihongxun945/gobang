@@ -6,7 +6,7 @@ onmessage = function(e) {
   postMessage(p);
 }
 
-},{"./max-min.js":9}],2:[function(require,module,exports){
+},{"./max-min.js":10}],2:[function(require,module,exports){
 var SCORE = require("./score.js");
 
 var score = function(count, block) {
@@ -36,7 +36,7 @@ var score = function(count, block) {
 
 module.exports = score;
 
-},{"./score.js":11}],3:[function(require,module,exports){
+},{"./score.js":12}],3:[function(require,module,exports){
 /*
  * 启发式评价函数
  * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
@@ -236,7 +236,7 @@ var s = function(board, p, role) {
 
 module.exports = s;
 
-},{"./count-to-score.js":2,"./role.js":10,"./score.js":11}],4:[function(require,module,exports){
+},{"./count-to-score.js":2,"./role.js":11,"./score.js":12}],4:[function(require,module,exports){
 var r = require("./role");
 var SCORE = require("./score.js");
 var score = require("./count-to-score.js");
@@ -267,7 +267,7 @@ var eRow = function(line, role) {
 
 module.exports = eRow;
 
-},{"./count-to-score.js":2,"./role":10,"./score.js":11}],5:[function(require,module,exports){
+},{"./count-to-score.js":2,"./role":11,"./score.js":12}],5:[function(require,module,exports){
 var eRow = require("./evaluate-row.js");
 
 var eRows = function(rows, role) {
@@ -295,7 +295,7 @@ var evaluate = function(board) {
 
 module.exports = evaluate;
 
-},{"./evaluate-rows.js":5,"./flat":7,"./role":10}],7:[function(require,module,exports){
+},{"./evaluate-rows.js":5,"./flat":7,"./role":11}],7:[function(require,module,exports){
 //一维化，把二位的棋盘四个一位数组。
 var flat = function(board) {
   var result = [];
@@ -444,17 +444,41 @@ var hasNeighbor = function(board, point, distance, count) {
 
 module.exports = gen;
 
-},{"./evaluate-point.js":3,"./role.js":10,"./score.js":11}],9:[function(require,module,exports){
+},{"./evaluate-point.js":3,"./role.js":11,"./score.js":12}],9:[function(require,module,exports){
+var threshold = 1.2;
+
+module.exports = {
+  greatThan: function(a, b) {
+    return a > b * threshold;
+  },
+  greatOrEqualThan: function(a, b) {
+    return a * threshold > b;
+  },
+  littleThan: function(a, b) {
+    return a * threshold < b;
+  },
+  littleOrEqualThan: function(a, b) {
+    return a < b * threshold;
+  },
+  equal: function(a, b) {
+    return (a * threshold > b) && (a < b * threshold);
+  }
+}
+
+},{}],10:[function(require,module,exports){
 var evaluate = require("./evaluate");
 var gen = require("./gen");
 var R = require("./role");
 var SCORE = require("./score.js");
 var win = require("./win.js");
+var math = require("./math.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
 
-var total,  //总节点数
+var total=0, //总节点数
+    steps=0,  //总步数
+    count,  //每次思考的节点数
     ABcut  //AB剪枝次数
 
 /*
@@ -467,7 +491,7 @@ var maxmin = function(board, deep) {
   var bestPoints = [];
   deep = deep === undefined ? 5 : deep;
 
-  total = 0;
+  count = 0;
   ABcut = 0;
 
   for(var i=0;i<points.length;i++) {
@@ -477,11 +501,11 @@ var maxmin = function(board, deep) {
 
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
-    if(v == best) {
+    if(math.equal(v, best)) {
       bestPoints.push(p);
     }
     //找到一个更好的分，就把以前存的位子全部清除
-    if(v > best) {
+    if(math.greatThan(v, best)) {
       best = v;
       bestPoints = [];
       bestPoints.push(p);
@@ -489,14 +513,17 @@ var maxmin = function(board, deep) {
     board[p[0]][p[1]] = R.empty;
   }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
+  steps ++;
+  total += count;
   console.log('当前局面分数：' + best);
-  console.log('搜索节点数:'+ total+ ',AB剪枝次数:'+ABcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
   return result;
 }
 
 var min = function(board, deep, alpha, beta) {
   var v = evaluate(board);
-  total ++;
+  count ++;
   if(deep <= 0 || win(board)) {
     return v;
   }
@@ -509,10 +536,10 @@ var min = function(board, deep, alpha, beta) {
     board[p[0]][p[1]] = R.hum;
     var v = max(board, deep-1, best < alpha ? best : alpha, beta);
     board[p[0]][p[1]] = R.empty;
-    if(v < best ) {
+    if(math.littleThan(v, best)) {
       best = v;
     }
-    if(v < beta) {  //AB剪枝
+    if(math.littleOrEqualThan(v, beta)) {  //AB剪枝
       ABcut ++;
       break;
     }
@@ -523,7 +550,7 @@ var min = function(board, deep, alpha, beta) {
 
 var max = function(board, deep, alpha, beta) {
   var v = evaluate(board);
-  total ++;
+  count ++;
   if(deep <= 0 || win(board)) {
     return v;
   }
@@ -536,10 +563,10 @@ var max = function(board, deep, alpha, beta) {
     board[p[0]][p[1]] = R.com;
     var v = min(board, deep-1, alpha, best > beta ? best : beta);
     board[p[0]][p[1]] = R.empty;
-    if(v > best) {
+    if(math.greatThan(v, best)) {
       best = v;
     }
-    if(v > alpha) { //AB 剪枝
+    if(math.greatOrEqualThan(v, alpha)) { //AB 剪枝
       ABcut ++;
       break;
     }
@@ -549,14 +576,14 @@ var max = function(board, deep, alpha, beta) {
 
 module.exports = maxmin;
 
-},{"./evaluate":6,"./gen":8,"./role":10,"./score.js":11,"./win.js":12}],10:[function(require,module,exports){
+},{"./evaluate":6,"./gen":8,"./math.js":9,"./role":11,"./score.js":12,"./win.js":13}],11:[function(require,module,exports){
 module.exports = {
   com: 2,
   hum: 1,
   empty: 0
 }
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 module.exports = {
   ONE: 10,
   TWO: 100,
@@ -569,7 +596,7 @@ module.exports = {
   BLOCKED_FOUR: 1000
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var flat = require("./flat.js");
 var eRow = require("./evaluate-row.js");
 var r = require("./role");
@@ -591,4 +618,4 @@ module.exports = function(board) {
   return r.empty;
 }
 
-},{"./evaluate-row.js":4,"./flat.js":7,"./role":10,"./score.js":11}]},{},[1]);
+},{"./evaluate-row.js":4,"./flat.js":7,"./role":11,"./score.js":12}]},{},[1]);
