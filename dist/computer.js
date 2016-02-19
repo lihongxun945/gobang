@@ -20,17 +20,18 @@ var find = function(board, role, score) {
       if(board[i][j] == R.empty) {
         var p = [i, j];
         if(hasNeighbor(board, p, 2, 1)) { //必须是有邻居的才行
-          if(role) {
-            var s = scorePoint(board, p, role);
-            if(s >= score) {
-              p.score = s;
-              result.push(p);
-            }
-          } else {
+
+          if(role == R.empty) {
             var s1 = scorePoint(board, p, R.com);
             var s2 = scorePoint(board, p, R.hum);
             var s = Math.max(s1, s2);
             if(s > score) {
+              p.score = s;
+              result.push(p);
+            }
+          } else {
+            var s = scorePoint(board, p, role);
+            if(s >= score) {
               p.score = s;
               result.push(p);
             }
@@ -56,13 +57,10 @@ var max = function(board, role, deep, steps) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = role;
-    steps.push(p);
     var m = min(board, role, deep-1, steps);
     board[p[0]][p[1]] = R.empty;
     if(m) {
       return p;
-    } else {
-      steps.pop();
     }
   }
   return false;
@@ -75,15 +73,13 @@ var min = function(board, role, deep, steps) {
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
   if(deep < 0) return false;
-  var points = find(board, 0, S.FOUR);
+  var points = find(board, R.empty, S.FOUR);
   if(points.length == 0) return false;
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.reverse(role);
-    steps.push(p);
     var m = max(board, role, deep-1, steps);
     board[p[0]][p[1]] = R.empty;
-    steps.pop();
     if(m) {
       continue;
     } else {
@@ -94,6 +90,7 @@ var min = function(board, role, deep, steps) {
 }
 
 var c = function(board, role, deep) {
+  if(deep <= 0) return false;
   deep = deep || 20;
   var steps = [];
   var result = max(board, role, deep, steps);
@@ -732,7 +729,7 @@ module.exports = function(board) {
       return r.hum;
     }
   }
-  return r.empty;
+  return false;
 }
 
 },{"./evaluate-row.js":5,"./flat.js":8,"./role":13,"./score.js":14}]},{},[2]);

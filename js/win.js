@@ -16,5 +16,5 @@ module.exports = function(board) {
       return r.hum;
     }
   }
-  return r.empty;
+  return false;
 }
