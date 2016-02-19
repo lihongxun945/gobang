@@ -19,7 +19,7 @@ var total=0, //总节点数
  * white is max, black is min
  */
 var maxmin = function(board, deep) {
-  var mate = checkmate(board, R.com, 8);
+  var mate = checkmate(board, R.com);
   if(mate) {
     return mate;
   }

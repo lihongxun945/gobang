@@ -2,7 +2,7 @@
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
  * 不过算杀只考虑冲四活三这类对方必须防守的棋
- * 因此算杀的复杂度虽然是 M^N ，但是底数M特别小，可以算到20步以上的杀棋。
+ * 因此算杀的复杂度虽然是 M^N ，但是底数M特别小，可以算到16步以上的杀棋。
  */
 
 /*
@@ -106,10 +106,10 @@ var min = function(board, role, deep) {
 
 var c = function(board, role, deep) {
   if(deep <= 0) return false;
-  deep = deep || 20;
+  deep = deep || 12;
   var result = max(board, role, deep);
   if(result) console.log("算杀成功:" + JSON.stringify(result));
-  return result;
+  return result[0];
 }
 
 module.exports = c;
