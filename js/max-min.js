@@ -4,6 +4,7 @@ var R = require("./role");
 var SCORE = require("./score.js");
 var win = require("./win.js");
 var math = require("./math.js");
+var config = require("./config.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
@@ -21,7 +22,7 @@ var maxmin = function(board, deep) {
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
-  deep = deep === undefined ? 5 : deep;
+  deep = deep === undefined ? config.searchDeep : deep;
 
   count = 0;
   ABcut = 0;
@@ -66,7 +67,7 @@ var min = function(board, deep, alpha, beta) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.hum;
-    var v = max(board, deep-1, best < alpha ? best : alpha, beta);
+    var v = max(board, deep-1, best < alpha ? best : alpha, beta) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
     if(math.littleThan(v, best)) {
       best = v;
@@ -93,7 +94,7 @@ var max = function(board, deep, alpha, beta) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = min(board, deep-1, alpha, best > beta ? best : beta);
+    var v = min(board, deep-1, alpha, best > beta ? best : beta) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;

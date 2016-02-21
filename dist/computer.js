@@ -6,7 +6,14 @@ onmessage = function(e) {
   postMessage(p);
 }
 
-},{"./max-min.js":10}],2:[function(require,module,exports){
+},{"./max-min.js":11}],2:[function(require,module,exports){
+module.exports = {
+  searchDeep: 4,  //搜索深度
+  deepDecrease: .7, //每深入一层，同样的分数会打一个折扣
+  checkmateDeep:  8,  //算杀深度
+}
+
+},{}],3:[function(require,module,exports){
 var SCORE = require("./score.js");
 
 var score = function(count, block) {
@@ -36,7 +43,7 @@ var score = function(count, block) {
 
 module.exports = score;
 
-},{"./score.js":12}],3:[function(require,module,exports){
+},{"./score.js":13}],4:[function(require,module,exports){
 /*
  * 启发式评价函数
  * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
@@ -236,7 +243,7 @@ var s = function(board, p, role) {
 
 module.exports = s;
 
-},{"./count-to-score.js":2,"./role.js":11,"./score.js":12}],4:[function(require,module,exports){
+},{"./count-to-score.js":3,"./role.js":12,"./score.js":13}],5:[function(require,module,exports){
 var r = require("./role");
 var SCORE = require("./score.js");
 var score = require("./count-to-score.js");
@@ -267,7 +274,7 @@ var eRow = function(line, role) {
 
 module.exports = eRow;
 
-},{"./count-to-score.js":2,"./role":11,"./score.js":12}],5:[function(require,module,exports){
+},{"./count-to-score.js":3,"./role":12,"./score.js":13}],6:[function(require,module,exports){
 var eRow = require("./evaluate-row.js");
 
 var eRows = function(rows, role) {
@@ -280,7 +287,7 @@ var eRows = function(rows, role) {
 
 module.exports = eRows;
 
-},{"./evaluate-row.js":4}],6:[function(require,module,exports){
+},{"./evaluate-row.js":5}],7:[function(require,module,exports){
 var flat = require("./flat");
 var R = require("./role");
 var eRows = require("./evaluate-rows.js");
@@ -295,7 +302,7 @@ var evaluate = function(board) {
 
 module.exports = evaluate;
 
-},{"./evaluate-rows.js":5,"./flat":7,"./role":11}],7:[function(require,module,exports){
+},{"./evaluate-rows.js":6,"./flat":8,"./role":12}],8:[function(require,module,exports){
 //一维化，把二位的棋盘四个一位数组。
 var flat = function(board) {
   var result = [];
@@ -342,7 +349,7 @@ var flat = function(board) {
 
 module.exports = flat;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*
  * 产生待选的节点
  * 这个函数的优化非常重要，这个函数产生的节点数，实际就是搜索总数的底数。比如这里平均产生50个节点，进行4层搜索，则平均搜索节点数为50的4次方（在没有剪枝的情况下）
@@ -444,7 +451,7 @@ var hasNeighbor = function(board, point, distance, count) {
 
 module.exports = gen;
 
-},{"./evaluate-point.js":3,"./role.js":11,"./score.js":12}],9:[function(require,module,exports){
+},{"./evaluate-point.js":4,"./role.js":12,"./score.js":13}],10:[function(require,module,exports){
 var threshold = 1.2;
 
 module.exports = {
@@ -465,13 +472,14 @@ module.exports = {
   }
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var evaluate = require("./evaluate");
 var gen = require("./gen");
 var R = require("./role");
 var SCORE = require("./score.js");
 var win = require("./win.js");
 var math = require("./math.js");
+var config = require("./config.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
@@ -489,7 +497,7 @@ var maxmin = function(board, deep) {
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
-  deep = deep === undefined ? 5 : deep;
+  deep = deep === undefined ? config.searchDeep : deep;
 
   count = 0;
   ABcut = 0;
@@ -534,7 +542,7 @@ var min = function(board, deep, alpha, beta) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.hum;
-    var v = max(board, deep-1, best < alpha ? best : alpha, beta);
+    var v = max(board, deep-1, best < alpha ? best : alpha, beta) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
     if(math.littleThan(v, best)) {
       best = v;
@@ -561,7 +569,7 @@ var max = function(board, deep, alpha, beta) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = min(board, deep-1, alpha, best > beta ? best : beta);
+    var v = min(board, deep-1, alpha, best > beta ? best : beta) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;
@@ -576,14 +584,14 @@ var max = function(board, deep, alpha, beta) {
 
 module.exports = maxmin;
 
-},{"./evaluate":6,"./gen":8,"./math.js":9,"./role":11,"./score.js":12,"./win.js":13}],11:[function(require,module,exports){
+},{"./config.js":2,"./evaluate":7,"./gen":9,"./math.js":10,"./role":12,"./score.js":13,"./win.js":14}],12:[function(require,module,exports){
 module.exports = {
   com: 2,
   hum: 1,
   empty: 0
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 module.exports = {
   ONE: 10,
   TWO: 100,
@@ -596,7 +604,7 @@ module.exports = {
   BLOCKED_FOUR: 1000
 }
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var flat = require("./flat.js");
 var eRow = require("./evaluate-row.js");
 var r = require("./role");
@@ -618,4 +626,4 @@ module.exports = function(board) {
   return r.empty;
 }
 
-},{"./evaluate-row.js":4,"./flat.js":7,"./role":11,"./score.js":12}]},{},[1]);
+},{"./evaluate-row.js":5,"./flat.js":8,"./role":12,"./score.js":13}]},{},[1]);
