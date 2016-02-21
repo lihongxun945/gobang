@@ -52,6 +52,7 @@ var maxmin = function(board, deep) {
   console.log('当前局面分数：' + best);
   console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
+  console.log("================================");
   return result;
 }
 
@@ -85,13 +86,20 @@ var min = function(board, deep, alpha, beta) {
 var max = function(board, deep, alpha, beta) {
   var v = evaluate(board);
   count ++;
-  if(deep <= 0 || win(board)) {
+  if(win(board)) {
     return v;
   }
-
-  if(math.littleThan(v, SCORE.THREE*2) && checkmate(board, R.com, 8)) {
-    return SCORE.FOUR;
+  //只对双三以下的进行算杀，双三以上的本来就属于必杀棋，不用再算杀
+  if(deep <= 1) {
+    if(math.littleThan(v, SCORE.THREE*2) && checkmate(board, R.com, 8)) {
+      return SCORE.FOUR * config.deepDecrease;  //算杀最大的可能也就是下一步能赢，所以对当前来说就是连四的分数
+    } else {
+      return v;
+    }
   }
+
+
+  
 
   var best = MIN;
   var points = gen(board, deep);
