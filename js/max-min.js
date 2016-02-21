@@ -19,10 +19,6 @@ var total=0, //总节点数
  * white is max, black is min
  */
 var maxmin = function(board, deep) {
-  var mate = checkmate(board, R.com);
-  if(mate) {
-    return mate;
-  }
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
@@ -90,6 +86,10 @@ var max = function(board, deep, alpha, beta) {
   count ++;
   if(deep <= 0 || win(board)) {
     return v;
+  }
+
+  if(math.littleThan(v, SCORE.THREE*2) && checkmate(board, R.com, 8)) {
+    return SCORE.FOUR;
   }
 
   var best = MIN;

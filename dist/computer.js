@@ -107,9 +107,14 @@ var min = function(board, role, deep) {
 
 var c = function(board, role, deep) {
   if(deep <= 0) return false;
-  deep = deep || 12;
+  deep = deep || 10;
+  var start = new Date();
   var result = max(board, role, deep);
-  if(result) console.log("算杀成功:" + JSON.stringify(result));
+  var time = Math.round(new Date() - start);
+  if(result) console.log("算杀成功("+time+"毫秒):" + JSON.stringify(result));
+  else {
+    //console.log("算杀失败("+time+"毫秒)");
+  }
   return result[0];
 }
 
@@ -583,10 +588,6 @@ var total=0, //总节点数
  * white is max, black is min
  */
 var maxmin = function(board, deep) {
-  var mate = checkmate(board, R.com);
-  if(mate) {
-    return mate;
-  }
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
@@ -654,6 +655,10 @@ var max = function(board, deep, alpha, beta) {
   count ++;
   if(deep <= 0 || win(board)) {
     return v;
+  }
+
+  if(math.littleThan(v, SCORE.THREE*2) && checkmate(board, R.com, 8)) {
+    return SCORE.FOUR;
   }
 
   var best = MIN;

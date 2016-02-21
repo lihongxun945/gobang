@@ -106,9 +106,14 @@ var min = function(board, role, deep) {
 
 var c = function(board, role, deep) {
   if(deep <= 0) return false;
-  deep = deep || 12;
+  deep = deep || 10;
+  var start = new Date();
   var result = max(board, role, deep);
-  if(result) console.log("算杀成功:" + JSON.stringify(result));
+  var time = Math.round(new Date() - start);
+  if(result) console.log("算杀成功("+time+"毫秒):" + JSON.stringify(result));
+  else {
+    //console.log("算杀失败("+time+"毫秒)");
+  }
   return result[0];
 }
 
