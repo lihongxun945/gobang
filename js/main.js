@@ -123,8 +123,7 @@ Board.prototype.com = function(x, y, role) {
   this.lock = true;
   this.time = new Date();
   this.worker.postMessage({
-    board: this.board,
-    deep: 4
+    board: this.board
   });
   this.setStatus("电脑正在思考...");
 }
