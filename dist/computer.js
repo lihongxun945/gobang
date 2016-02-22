@@ -835,7 +835,7 @@ var min = function(board, deep, alpha, beta) {
     }
     if(math.littleOrEqualThan(v, beta)) {  //AB剪枝
       ABcut ++;
-      break;
+      return v;
     }
   }
   return best ;
@@ -845,21 +845,10 @@ var min = function(board, deep, alpha, beta) {
 var max = function(board, deep, alpha, beta) {
   var v = evaluate(board);
   count ++;
-  if(win(board)) {
+  if(deep <= 0 || win(board)) {
     return v;
   }
-  //只对双三以下的进行算杀，双三以上的本来就属于必杀棋，不用再算杀
-  if(deep <= 1) {
-    if(math.littleThan(v, SCORE.THREE*2) && checkmate(board, R.com)) {
-      return SCORE.FOUR * config.deepDecrease;  //算杀最大的可能也就是下一步能赢，所以对当前来说就是连四的分数
-    } else {
-      return v;
-    }
-  }
-
-
   
-
   var best = MIN;
   var points = gen(board, deep);
 
@@ -873,8 +862,11 @@ var max = function(board, deep, alpha, beta) {
     }
     if(math.greatOrEqualThan(v, alpha)) { //AB 剪枝
       ABcut ++;
-      break;
+      return v;
     }
+  }
+  if(math.littleThan(best, SCORE.THREE) && math.greatThan(best, SCORE.THREE * -1) && checkmate(board, R.com)) {
+    return SCORE.THREE * config.deepDecrease;  //算杀最大的可能也就是下一步能赢，所以对当前来说就是连四的分数
   }
   return best;
 }
