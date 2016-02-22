@@ -11,6 +11,7 @@
 var R = require("./role.js");
 var scorePoint = require("./evaluate-point.js");
 var S = require("./score.js");
+var config = require("./config.js");
 
 var gen = function(board, deep) {
   
@@ -68,11 +69,17 @@ var gen = function(board, deep) {
 
   if(twothrees.length) return twothrees;
 
-  return threes.concat(
+  var result = threes.concat(
       twos.concat(
         neighbors.concat(nextNeighbors)
       )
     );
+
+  if(result.length>config.countLimit) {
+    return result.slice(0, config.countLimit);
+  }
+
+  return result;
 }
 
 //有邻居

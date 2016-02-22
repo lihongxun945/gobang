@@ -10,7 +10,8 @@ onmessage = function(e) {
 module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //每深入一层，同样的分数会打一个折扣
-  checkmateDeep:  8,  //算杀深度
+  countLimit: 40, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  checkmateDeep:  0,  //算杀深度
 }
 
 },{}],3:[function(require,module,exports){
@@ -537,6 +538,7 @@ module.exports = flat;
 var R = require("./role.js");
 var scorePoint = require("./evaluate-point.js");
 var S = require("./score.js");
+var config = require("./config.js");
 
 var gen = function(board, deep) {
   
@@ -594,11 +596,17 @@ var gen = function(board, deep) {
 
   if(twothrees.length) return twothrees;
 
-  return threes.concat(
+  var result = threes.concat(
       twos.concat(
         neighbors.concat(nextNeighbors)
       )
     );
+
+  if(result.length>config.countLimit) {
+    return result.slice(0, config.countLimit);
+  }
+
+  return result;
 }
 
 //有邻居
@@ -625,7 +633,7 @@ var hasNeighbor = function(board, point, distance, count) {
 
 module.exports = gen;
 
-},{"./evaluate-point.js":4,"./role.js":12,"./score.js":13}],10:[function(require,module,exports){
+},{"./config.js":2,"./evaluate-point.js":4,"./role.js":12,"./score.js":13}],10:[function(require,module,exports){
 var threshold = 1.2;
 
 module.exports = {
