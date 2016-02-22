@@ -91,7 +91,7 @@ var max = function(board, deep, alpha, beta) {
   }
   //只对双三以下的进行算杀，双三以上的本来就属于必杀棋，不用再算杀
   if(deep <= 1) {
-    if(math.littleThan(v, SCORE.THREE*2) && checkmate(board, R.com, 8)) {
+    if(math.littleThan(v, SCORE.THREE*2) && checkmate(board, R.com)) {
       return SCORE.FOUR * config.deepDecrease;  //算杀最大的可能也就是下一步能赢，所以对当前来说就是连四的分数
     } else {
       return v;

@@ -16,6 +16,7 @@ var hasNeighbor = require("./neighbor.js");
 var scorePoint = require("./evaluate-point.js");
 var S = require("./score.js");
 var win = require("./win.js");
+var config = require("./config.js");
 
 //找到所有比目标分数大的位置
 var find = function(board, role, score) {
@@ -29,7 +30,7 @@ var find = function(board, role, score) {
           if(role == R.empty) {
             var s1 = scorePoint(board, p, R.com);
             var s2 = scorePoint(board, p, R.hum);
-            var s = Math.max(s1, s2);
+            var s = s1+s2;
             if(s > score) {
               p.score = s;
               result.push(p);
@@ -105,8 +106,8 @@ var min = function(board, role, deep) {
 }
 
 var c = function(board, role, deep) {
+  deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
-  deep = deep || 10;
   var start = new Date();
   var result = max(board, role, deep);
   var time = Math.round(new Date() - start);

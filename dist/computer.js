@@ -17,6 +17,7 @@ var hasNeighbor = require("./neighbor.js");
 var scorePoint = require("./evaluate-point.js");
 var S = require("./score.js");
 var win = require("./win.js");
+var config = require("./config.js");
 
 //找到所有比目标分数大的位置
 var find = function(board, role, score) {
@@ -30,7 +31,7 @@ var find = function(board, role, score) {
           if(role == R.empty) {
             var s1 = scorePoint(board, p, R.com);
             var s2 = scorePoint(board, p, R.hum);
-            var s = Math.max(s1, s2);
+            var s = s1+s2;
             if(s > score) {
               p.score = s;
               result.push(p);
@@ -106,8 +107,8 @@ var min = function(board, role, deep) {
 }
 
 var c = function(board, role, deep) {
+  deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
-  deep = deep || 10;
   var start = new Date();
   var result = max(board, role, deep);
   var time = Math.round(new Date() - start);
@@ -120,7 +121,7 @@ var c = function(board, role, deep) {
 
 module.exports = c;
 
-},{"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./win.js":16}],2:[function(require,module,exports){
+},{"./config.js":3,"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./win.js":16}],2:[function(require,module,exports){
 var m = require("./max-min.js");
 
 onmessage = function(e) {
@@ -133,7 +134,7 @@ module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //每深入一层，同样的分数会打一个折扣
   countLimit: 40, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  0,  //算杀深度
+  checkmateDeep:  6,  //算杀深度
 }
 
 },{}],4:[function(require,module,exports){
@@ -849,7 +850,7 @@ var max = function(board, deep, alpha, beta) {
   }
   //只对双三以下的进行算杀，双三以上的本来就属于必杀棋，不用再算杀
   if(deep <= 1) {
-    if(math.littleThan(v, SCORE.THREE*2) && checkmate(board, R.com, 8)) {
+    if(math.littleThan(v, SCORE.THREE*2) && checkmate(board, R.com)) {
       return SCORE.FOUR * config.deepDecrease;  //算杀最大的可能也就是下一步能赢，所以对当前来说就是连四的分数
     } else {
       return v;
