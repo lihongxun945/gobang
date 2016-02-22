@@ -9,7 +9,7 @@ onmessage = function(e) {
 },{"./max-min.js":11}],2:[function(require,module,exports){
 module.exports = {
   searchDeep: 4,  //搜索深度
-  deepDecrease: .7, //每深入一层，同样的分数会打一个折扣
+  deepDecrease: .8, //每深入一层，同样的分数会打一个折扣
   checkmateDeep:  8,  //算杀深度
 }
 
@@ -17,6 +17,8 @@ module.exports = {
 var SCORE = require("./score.js");
 
 var score = function(count, block, empty) {
+
+  if(empty === undefined) empty = 0;
 
   //没有空位
   if(empty == 0) {
@@ -184,6 +186,7 @@ var s = function(board, p, role) {
   //横向
   count = 1;  //默认把当前位置当做己方棋子。因为算的是当前下了一个己方棋子后的分数
   block = 0;
+  empty = 0;
 
   for(var i=p[1]+1;true;i++) {
     if(i>=len) {
@@ -192,7 +195,12 @@ var s = function(board, p, role) {
     }
     var t = board[p[0]][i];
     if(t === R.empty) {
-      break;
+      if(!empty && i<len-1 && board[p[0]][i+1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -210,7 +218,12 @@ var s = function(board, p, role) {
     }
     var t = board[p[0]][i];
     if(t === R.empty) {
-      break;
+      if(!empty && i>0 && board[p[0]][i-1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -221,11 +234,12 @@ var s = function(board, p, role) {
     }
   }
 
-  result += score(count, block);
+  result += score(count, block, empty);
 
   //纵向
   count = 1;
   block = 0;
+  empty = 0;
 
   for(var i=p[0]+1;true;i++) {
     if(i>=len) {
@@ -234,7 +248,12 @@ var s = function(board, p, role) {
     }
     var t = board[i][p[1]];
     if(t === R.empty) {
-      break;
+      if(!empty && i<len-1 && board[i+1][p[1]] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -252,7 +271,12 @@ var s = function(board, p, role) {
     }
     var t = board[i][p[1]];
     if(t === R.empty) {
-      break;
+      if(!empty && i>0 && board[i-1][p[1]] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -263,12 +287,13 @@ var s = function(board, p, role) {
     }
   }
 
-  result += score(count, block);
+  result += score(count, block, empty);
 
 
   // \\
   count = 1;
   block = 0;
+  empty = 0;
 
   for(var i=1;true;i++) {
     var x = p[0]+i, y = p[1]+i;
@@ -278,7 +303,12 @@ var s = function(board, p, role) {
     }
     var t = board[x][y];
     if(t === R.empty) {
-      break;
+      if(!empty && (x<len-1 && y < len-1) && board[x+1][y+1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -297,7 +327,12 @@ var s = function(board, p, role) {
     }
     var t = board[x][y];
     if(t === R.empty) {
-      break;
+      if(!empty && (x>0 && y>0) && board[x-1][y-1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -308,22 +343,28 @@ var s = function(board, p, role) {
     }
   }
 
-  result += score(count, block);
+  result += score(count, block, empty);
 
 
   // \/
   count = 1;
   block = 0;
+  empty = 0;
 
   for(var i=1; true;i++) {
     var x = p[0]+i, y = p[1]-i;
-    if(x>=len || y>=len) {
+    if(x<0||y<0||x>=len||y>=len) {
       block ++;
       break;
     }
     var t = board[x][y];
     if(t === R.empty) {
-      break;
+      if(!empty && (x<len-1 && y<len-1) && board[x+1][y-1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -336,13 +377,18 @@ var s = function(board, p, role) {
 
   for(var i=1;true;i++) {
     var x = p[0]-i, y = p[1]+i;
-    if(x<0||y<0) {
+    if(x<0||y<0||x>=len||y>=len) {
       block ++;
       break;
     }
     var t = board[x][y];
     if(t === R.empty) {
-      break;
+      if(!empty && (x>0 && y>0) && board[x-1][y+1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -353,7 +399,7 @@ var s = function(board, p, role) {
     }
   }
 
-  result += score(count, block);
+  result += score(count, block, empty);
 
   return result;
 

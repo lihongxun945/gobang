@@ -2,6 +2,8 @@ var SCORE = require("./score.js");
 
 var score = function(count, block, empty) {
 
+  if(empty === undefined) empty = 0;
+
   //没有空位
   if(empty == 0) {
     if(count >= 5) return SCORE.FIVE;
