@@ -23,7 +23,7 @@ var eRow = function(line, role) {
       for(i=i+1;i<line.length;i++) {
         if(line[i] == role) {
           count ++;
-        } else if(!empty &&  count < 4 && i < line.length-1 && line[i] == r.empty && line[i+1] == role) empty=count;  //只计算中间的一个空位，也就是己方棋子之间的一个空位。而且只有己方棋子少于4个才计算空位
+        } else if(!empty && i < line.length-1 && line[i] == r.empty && line[i+1] == role) empty=count;  //只计算中间的一个空位，也就是己方棋子之间的一个空位。
         else break;
       }
 
