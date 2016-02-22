@@ -97,9 +97,9 @@ describe('test evalute row', function() {
       assert.equal(e([0, 1, 1, 1, 0, 1, 0], 1), S.THREE);
     });
     it(`blocked four with an empty should score ${S.BLOCKED_THREE}`, function() {
-      assert.equal(e([1, 0, 1, 1, 1, 0], 1), S.BLOCKED_THREE);
-      assert.equal(e([1, 1, 0, 1, 1, 0], 1), S.BLOCKED_THREE);
-      assert.equal(e([1, 1, 1, 0, 1, 0], 1), S.BLOCKED_THREE);
+      assert.equal(e([1, 0, 1, 1, 1, 0], 1), S.BLOCKED_FOUR);
+      assert.equal(e([1, 1, 0, 1, 1, 0], 1), S.BLOCKED_FOUR);
+      assert.equal(e([1, 1, 1, 0, 1, 0], 1), S.BLOCKED_FOUR);
     });
   })
 
