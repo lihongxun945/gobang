@@ -134,7 +134,7 @@ module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //每深入一层，同样的分数会打一个折扣
   countLimit: 40, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  6,  //算杀深度
+  checkmateDeep:  8,  //算杀深度
 }
 
 },{}],4:[function(require,module,exports){
@@ -866,7 +866,7 @@ var max = function(board, deep, alpha, beta) {
     }
   }
   if(math.littleThan(best, SCORE.THREE) && math.greatThan(best, SCORE.THREE * -1) && checkmate(board, R.com)) {
-    return SCORE.THREE * config.deepDecrease;  //算杀最大的可能也就是下一步能赢，所以对当前来说就是连四的分数
+    return best+SCORE.THREE * config.deepDecrease;  //算杀过程中是利用了活三和冲四的，所以分数只能给 活三/冲四的分数
   }
   return best;
 }

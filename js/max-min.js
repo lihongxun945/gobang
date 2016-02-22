@@ -107,7 +107,7 @@ var max = function(board, deep, alpha, beta) {
     }
   }
   if(math.littleThan(best, SCORE.THREE) && math.greatThan(best, SCORE.THREE * -1) && checkmate(board, R.com)) {
-    return SCORE.THREE * config.deepDecrease;  //算杀最大的可能也就是下一步能赢，所以对当前来说就是连四的分数
+    return best+SCORE.THREE * config.deepDecrease;  //算杀过程中是利用了活三和冲四的，所以分数只能给 活三/冲四的分数
   }
   return best;
 }
