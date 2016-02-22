@@ -1,26 +1,146 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var SCORE = require("./score.js");
 
-var score = function(count, block) {
+var score = function(count, block, empty) {
 
-  if(count >= 5) return SCORE.FIVE;
+  if(empty === undefined) empty = 0;
 
-  if(block === 0) {
-    switch(count) {
-      case 1: return SCORE.ONE;
-      case 2: return SCORE.TWO;
-      case 3: return SCORE.THREE;
-      case 4: return SCORE.FOUR;
+  //没有空位
+  if(empty == 0) {
+    if(count >= 5) return SCORE.FIVE;
+    if(block === 0) {
+      switch(count) {
+        case 1: return SCORE.ONE;
+        case 2: return SCORE.TWO;
+        case 3: return SCORE.THREE;
+        case 4: return SCORE.FOUR;
+      }
     }
-  }
 
-  if(block === 1) {
-    switch(count) {
-      case 1: return SCORE.BLOCKED_ONE;
-      case 2: return SCORE.BLOCKED_TWO;
-      case 3: return SCORE.BLOCKED_THREE;
-      case 4: return SCORE.BLOCKED_FOUR;
+    if(block === 1) {
+      switch(count) {
+        case 1: return SCORE.BLOCKED_ONE;
+        case 2: return SCORE.BLOCKED_TWO;
+        case 3: return SCORE.BLOCKED_THREE;
+        case 4: return SCORE.BLOCKED_FOUR;
+      }
     }
+
+  } else if(empty === 1 || empty == count-1) {
+    //第二个是空位
+    if(count >= 6) {
+      return SCORE.FIVE;
+    }
+    if(block === 0) {
+      switch(count) {
+        case 2: return SCORE.TWO;
+        case 3:
+        case 4: return SCORE.THREE;
+        case 5: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 1) {
+      switch(count) {
+        case 2: return SCORE.BLOCKED_TWO;
+        case 3: return SCORE.BLOCKED_THREE;
+        case 4: return SCORE.THREE;
+        case 5: return SCORE.BLOCKED_FOUR;
+      }
+    }
+  } else if(empty === 2 || empty == count-2) {
+    //第二个是空位
+    if(count >= 7) {
+      return SCORE.FIVE;
+    }
+    if(block === 0) {
+      switch(count) {
+        case 3:
+        case 4:
+        case 5: return SCORE.THREE;
+        case 6: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 1) {
+      switch(count) {
+        case 3: return SCORE.BLOCKED_THREE;
+        case 4: return SCORE.BLOCKED_FOUR;
+        case 5: return SCORE.BLOCKED_FOUR;
+        case 6: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 2) {
+      switch(count) {
+        case 4:
+        case 5:
+        case 6: return SCORE.BLOCKED_FOUR;
+      }
+    }
+  } else if(empty === 3 || empty == count-3) {
+    if(count >= 8) {
+      return SCORE.FIVE;
+    }
+    if(block === 0) {
+      switch(count) {
+        case 4:
+        case 5: return SCORE.THREE;
+        case 6: return SCORE.THREE*2;
+        case 7: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 1) {
+      switch(count) {
+        case 4:
+        case 5:
+        case 6: return SCORE.BLOCKED_FOUR;
+        case 7: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 2) {
+      switch(count) {
+        case 4:
+        case 5:
+        case 6:
+        case 7: return SCORE.BLOCKED_FOUR;
+      }
+    }
+  } else if(empty === 4 || empty == count-4) {
+    if(count >= 9) {
+      return SCORE.FIVE;
+    }
+    if(block === 0) {
+      switch(count) {
+        case 5:
+        case 6:
+        case 7:
+        case 8: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 1) {
+      switch(count) {
+        case 4:
+        case 5:
+        case 6:
+        case 7: return SCORE.BLOCKED_FOUR;
+        case 8: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 2) {
+      switch(count) {
+        case 5:
+        case 6:
+        case 7:
+        case 8: return SCORE.BLOCKED_FOUR;
+      }
+    }
+  } else if(empty === 5 || empty == count-5) {
+    return SCORE.FIVE;
   }
 
   return 0;
@@ -37,20 +157,30 @@ var score = require("./count-to-score.js");
 var eRow = function(line, role) {
   var count = 0; // 连子数
   var block = 0; // 封闭数
+  var empty = 0;  //空位数
   var value = 0;  //分数
 
   for(var i=0;i<line.length;i++) {
     if(line[i] == role) { // 发现第一个己方棋子
       count=1;
       block=0;
+      empty=0;
+
+      //判断左边界
       if(i==0) block=1;
       else if(line[i-1] != r.empty) block = 1;
+
+      //计算己方棋子数
       for(i=i+1;i<line.length;i++) {
-        if(line[i] == role) count ++
+        if(line[i] == role) {
+          count ++;
+        } else if(!empty && i < line.length-1 && line[i] == r.empty && line[i+1] == role) empty=count;  //只计算中间的一个空位，也就是己方棋子之间的一个空位。
         else break;
       }
+
+      //判断右边界
       if(i==line.length || line[i] != r.empty) block++;
-      value += score(count, block);
+      value += score(count, block, empty);
     }
   }
 

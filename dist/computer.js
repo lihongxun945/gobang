@@ -131,33 +131,153 @@ onmessage = function(e) {
 },{"./max-min.js":12}],3:[function(require,module,exports){
 module.exports = {
   searchDeep: 4,  //搜索深度
-  deepDecrease: .7, //每深入一层，同样的分数会打一个折扣
+  deepDecrease: .8, //每深入一层，同样的分数会打一个折扣
   checkmateDeep:  8,  //算杀深度
 }
 
 },{}],4:[function(require,module,exports){
 var SCORE = require("./score.js");
 
-var score = function(count, block) {
+var score = function(count, block, empty) {
 
-  if(count >= 5) return SCORE.FIVE;
+  if(empty === undefined) empty = 0;
 
-  if(block === 0) {
-    switch(count) {
-      case 1: return SCORE.ONE;
-      case 2: return SCORE.TWO;
-      case 3: return SCORE.THREE;
-      case 4: return SCORE.FOUR;
+  //没有空位
+  if(empty == 0) {
+    if(count >= 5) return SCORE.FIVE;
+    if(block === 0) {
+      switch(count) {
+        case 1: return SCORE.ONE;
+        case 2: return SCORE.TWO;
+        case 3: return SCORE.THREE;
+        case 4: return SCORE.FOUR;
+      }
     }
-  }
 
-  if(block === 1) {
-    switch(count) {
-      case 1: return SCORE.BLOCKED_ONE;
-      case 2: return SCORE.BLOCKED_TWO;
-      case 3: return SCORE.BLOCKED_THREE;
-      case 4: return SCORE.BLOCKED_FOUR;
+    if(block === 1) {
+      switch(count) {
+        case 1: return SCORE.BLOCKED_ONE;
+        case 2: return SCORE.BLOCKED_TWO;
+        case 3: return SCORE.BLOCKED_THREE;
+        case 4: return SCORE.BLOCKED_FOUR;
+      }
     }
+
+  } else if(empty === 1 || empty == count-1) {
+    //第二个是空位
+    if(count >= 6) {
+      return SCORE.FIVE;
+    }
+    if(block === 0) {
+      switch(count) {
+        case 2: return SCORE.TWO;
+        case 3:
+        case 4: return SCORE.THREE;
+        case 5: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 1) {
+      switch(count) {
+        case 2: return SCORE.BLOCKED_TWO;
+        case 3: return SCORE.BLOCKED_THREE;
+        case 4: return SCORE.THREE;
+        case 5: return SCORE.BLOCKED_FOUR;
+      }
+    }
+  } else if(empty === 2 || empty == count-2) {
+    //第二个是空位
+    if(count >= 7) {
+      return SCORE.FIVE;
+    }
+    if(block === 0) {
+      switch(count) {
+        case 3:
+        case 4:
+        case 5: return SCORE.THREE;
+        case 6: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 1) {
+      switch(count) {
+        case 3: return SCORE.BLOCKED_THREE;
+        case 4: return SCORE.BLOCKED_FOUR;
+        case 5: return SCORE.BLOCKED_FOUR;
+        case 6: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 2) {
+      switch(count) {
+        case 4:
+        case 5:
+        case 6: return SCORE.BLOCKED_FOUR;
+      }
+    }
+  } else if(empty === 3 || empty == count-3) {
+    if(count >= 8) {
+      return SCORE.FIVE;
+    }
+    if(block === 0) {
+      switch(count) {
+        case 4:
+        case 5: return SCORE.THREE;
+        case 6: return SCORE.THREE*2;
+        case 7: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 1) {
+      switch(count) {
+        case 4:
+        case 5:
+        case 6: return SCORE.BLOCKED_FOUR;
+        case 7: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 2) {
+      switch(count) {
+        case 4:
+        case 5:
+        case 6:
+        case 7: return SCORE.BLOCKED_FOUR;
+      }
+    }
+  } else if(empty === 4 || empty == count-4) {
+    if(count >= 9) {
+      return SCORE.FIVE;
+    }
+    if(block === 0) {
+      switch(count) {
+        case 5:
+        case 6:
+        case 7:
+        case 8: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 1) {
+      switch(count) {
+        case 4:
+        case 5:
+        case 6:
+        case 7: return SCORE.BLOCKED_FOUR;
+        case 8: return SCORE.FOUR;
+      }
+    }
+
+    if(block === 2) {
+      switch(count) {
+        case 5:
+        case 6:
+        case 7:
+        case 8: return SCORE.BLOCKED_FOUR;
+      }
+    }
+  } else if(empty === 5 || empty == count-5) {
+    return SCORE.FIVE;
   }
 
   return 0;
@@ -188,6 +308,7 @@ var s = function(board, p, role) {
   //横向
   count = 1;  //默认把当前位置当做己方棋子。因为算的是当前下了一个己方棋子后的分数
   block = 0;
+  empty = 0;
 
   for(var i=p[1]+1;true;i++) {
     if(i>=len) {
@@ -196,7 +317,12 @@ var s = function(board, p, role) {
     }
     var t = board[p[0]][i];
     if(t === R.empty) {
-      break;
+      if(!empty && i<len-1 && board[p[0]][i+1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -214,7 +340,12 @@ var s = function(board, p, role) {
     }
     var t = board[p[0]][i];
     if(t === R.empty) {
-      break;
+      if(!empty && i>0 && board[p[0]][i-1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -225,11 +356,12 @@ var s = function(board, p, role) {
     }
   }
 
-  result += score(count, block);
+  result += score(count, block, empty);
 
   //纵向
   count = 1;
   block = 0;
+  empty = 0;
 
   for(var i=p[0]+1;true;i++) {
     if(i>=len) {
@@ -238,7 +370,12 @@ var s = function(board, p, role) {
     }
     var t = board[i][p[1]];
     if(t === R.empty) {
-      break;
+      if(!empty && i<len-1 && board[i+1][p[1]] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -256,7 +393,12 @@ var s = function(board, p, role) {
     }
     var t = board[i][p[1]];
     if(t === R.empty) {
-      break;
+      if(!empty && i>0 && board[i-1][p[1]] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -267,12 +409,13 @@ var s = function(board, p, role) {
     }
   }
 
-  result += score(count, block);
+  result += score(count, block, empty);
 
 
   // \\
   count = 1;
   block = 0;
+  empty = 0;
 
   for(var i=1;true;i++) {
     var x = p[0]+i, y = p[1]+i;
@@ -282,7 +425,12 @@ var s = function(board, p, role) {
     }
     var t = board[x][y];
     if(t === R.empty) {
-      break;
+      if(!empty && (x<len-1 && y < len-1) && board[x+1][y+1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -301,7 +449,12 @@ var s = function(board, p, role) {
     }
     var t = board[x][y];
     if(t === R.empty) {
-      break;
+      if(!empty && (x>0 && y>0) && board[x-1][y-1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -312,22 +465,28 @@ var s = function(board, p, role) {
     }
   }
 
-  result += score(count, block);
+  result += score(count, block, empty);
 
 
   // \/
   count = 1;
   block = 0;
+  empty = 0;
 
   for(var i=1; true;i++) {
     var x = p[0]+i, y = p[1]-i;
-    if(x>=len || y>=len) {
+    if(x<0||y<0||x>=len||y>=len) {
       block ++;
       break;
     }
     var t = board[x][y];
     if(t === R.empty) {
-      break;
+      if(!empty && (x<len-1 && y<len-1) && board[x+1][y-1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -340,13 +499,18 @@ var s = function(board, p, role) {
 
   for(var i=1;true;i++) {
     var x = p[0]-i, y = p[1]+i;
-    if(x<0||y<0) {
+    if(x<0||y<0||x>=len||y>=len) {
       block ++;
       break;
     }
     var t = board[x][y];
     if(t === R.empty) {
-      break;
+      if(!empty && (x>0 && y>0) && board[x-1][y+1] == role) {
+        empty = count;
+        continue;
+      } else {
+        break;
+      }
     }
     if(t === role) {
       count ++;
@@ -357,7 +521,7 @@ var s = function(board, p, role) {
     }
   }
 
-  result += score(count, block);
+  result += score(count, block, empty);
 
   return result;
 
@@ -374,20 +538,30 @@ var score = require("./count-to-score.js");
 var eRow = function(line, role) {
   var count = 0; // 连子数
   var block = 0; // 封闭数
+  var empty = 0;  //空位数
   var value = 0;  //分数
 
   for(var i=0;i<line.length;i++) {
     if(line[i] == role) { // 发现第一个己方棋子
       count=1;
       block=0;
+      empty=0;
+
+      //判断左边界
       if(i==0) block=1;
       else if(line[i-1] != r.empty) block = 1;
+
+      //计算己方棋子数
       for(i=i+1;i<line.length;i++) {
-        if(line[i] == role) count ++
+        if(line[i] == role) {
+          count ++;
+        } else if(!empty && i < line.length-1 && line[i] == r.empty && line[i+1] == role) empty=count;  //只计算中间的一个空位，也就是己方棋子之间的一个空位。
         else break;
       }
+
+      //判断右边界
       if(i==line.length || line[i] != r.empty) block++;
-      value += score(count, block);
+      value += score(count, block, empty);
     }
   }
 

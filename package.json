@@ -8,18 +8,19 @@
     "js": "js/*.js"
   },
   "scripts": {
+    "less": "lessc less/main.less > dist/main.css",
+    "js": "browserify js/main.js > dist/main.js && browserify js/computer.js > dist/computer.js",
+    "watch": "npm-watch",
     "test": "mocha tests/*.js",
     "test-gen": "mocha tests/test-gen.js",
     "test-evaluate": "mocha tests/test-evaluate.js",
     "test-evaluate-row": "mocha tests/test-evaluate-row.js",
-    "test-evaluate-point": "mocha tests/test-evaluate-point.js",
     "test-checkmate": "mocha tests/test-checkmate.js",
-    "less": "lessc less/main.less > dist/main.css",
-    "js": "browserify js/main.js > dist/main.js && browserify js/computer.js > dist/computer.js",
-    "watch": "npm-watch"
+    "test-evaluate-point": "mocha tests/test-evaluate-point.js"
   },
   "author": "Hongxun Lee <lihongxun945@gmail.com> (http://light7.org/)",
-  "license": "ISC",
+  "homepage": "http://gobang.light7.cn/",
+  "license": "MIT",
   "devDependencies": {
     "browserify": "^13.0.0",
     "less": "^2.6.0",
