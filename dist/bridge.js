@@ -119,7 +119,7 @@ var c = function(board, role, deep) {
   if(deep <= 0) return false;
   var start = new Date();
   //迭代加深
-  for(var i=2;i<=deep;i++) {
+  for(var i=1;i<=deep;i++) {
     var result = max(board, role, i);
     if(result) break; //找到一个就行
   }
@@ -137,7 +137,7 @@ module.exports = c;
 module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //每深入一层，同样的分数会打一个折扣
-  countLimit: 20, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  countLimit: 10, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  8,  //算杀深度
 }
 
@@ -808,6 +808,7 @@ var maxmin = function(board, deep) {
     }
     board[p[0]][p[1]] = R.empty;
   }
+  console.log("分数:"+best+", 待选节点:"+JSON.stringify(bestPoints));
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   result.score = best;
   steps ++;
@@ -869,7 +870,7 @@ var max = function(board, deep, alpha, beta) {
       return v;
     }
   }
-  if(math.littleThan(best, SCORE.THREE) && math.greatThan(best, SCORE.THREE * -1)) {
+  if(math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
     var mate = checkmate(board, R.com);
     if(mate) {
       return SCORE.FIVE * Math.pow(config.deepDecrease, mate.length);
@@ -881,6 +882,7 @@ var max = function(board, deep, alpha, beta) {
 module.exports = function(board, deep) {
   deep = deep === undefined ? config.searchDeep : deep;
   //迭代加深
+  //注意这里不要比较分数的大小，因为深度越低算出来的分数约不靠谱，所以不能比较大小
   var result;
   for(var i=2;i<=deep; i++) {
     result = maxmin(board, i);

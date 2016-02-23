@@ -45,6 +45,7 @@ var maxmin = function(board, deep) {
     }
     board[p[0]][p[1]] = R.empty;
   }
+  console.log("分数:"+best+", 待选节点:"+JSON.stringify(bestPoints));
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   result.score = best;
   steps ++;
@@ -106,7 +107,7 @@ var max = function(board, deep, alpha, beta) {
       return v;
     }
   }
-  if(math.littleThan(best, SCORE.THREE) && math.greatThan(best, SCORE.THREE * -1)) {
+  if(math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
     var mate = checkmate(board, R.com);
     if(mate) {
       return SCORE.FIVE * Math.pow(config.deepDecrease, mate.length);
@@ -118,6 +119,7 @@ var max = function(board, deep, alpha, beta) {
 module.exports = function(board, deep) {
   deep = deep === undefined ? config.searchDeep : deep;
   //迭代加深
+  //注意这里不要比较分数的大小，因为深度越低算出来的分数约不靠谱，所以不能比较大小
   var result;
   for(var i=2;i<=deep; i++) {
     result = maxmin(board, i);
