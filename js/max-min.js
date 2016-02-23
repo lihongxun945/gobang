@@ -23,7 +23,6 @@ var maxmin = function(board, deep) {
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
-  deep = deep === undefined ? config.searchDeep : deep;
 
   count = 0;
   ABcut = 0;
@@ -47,6 +46,7 @@ var maxmin = function(board, deep) {
     board[p[0]][p[1]] = R.empty;
   }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
+  result.score = best;
   steps ++;
   total += count;
   console.log('当前局面分数：' + best);
@@ -106,10 +106,22 @@ var max = function(board, deep, alpha, beta) {
       return v;
     }
   }
-  if(math.littleThan(best, SCORE.THREE) && math.greatThan(best, SCORE.THREE * -1) && checkmate(board, R.com)) {
-    return best+SCORE.THREE * config.deepDecrease;  //算杀过程中是利用了活三和冲四的，所以分数只能给 活三/冲四的分数
+  if(math.littleThan(best, SCORE.THREE) && math.greatThan(best, SCORE.THREE * -1)) {
+    var mate = checkmate(board, R.com);
+    if(mate) {
+      return SCORE.FIVE * Math.pow(config.deepDecrease, mate.length);
+    }
   }
   return best;
 }
 
-module.exports = maxmin;
+module.exports = function(board, deep) {
+  deep = deep === undefined ? config.searchDeep : deep;
+  //迭代加深
+  var result;
+  for(var i=2;i<=deep; i++) {
+    result = maxmin(board, i);
+    if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
+  }
+  return result;
+}

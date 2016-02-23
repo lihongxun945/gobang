@@ -109,13 +109,17 @@ var c = function(board, role, deep) {
   deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
   var start = new Date();
-  var result = max(board, role, deep);
+  //迭代加深
+  for(var i=2;i<=deep;i++) {
+    var result = max(board, role, i);
+    if(result) break; //找到一个就行
+  }
   var time = Math.round(new Date() - start);
   if(result) console.log("算杀成功("+time+"毫秒):" + JSON.stringify(result));
   else {
     //console.log("算杀失败("+time+"毫秒)");
   }
-  return result[0];
+  return result;
 }
 
 module.exports = c;

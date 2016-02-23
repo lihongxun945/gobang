@@ -1,4 +1,12 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var m = require("./max-min.js");
+
+onmessage = function(e) {
+  var p = m(e.data.board, e.data.deep);
+  postMessage(p);
+}
+
+},{"./max-min.js":12}],2:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -110,7 +118,11 @@ var c = function(board, role, deep) {
   deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
   var start = new Date();
-  var result = max(board, role, deep);
+  //迭代加深
+  for(var i=2;i<=deep;i++) {
+    var result = max(board, role, i);
+    if(result) break; //找到一个就行
+  }
   var time = Math.round(new Date() - start);
   if(result) console.log("算杀成功("+time+"毫秒):" + JSON.stringify(result));
   else {
@@ -121,19 +133,11 @@ var c = function(board, role, deep) {
 
 module.exports = c;
 
-},{"./config.js":3,"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./win.js":16}],2:[function(require,module,exports){
-var m = require("./max-min.js");
-
-onmessage = function(e) {
-  var p = m(e.data.board, e.data.deep);
-  postMessage(p);
-}
-
-},{"./max-min.js":12}],3:[function(require,module,exports){
+},{"./config.js":3,"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./win.js":16}],3:[function(require,module,exports){
 module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //每深入一层，同样的分数会打一个折扣
-  countLimit: 40, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  countLimit: 20, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  8,  //算杀深度
 }
 
@@ -782,7 +786,6 @@ var maxmin = function(board, deep) {
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
-  deep = deep === undefined ? config.searchDeep : deep;
 
   count = 0;
   ABcut = 0;
@@ -806,6 +809,7 @@ var maxmin = function(board, deep) {
     board[p[0]][p[1]] = R.empty;
   }
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
+  result.score = best;
   steps ++;
   total += count;
   console.log('当前局面分数：' + best);
@@ -874,9 +878,18 @@ var max = function(board, deep, alpha, beta) {
   return best;
 }
 
-module.exports = maxmin;
+module.exports = function(board, deep) {
+  deep = deep === undefined ? config.searchDeep : deep;
+  //迭代加深
+  var result;
+  for(var i=2;i<=deep; i++) {
+    result = maxmin(board, i);
+    if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
+  }
+  return result;
+}
 
-},{"./checkmate.js":1,"./config.js":3,"./evaluate":8,"./gen":10,"./math.js":11,"./role":14,"./score.js":15,"./win.js":16}],13:[function(require,module,exports){
+},{"./checkmate.js":2,"./config.js":3,"./evaluate":8,"./gen":10,"./math.js":11,"./role":14,"./score.js":15,"./win.js":16}],13:[function(require,module,exports){
 var R = require("./role");
 //有邻居
 var hasNeighbor = function(board, point, distance, count) {
@@ -946,4 +959,4 @@ module.exports = function(board) {
   return false;
 }
 
-},{"./evaluate-row.js":6,"./flat.js":9,"./role":14,"./score.js":15}]},{},[2]);
+},{"./evaluate-row.js":6,"./flat.js":9,"./role":14,"./score.js":15}]},{},[1]);

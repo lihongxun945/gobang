@@ -9,7 +9,7 @@
   },
   "scripts": {
     "less": "lessc less/main.less > dist/main.css",
-    "js": "browserify js/main.js > dist/main.js && browserify js/computer.js > dist/computer.js",
+    "js": "browserify js/main.js > dist/main.js && browserify js/bridge.js > dist/bridge.js",
     "watch": "npm-watch",
     "test": "mocha tests/*.js",
     "test-gen": "mocha tests/test-gen.js",
