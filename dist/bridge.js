@@ -66,12 +66,10 @@ var find = function(board, role, score) {
 
 var max = function(board, role, deep) {
   debugNodeCount ++;
-  var w = win(board);
-  if(w == role) return true;
-  if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
 
   var points = find(board, role, S.BLOCKED_FOUR);
+  if(points.length && points[0].score >= S.FOUR) return [points[0]]; //为了减少一层搜索，活四就行了。
   if(points.length == 0) return false;
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -143,7 +141,7 @@ module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //每深入一层，同样的分数会打一个折扣
   countLimit: 10, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  9,  //算杀深度
+  checkmateDeep:  7,  //算杀深度
 }
 
 },{}],4:[function(require,module,exports){
