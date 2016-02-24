@@ -27,6 +27,8 @@ var S = require("./score.js");
 var win = require("./win.js");
 var config = require("./config.js");
 
+var debugNodeCount = 0;
+
 //找到所有比目标分数大的位置
 var find = function(board, role, score) {
   var result = [];
@@ -63,10 +65,11 @@ var find = function(board, role, score) {
 }
 
 var max = function(board, role, deep) {
+  debugNodeCount ++;
   var w = win(board);
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
-  if(deep < 0) return false;
+  if(deep <= 0) return false;
 
   var points = find(board, role, S.BLOCKED_FOUR);
   if(points.length == 0) return false;
@@ -90,10 +93,11 @@ var max = function(board, role, deep) {
 
 //只要有一种方式能防守住，就可以了
 var min = function(board, role, deep) {
+  debugNodeCount ++;
   var w = win(board);
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
-  if(deep < 0) return false;
+  if(deep <= 0) return false;
   var points = find(board, R.empty, S.FOUR);
   if(points.length == 0) return false;
 
@@ -118,13 +122,14 @@ var c = function(board, role, deep) {
   deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
   var start = new Date();
+  debugNodeCount = 0;
   //迭代加深
   for(var i=1;i<=deep;i++) {
     var result = max(board, role, i);
     if(result) break; //找到一个就行
   }
   var time = Math.round(new Date() - start);
-  if(result) console.log("算杀成功("+time+"毫秒):" + JSON.stringify(result));
+  if(result) console.log("算杀成功("+time+"毫秒, "+ debugNodeCount + "个节点):" + JSON.stringify(result));
   else {
     //console.log("算杀失败("+time+"毫秒)");
   }
@@ -138,7 +143,7 @@ module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //每深入一层，同样的分数会打一个折扣
   countLimit: 10, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  8,  //算杀深度
+  checkmateDeep:  9,  //算杀深度
 }
 
 },{}],4:[function(require,module,exports){
@@ -867,7 +872,7 @@ var max = function(board, deep, alpha, beta) {
       return v;
     }
   }
-  if(math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
+  if( (deep <= 2 ) && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
     var mate = checkmate(board, R.com);
     if(mate) {
       return SCORE.FIVE * Math.pow(config.deepDecrease, mate.length);

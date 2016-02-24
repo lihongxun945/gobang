@@ -107,7 +107,7 @@ var max = function(board, deep, alpha, beta) {
       return v;
     }
   }
-  if(math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
+  if( (deep <= 2 ) && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
     var mate = checkmate(board, R.com);
     if(mate) {
       return SCORE.FIVE * Math.pow(config.deepDecrease, mate.length);
