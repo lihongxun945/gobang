@@ -18,6 +18,8 @@ var S = require("./score.js");
 var win = require("./win.js");
 var config = require("./config.js");
 
+var debugNodeCount = 0;
+
 //找到所有比目标分数大的位置
 var find = function(board, role, score) {
   var result = [];
@@ -54,10 +56,11 @@ var find = function(board, role, score) {
 }
 
 var max = function(board, role, deep) {
+  debugNodeCount ++;
   var w = win(board);
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
-  if(deep < 0) return false;
+  if(deep <= 0) return false;
 
   var points = find(board, role, S.BLOCKED_FOUR);
   if(points.length == 0) return false;
@@ -81,10 +84,11 @@ var max = function(board, role, deep) {
 
 //只要有一种方式能防守住，就可以了
 var min = function(board, role, deep) {
+  debugNodeCount ++;
   var w = win(board);
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
-  if(deep < 0) return false;
+  if(deep <= 0) return false;
   var points = find(board, R.empty, S.FOUR);
   if(points.length == 0) return false;
 
@@ -109,13 +113,14 @@ var c = function(board, role, deep) {
   deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
   var start = new Date();
+  debugNodeCount = 0;
   //迭代加深
   for(var i=1;i<=deep;i++) {
     var result = max(board, role, i);
     if(result) break; //找到一个就行
   }
   var time = Math.round(new Date() - start);
-  if(result) console.log("算杀成功("+time+"毫秒):" + JSON.stringify(result));
+  if(result) console.log("算杀成功("+time+"毫秒, "+ debugNodeCount + "个节点):" + JSON.stringify(result));
   else {
     //console.log("算杀失败("+time+"毫秒)");
   }
