@@ -71,13 +71,14 @@ var min = function(board, deep, alpha, beta) {
     var p = points[i];
     board[p[0]][p[1]] = R.hum;
     var v = max(board, deep-1, alpha, best < beta ? best : beta) * config.deepDecrease;
+    if(v === false) continue;
     board[p[0]][p[1]] = R.empty;
     if(math.littleThan(v, best)) {
       best = v;
     }
     if(math.littleOrEqualThan(v, alpha)) {  //AB剪枝
       ABcut ++;
-      return v;
+      return false;
     }
   }
   return best ;
@@ -98,13 +99,14 @@ var max = function(board, deep, alpha, beta) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
     var v = min(board, deep-1, best > alpha ? best : alpha, beta) * config.deepDecrease;
+    if(v === false) continue;
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;
     }
     if(math.greatOrEqualThan(v, beta)) { //AB 剪枝
       ABcut ++;
-      return v;
+      return false;
     }
   }
   if( (deep <= 2 ) && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {

@@ -18,6 +18,7 @@ describe('test maxmin', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     var p = c(b, 6);
+    console.log(p);
     assert.ok(p); //6层是 [3,3], [2,4], [8,8] 
   });
 
