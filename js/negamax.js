@@ -83,6 +83,12 @@ var max = function(board, deep, alpha, beta, role) {
       return v;
     }
   }
+  if( (deep <= 2 ) && role == R.com && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
+    var mate = checkmate(board, R.com);
+    if(mate) {
+      return SCORE.FIVE * Math.pow(.8, mate.length);
+    }
+  }
   return best;
 }
 

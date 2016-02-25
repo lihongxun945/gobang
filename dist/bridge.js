@@ -140,7 +140,7 @@ module.exports = c;
 module.exports = {
   searchDeep: 4,  //搜索深度
   countLimit: 30, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  0,  //算杀深度
+  checkmateDeep:  7,  //算杀深度
 }
 
 },{}],4:[function(require,module,exports){
@@ -843,6 +843,12 @@ var max = function(board, deep, alpha, beta, role) {
     if(math.greatOrEqualThan(v, beta)) { //AB 剪枝
       ABcut ++;
       return v;
+    }
+  }
+  if( (deep <= 2 ) && role == R.com && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
+    var mate = checkmate(board, R.com);
+    if(mate) {
+      return SCORE.FIVE * Math.pow(.8, mate.length);
     }
   }
   return best;

@@ -41,6 +41,7 @@ describe('test maxmin', function() {
     var p = c(b, 4);
     console.log(p);
     assert.ok(p); //6层是 [3,3], [2,4], [8,8] 
+    //[4, 2], [3,3],[5,5],[2,4],[1,5],[3,4]
   });
 
 });
