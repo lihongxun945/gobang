@@ -32,7 +32,7 @@ var maxmin = function(board, deep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = min(board, deep-1, best > MIN ? best : MIN, MAX);
+    var v = - max(board, deep-1, best > MIN ? best : MIN, MAX, R.hum);
 
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
@@ -59,34 +59,7 @@ var maxmin = function(board, deep) {
   return result;
 }
 
-var min = function(board, deep, alpha, beta) {
-  var v = evaluate(board);
-  count ++;
-  if(deep <= 0 || win(board)) {
-    return v;
-  }
-
-  var best = MAX;
-  var points = gen(board, deep);
-
-  for(var i=0;i<points.length;i++) {
-    var p = points[i];
-    board[p[0]][p[1]] = R.hum;
-    var v = max(board, deep-1, alpha, best < beta ? best : beta) * config.deepDecrease;
-    board[p[0]][p[1]] = R.empty;
-    if(math.littleThan(v, best)) {
-      best = v;
-    }
-    if(math.littleOrEqualThan(v, alpha)) {  //AB剪枝
-      ABcut ++;
-      return v;
-    }
-  }
-  return best;
-}
-
-
-var max = function(board, deep, alpha, beta) {
+var max = function(board, deep, alpha, beta, role) {
   var v = evaluate(board);
   count ++;
   if(deep <= 0 || win(board)) {
@@ -98,15 +71,9 @@ var max = function(board, deep, alpha, beta) {
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = R.com;
-    var pv = min(board, deep-1, beta, beta+1);
-    if(math.greatOrEqualThan(pv, beta)) {
-      console.log(pv, alpha, beta);
-      PVcut ++;
-      board[p[0]][p[1]] = R.empty;
-      return pv;
-    }
-    var v = min(board, deep-1, best > alpha ? best : alpha, beta) * config.deepDecrease;
+    board[p[0]][p[1]] = role;
+    
+    var v = - max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role));
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;
@@ -114,12 +81,6 @@ var max = function(board, deep, alpha, beta) {
     if(math.greatOrEqualThan(v, beta)) { //AB 剪枝
       ABcut ++;
       return v;
-    }
-  }
-  if( (deep <= 2 ) && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
-    var mate = checkmate(board, R.com);
-    if(mate) {
-      return SCORE.FIVE * Math.pow(config.deepDecrease, mate.length);
     }
   }
   return best;

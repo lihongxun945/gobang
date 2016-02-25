@@ -1,4 +1,4 @@
-var m = require("./max-min.js");
+var m = require("./negamax.js");
 
 onmessage = function(e) {
   var p = m(e.data.board, e.data.deep);

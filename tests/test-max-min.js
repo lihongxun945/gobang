@@ -1,7 +1,28 @@
-var c = require("../js/max-min.js");
+var c = require("../js/negamax.js");
 var assert = require('assert');
 
 describe('test maxmin', function() {
+
+
+  it(`it should be OK`, function() {
+    return;
+    b = [
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    ];
+    var p = c(b, 6);
+    console.log(p);
+    assert.ok(p); //6层是 [3,3], [2,4], [8,8] 
+  });
 
   it(`it should be OK`, function() {
     b = [
@@ -17,7 +38,7 @@ describe('test maxmin', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    var p = c(b, 6);
+    var p = c(b, 4);
     console.log(p);
     assert.ok(p); //6层是 [3,3], [2,4], [8,8] 
   });

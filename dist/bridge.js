@@ -1,12 +1,12 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var m = require("./max-min.js");
+var m = require("./negamax.js");
 
 onmessage = function(e) {
   var p = m(e.data.board, e.data.deep);
   postMessage(p);
 }
 
-},{"./max-min.js":12}],2:[function(require,module,exports){
+},{"./negamax.js":12}],2:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -138,9 +138,8 @@ module.exports = c;
 
 },{"./config.js":3,"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./win.js":16}],3:[function(require,module,exports){
 module.exports = {
-  searchDeep: 6,  //搜索深度
-  deepDecrease: 1, //每深入一层，同样的分数会打一个折扣
-  countLimit: 20, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  searchDeep: 4,  //搜索深度
+  countLimit: 30, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  0,  //算杀深度
 }
 
@@ -776,6 +775,7 @@ var MIN = -1*MAX;
 var total=0, //总节点数
     steps=0,  //总步数
     count,  //每次思考的节点数
+    PVcut,
     ABcut;  //AB剪枝次数
 
 /*
@@ -789,11 +789,12 @@ var maxmin = function(board, deep) {
 
   count = 0;
   ABcut = 0;
+  PVcut = 0;
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = min(board, deep-1, best > MIN ? best : MIN, MAX);
+    var v = - max(board, deep-1, best > MIN ? best : MIN, MAX, R.hum);
 
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
@@ -814,41 +815,13 @@ var maxmin = function(board, deep) {
   steps ++;
   total += count;
   console.log('当前局面分数：' + best);
-  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
   console.log("================================");
   return result;
 }
 
-var min = function(board, deep, alpha, beta) {
-  var v = evaluate(board);
-  count ++;
-  if(deep <= 0 || win(board)) {
-    return v;
-  }
-
-  var best = MAX;
-  var points = gen(board, deep);
-
-  for(var i=0;i<points.length;i++) {
-    var p = points[i];
-    board[p[0]][p[1]] = R.hum;
-    var v = max(board, deep-1, alpha, best < beta ? best : beta) * config.deepDecrease;
-    if(v === false) continue;
-    board[p[0]][p[1]] = R.empty;
-    if(math.littleThan(v, best)) {
-      best = v;
-    }
-    if(math.littleOrEqualThan(v, alpha)) {  //AB剪枝
-      ABcut ++;
-      return false;
-    }
-  }
-  return best ;
-}
-
-
-var max = function(board, deep, alpha, beta) {
+var max = function(board, deep, alpha, beta, role) {
   var v = evaluate(board);
   count ++;
   if(deep <= 0 || win(board)) {
@@ -860,22 +833,16 @@ var max = function(board, deep, alpha, beta) {
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = R.com;
-    var v = min(board, deep-1, best > alpha ? best : alpha, beta) * config.deepDecrease;
-    if(v === false) continue;
+    board[p[0]][p[1]] = role;
+    
+    var v = - max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role));
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;
     }
     if(math.greatOrEqualThan(v, beta)) { //AB 剪枝
       ABcut ++;
-      return false;
-    }
-  }
-  if( (deep <= 2 ) && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
-    var mate = checkmate(board, R.com);
-    if(mate) {
-      return SCORE.FIVE * Math.pow(config.deepDecrease, mate.length);
+      return v;
     }
   }
   return best;
