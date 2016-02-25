@@ -30,7 +30,7 @@ var maxmin = function(board, deep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = min(board, deep-1, MAX, best > MIN ? best : MIN);
+    var v = min(board, deep-1, best > MIN ? best : MIN, MAX);
 
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
@@ -70,12 +70,12 @@ var min = function(board, deep, alpha, beta) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.hum;
-    var v = max(board, deep-1, best < alpha ? best : alpha, beta) * config.deepDecrease;
+    var v = max(board, deep-1, alpha, best < beta ? best : beta) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
     if(math.littleThan(v, best)) {
       best = v;
     }
-    if(math.littleOrEqualThan(v, beta)) {  //AB剪枝
+    if(math.littleOrEqualThan(v, alpha)) {  //AB剪枝
       ABcut ++;
       return v;
     }
@@ -97,12 +97,12 @@ var max = function(board, deep, alpha, beta) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = min(board, deep-1, alpha, best > beta ? best : beta) * config.deepDecrease;
+    var v = min(board, deep-1, best > alpha ? best : alpha, beta) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;
     }
-    if(math.greatOrEqualThan(v, alpha)) { //AB 剪枝
+    if(math.greatOrEqualThan(v, beta)) { //AB 剪枝
       ABcut ++;
       return v;
     }
@@ -116,10 +116,10 @@ var max = function(board, deep, alpha, beta) {
   return best;
 }
 
-module.exports = function(board, deep) {
+var deeping = function(board, deep) {
   deep = deep === undefined ? config.searchDeep : deep;
   //迭代加深
-  //注意这里不要比较分数的大小，因为深度越低算出来的分数约不靠谱，所以不能比较大小
+  //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
   var result;
   for(var i=2;i<=deep; i++) {
     result = maxmin(board, i);
@@ -127,3 +127,4 @@ module.exports = function(board, deep) {
   }
   return result;
 }
+module.exports = deeping;

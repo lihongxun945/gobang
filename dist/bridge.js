@@ -138,10 +138,10 @@ module.exports = c;
 
 },{"./config.js":3,"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./win.js":16}],3:[function(require,module,exports){
 module.exports = {
-  searchDeep: 4,  //搜索深度
-  deepDecrease: .8, //每深入一层，同样的分数会打一个折扣
-  countLimit: 10, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  7,  //算杀深度
+  searchDeep: 6,  //搜索深度
+  deepDecrease: 1, //每深入一层，同样的分数会打一个折扣
+  countLimit: 20, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  checkmateDeep:  0,  //算杀深度
 }
 
 },{}],4:[function(require,module,exports){
@@ -793,7 +793,7 @@ var maxmin = function(board, deep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = min(board, deep-1, MAX, best > MIN ? best : MIN);
+    var v = min(board, deep-1, best > MIN ? best : MIN, MAX);
 
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
@@ -833,12 +833,12 @@ var min = function(board, deep, alpha, beta) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.hum;
-    var v = max(board, deep-1, best < alpha ? best : alpha, beta) * config.deepDecrease;
+    var v = max(board, deep-1, alpha, best < beta ? best : beta) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
     if(math.littleThan(v, best)) {
       best = v;
     }
-    if(math.littleOrEqualThan(v, beta)) {  //AB剪枝
+    if(math.littleOrEqualThan(v, alpha)) {  //AB剪枝
       ABcut ++;
       return v;
     }
@@ -860,12 +860,12 @@ var max = function(board, deep, alpha, beta) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = min(board, deep-1, alpha, best > beta ? best : beta) * config.deepDecrease;
+    var v = min(board, deep-1, best > alpha ? best : alpha, beta) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;
     }
-    if(math.greatOrEqualThan(v, alpha)) { //AB 剪枝
+    if(math.greatOrEqualThan(v, beta)) { //AB 剪枝
       ABcut ++;
       return v;
     }
@@ -879,10 +879,10 @@ var max = function(board, deep, alpha, beta) {
   return best;
 }
 
-module.exports = function(board, deep) {
+var deeping = function(board, deep) {
   deep = deep === undefined ? config.searchDeep : deep;
   //迭代加深
-  //注意这里不要比较分数的大小，因为深度越低算出来的分数约不靠谱，所以不能比较大小
+  //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
   var result;
   for(var i=2;i<=deep; i++) {
     result = maxmin(board, i);
@@ -890,6 +890,7 @@ module.exports = function(board, deep) {
   }
   return result;
 }
+module.exports = deeping;
 
 },{"./checkmate.js":2,"./config.js":3,"./evaluate":8,"./gen":10,"./math.js":11,"./role":14,"./score.js":15,"./win.js":16}],13:[function(require,module,exports){
 var R = require("./role");
