@@ -32,7 +32,7 @@ var maxmin = function(board, deep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = - max(board, deep-1, Math.max(best, MIN), MAX, R.hum);
+    var v = - negamax(board, deep-1, Math.max(best, MIN), MAX, R.hum);
 
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
@@ -56,7 +56,7 @@ var maxmin = function(board, deep) {
   return result;
 }
 
-var max = function(board, deep, alpha, beta, role) {
+var negamax = function(board, deep, alpha, beta, role) {
   var v = evaluate(board);
   count ++;
   if(deep <= 0 || win(board)) {
@@ -71,9 +71,16 @@ var max = function(board, deep, alpha, beta, role) {
     board[p[0]][p[1]] = role;
 
     //pvs
-    //
+    var pv = - negamax(board, deep-1, -alpha-1, -alpha, R.reverse(role));
+    if(pv < alpha) {
+      PVcut ++;
+      board[p[0]][p[1]] = R.empty;
+      //console.log(pv, alpha);
+      return pv;
+    }
+
     alpha = Math.max(best, alpha);
-    var v = - max(board, deep-1, -beta, -alpha, R.reverse(role));
+    var v = - negamax(board, deep-1, -beta, -alpha, R.reverse(role));
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;
@@ -83,12 +90,7 @@ var max = function(board, deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep <= 2 ) && role == R.com && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
-    var mate = checkmate(board, R.com);
-    if(mate) {
-      return SCORE.FIVE * Math.pow(.8, mate.length);
-    }
-  }
+
   return best;
 }
 
