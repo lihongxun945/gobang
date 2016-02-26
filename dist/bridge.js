@@ -866,7 +866,7 @@ var deeping = function(board, deep) {
   //迭代加深
   //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
   var result;
-  for(var i=2;i<=deep; i++) {
+  for(var i=2;i<=deep; i+=2) {
     result = maxmin(board, i);
     if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
   }
