@@ -113,7 +113,7 @@ var c = function(board, role, deep) {
   var start = new Date();
   debugNodeCount = 0;
   //迭代加深
-  for(var i=1;i<=deep;i++) {
+  for(var i=1;i<=deep;i+=2) {
     var result = max(board, role, i);
     if(result) break; //找到一个就行
   }

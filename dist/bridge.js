@@ -122,7 +122,7 @@ var c = function(board, role, deep) {
   var start = new Date();
   debugNodeCount = 0;
   //迭代加深
-  for(var i=1;i<=deep;i++) {
+  for(var i=1;i<=deep;i+=2) {
     var result = max(board, role, i);
     if(result) break; //找到一个就行
   }
@@ -138,9 +138,9 @@ module.exports = c;
 
 },{"./config.js":3,"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./win.js":16}],3:[function(require,module,exports){
 module.exports = {
-  searchDeep: 4,  //搜索深度
-  countLimit: 30, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  7,  //算杀深度
+  searchDeep: 6,  //搜索深度
+  countLimit: 20, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  checkmateDeep:  0,  //算杀深度
 }
 
 },{}],4:[function(require,module,exports){
@@ -794,7 +794,7 @@ var maxmin = function(board, deep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = - max(board, deep-1, best > MIN ? best : MIN, MAX, R.hum);
+    var v = - max(board, deep-1, Math.max(best, MIN), MAX, R.hum);
 
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
@@ -814,10 +814,7 @@ var maxmin = function(board, deep) {
   result.score = best;
   steps ++;
   total += count;
-  console.log('当前局面分数：' + best);
-  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
-  console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
-  console.log("================================");
+  console.log('当前局面分数：' + best + ',搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   return result;
 }
 
@@ -834,8 +831,11 @@ var max = function(board, deep, alpha, beta, role) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = role;
-    
-    var v = - max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role));
+
+    //pvs
+    //
+    alpha = Math.max(best, alpha);
+    var v = - max(board, deep-1, -beta, -alpha, R.reverse(role));
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;
@@ -859,7 +859,7 @@ var deeping = function(board, deep) {
   //迭代加深
   //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
   var result;
-  for(var i=2;i<=deep; i++) {
+  for(var i=2;i<=deep; i+=2) {
     result = maxmin(board, i);
     if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
   }
