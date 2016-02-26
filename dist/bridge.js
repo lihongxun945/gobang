@@ -839,18 +839,13 @@ var negamax = function(board, deep, alpha, beta, role) {
     var p = points[i];
     board[p[0]][p[1]] = role;
 
-    //pvs
-    var pv = - negamax(board, deep-1, -alpha-1, -alpha, R.reverse(role));
-    if(pv < alpha) {
-      PVcut ++;
-      board[p[0]][p[1]] = R.empty;
-      //console.log(pv, alpha);
-      continue;
+    alpha = Math.max(best, alpha);
+    if((v = - negamax(board, deep-1, -alpha-1, -alpha, R.reverse(role)) > alpha) && (alpha = v) < beta) {
+      v = - negamax(board, deep-1, -beta, -alpha, R.reverse(role));
     }
 
-    alpha = Math.max(best, alpha);
-    var v = - negamax(board, deep-1, -beta, -alpha, R.reverse(role));
     board[p[0]][p[1]] = R.empty;
+
     if(math.greatThan(v, best)) {
       best = v;
     }
