@@ -76,7 +76,8 @@ var negamax = function(board, deep, alpha, beta, role) {
       PVcut ++;
       board[p[0]][p[1]] = R.empty;
       //console.log(pv, alpha);
-      return pv;
+      best = Math.max(pv, best);
+      continue;
     }
 
     alpha = Math.max(best, alpha);

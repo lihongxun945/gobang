@@ -140,7 +140,7 @@ module.exports = c;
 module.exports = {
   searchDeep: 6,  //搜索深度
   countLimit: 20, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  7,  //算杀深度
+  checkmateDeep:  0,  //算杀深度
 }
 
 },{}],4:[function(require,module,exports){
@@ -845,7 +845,7 @@ var negamax = function(board, deep, alpha, beta, role) {
       PVcut ++;
       board[p[0]][p[1]] = R.empty;
       //console.log(pv, alpha);
-      return pv;
+      continue;
     }
 
     alpha = Math.max(best, alpha);
