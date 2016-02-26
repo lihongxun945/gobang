@@ -840,7 +840,7 @@ var negamax = function(board, deep, alpha, beta, role) {
     board[p[0]][p[1]] = role;
 
     alpha = Math.max(best, alpha);
-    if((v = - negamax(board, deep-1, -alpha-1, -alpha, R.reverse(role)) > alpha) && (alpha = v) < beta) {
+    if(math.greatThan(v = - negamax(board, deep-1, -alpha-1, -alpha, R.reverse(role)), alpha) && math.littleThan(v, beta)) {
       v = - negamax(board, deep-1, -beta, -alpha, R.reverse(role));
     }
 
