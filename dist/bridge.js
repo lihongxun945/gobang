@@ -140,7 +140,7 @@ module.exports = c;
 module.exports = {
   searchDeep: 4,  //搜索深度
   countLimit: 30, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  7,  //算杀深度
+  checkmateDeep:  0,  //算杀深度
 }
 
 },{}],4:[function(require,module,exports){
@@ -721,7 +721,14 @@ var gen = function(board, deep) {
   
   if(fours.length) return fours;
 
-  if(twothrees.length) return twothrees;
+  //双三很特殊，因为能形成双三的不一定比一个活三强
+  if(twothrees.length) {
+    if(threes.length) {
+      return twothrees.concat(threes);
+    } else {
+      return twothrees;
+    }
+  }
 
   var result = threes.concat(
       twos.concat(

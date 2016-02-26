@@ -65,7 +65,14 @@ var gen = function(board, deep) {
   
   if(fours.length) return fours;
 
-  if(twothrees.length) return twothrees;
+  //双三很特殊，因为能形成双三的不一定比一个活三强
+  if(twothrees.length) {
+    if(threes.length) {
+      return twothrees.concat(threes);
+    } else {
+      return twothrees;
+    }
+  }
 
   var result = threes.concat(
       twos.concat(
