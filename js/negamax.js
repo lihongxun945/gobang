@@ -32,7 +32,7 @@ var maxmin = function(board, deep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = - max(board, deep-1, - MAX, - (best > MIN ? best : MIN), R.hum);
+    var v = - max(board, deep-1, MIN, (best > MIN ? best : MIN), R.hum);
 
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子

@@ -39,8 +39,8 @@ Board.prototype.start = function() {
   if(this.started) return;
   this.initBoard();
   
-  this.board[7][7] = R.com;
-  this.steps.push([7, 7]);
+  //this.board[7][7] = R.com;
+  //this.steps.push([7, 7]);
 
   this.draw();
 
