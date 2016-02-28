@@ -747,7 +747,7 @@ var gen = function(board, deep) {
 module.exports = gen;
 
 },{"./config.js":3,"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15}],11:[function(require,module,exports){
-var threshold = 1.15;
+var threshold = 1.1;
 
 module.exports = {
   greatThan: function(a, b) {
@@ -802,7 +802,7 @@ var maxmin = function(board, deep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
-    var v = - max(board, deep-1, best > MIN ? best : MIN, MAX, R.hum);
+    var v = - max(board, deep-1, - MAX, (best > MIN ? best : MIN), R.hum);
 
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
@@ -853,7 +853,10 @@ var max = function(board, deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep <= 2 ) && role == R.com && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)) {
+  if( (deep <= 2 )
+     && role == R.com
+     && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)
+    ) {
     var mate = checkmate(board, R.com);
     if(mate) {
       return SCORE.FIVE * Math.pow(.8, mate.length);

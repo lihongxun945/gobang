@@ -1,4 +1,4 @@
-var threshold = 1.15;
+var threshold = 1.1;
 
 module.exports = {
   greatThan: function(a, b) {
