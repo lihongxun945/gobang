@@ -73,7 +73,7 @@ var max = function(board, deep, alpha, beta, role) {
     var p = points[i];
     board[p[0]][p[1]] = role;
     
-    var v = - max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role));
+    var v = - max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;

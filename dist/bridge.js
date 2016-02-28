@@ -139,6 +139,7 @@ module.exports = c;
 },{"./config.js":3,"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./win.js":16}],3:[function(require,module,exports){
 module.exports = {
   searchDeep: 4,  //搜索深度
+  deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 30, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  7,  //算杀深度
 }
@@ -746,7 +747,7 @@ var gen = function(board, deep) {
 module.exports = gen;
 
 },{"./config.js":3,"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15}],11:[function(require,module,exports){
-var threshold = 1.2;
+var threshold = 1.15;
 
 module.exports = {
   greatThan: function(a, b) {
@@ -842,7 +843,7 @@ var max = function(board, deep, alpha, beta, role) {
     var p = points[i];
     board[p[0]][p[1]] = role;
     
-    var v = - max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role));
+    var v = - max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
     if(math.greatThan(v, best)) {
       best = v;
