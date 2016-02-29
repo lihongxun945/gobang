@@ -29,27 +29,39 @@ var config = require("./config.js");
 
 var debugNodeCount = 0;
 
+var MAX_SCORE = S.THREE;
+var MIN_SCORE = S.FOUR;
+
 //找到所有比目标分数大的位置
 var find = function(board, role, score) {
   var result = [];
+  var fives = [];
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
         var p = [i, j];
         if(hasNeighbor(board, p, 2, 1)) { //必须是有邻居的才行
 
+          var s1 = scorePoint(board, p, role);
           if(role == R.empty) {
-            var s1 = scorePoint(board, p, R.com);
-            var s2 = scorePoint(board, p, R.hum);
+            var s2 = scorePoint(board, p, R.reverse(role));
             var s = s1+s2;
+            p.score = s;
+            if(s1 >= S.FIVE) {
+              fives.push(p);
+            }
+            if(s2 >= S.FIVE) {
+              fives.unshift(p);
+            }
             if(s > score) {
-              p.score = s;
               result.push(p);
             }
           } else {
-            var s = scorePoint(board, p, role);
-            if(s >= score) {
-              p.score = s;
+            p.score = s1;
+            if(s1 >= S.FIVE) {
+              return [p];
+            }
+            if(s1 >= score) {
               result.push(p);
             }
           }
@@ -57,6 +69,7 @@ var find = function(board, role, score) {
       }
     }
   }
+  if(fives.length) return fives;
   //注意对结果进行排序
   result.sort(function(a, b) {
     return b.score - a.score;
@@ -68,7 +81,7 @@ var max = function(board, role, deep) {
   debugNodeCount ++;
   if(deep <= 0) return false;
 
-  var points = find(board, role, S.BLOCKED_FOUR);
+  var points = find(board, role, MAX_SCORE);
   if(points.length && points[0].score >= S.FOUR) return [points[0]]; //为了减少一层搜索，活四就行了。
   if(points.length == 0) return false;
   for(var i=0;i<points.length;i++) {
@@ -96,7 +109,7 @@ var min = function(board, role, deep) {
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
-  var points = find(board, R.empty, S.FOUR);
+  var points = find(board, R.empty, MIN_SCORE);
   if(points.length == 0) return false;
 
   var cands = [];
@@ -116,12 +129,10 @@ var min = function(board, role, deep) {
   return cands[Math.floor(cands.length*Math.random())];  //无法防守住
 }
 
-var c = function(board, role, deep) {
-  deep = deep || config.checkmateDeep;
-  if(deep <= 0) return false;
+//迭代加深
+var deeping = function(board, role, deep) {
   var start = new Date();
   debugNodeCount = 0;
-  //迭代加深
   for(var i=1;i<=deep;i++) {
     var result = max(board, role, i);
     if(result) break; //找到一个就行
@@ -134,7 +145,24 @@ var c = function(board, role, deep) {
   return result;
 }
 
-module.exports = c;
+module.exports = function(board, role, deep) {
+
+  deep = deep || config.checkmateDeep;
+  if(deep <= 0) return false;
+
+  //先计算冲四赢的
+  MAX_SCORE = S.FOUR;
+  MIN_SCORE = S.FIVE;
+
+  var result = deeping(board, role, deep);
+  if(result) return result;
+
+  //再计算通过 活三 赢的；
+  MAX_SCORE = S.THREE;
+  MIN_SCORE = S.FOUR;
+  return deeping(board, role, deep);
+
+}
 
 },{"./config.js":3,"./evaluate-point.js":5,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./win.js":16}],3:[function(require,module,exports){
 module.exports = {
@@ -720,15 +748,12 @@ var gen = function(board, deep) {
   //如果成五，是必杀棋，直接返回
   if(fives.length) return [fives[0]];
   
-  if(fours.length) return fours;
+  //注意，只要返回第一个即可，如果双方都有活四，则第一个是自己的
+  if(fours.length) return [fours[0]];
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
   if(twothrees.length) {
-    if(threes.length) {
-      return twothrees.concat(threes);
-    } else {
-      return twothrees;
-    }
+    return [twothrees[0]].concat(threes);
   }
 
   var result = threes.concat(
@@ -855,11 +880,11 @@ var max = function(board, deep, alpha, beta, role) {
   }
   if( (deep <= 2 )
      && role == R.com
-     && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.FOUR * -1)
+     && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
     var mate = checkmate(board, R.com);
     if(mate) {
-      return SCORE.FIVE * Math.pow(.8, mate.length);
+      return SCORE.FOUR * Math.pow(.8, mate.length);
     }
   }
   return best;

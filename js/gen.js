@@ -63,15 +63,12 @@ var gen = function(board, deep) {
   //如果成五，是必杀棋，直接返回
   if(fives.length) return [fives[0]];
   
-  if(fours.length) return fours;
+  //注意，只要返回第一个即可，如果双方都有活四，则第一个是自己的
+  if(fours.length) return [fours[0]];
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
   if(twothrees.length) {
-    if(threes.length) {
-      return twothrees.concat(threes);
-    } else {
-      return twothrees;
-    }
+    return [twothrees[0]].concat(threes);
   }
 
   var result = threes.concat(
