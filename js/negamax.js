@@ -87,7 +87,7 @@ var max = function(board, deep, alpha, beta, role) {
     ) {
     var mate = checkmate(board, role);
     if(mate) {
-      return SCORE.FOUR * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
+      return mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
     }
   }
   return best;

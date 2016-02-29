@@ -155,12 +155,20 @@ module.exports = function(board, role, deep) {
   MIN_SCORE = S.FIVE;
 
   var result = deeping(board, role, deep);
-  if(result) return result;
+  if(result) {
+    result.score = S.FOUR;
+    return result;
+  }
 
   //再计算通过 活三 赢的；
   MAX_SCORE = S.THREE;
   MIN_SCORE = S.FOUR;
-  return deeping(board, role, deep);
+  result = deeping(board, role, deep);
+  if(result) {
+    result.score = S.THREE*2; //虽然不如活四分数高，但是还是比活三分数要高的
+  }
+
+  return false;
 
 }
 
@@ -882,7 +890,7 @@ var max = function(board, deep, alpha, beta, role) {
     ) {
     var mate = checkmate(board, role);
     if(mate) {
-      return SCORE.FOUR * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
+      return mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
     }
   }
   return best;
