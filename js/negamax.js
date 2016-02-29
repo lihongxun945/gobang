@@ -83,13 +83,11 @@ var max = function(board, deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep <= 2 )
-     && role == R.com
-     && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
+  if( (deep <= 2 ) && role == R.com && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
-    var mate = checkmate(board, R.com);
+    var mate = checkmate(board, role);
     if(mate) {
-      return SCORE.FOUR * Math.pow(.8, mate.length);
+      return SCORE.FOUR * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
     }
   }
   return best;
