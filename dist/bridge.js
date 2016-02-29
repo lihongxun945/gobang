@@ -855,7 +855,7 @@ var max = function(board, deep, alpha, beta, role) {
   }
   if( (deep <= 2 )
      && role == R.com
-     && math.littleThan(best, SCORE.FOUR) && math.greatThan(best, SCORE.FOUR * -1)
+     && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.FOUR * -1)
     ) {
     var mate = checkmate(board, R.com);
     if(mate) {
