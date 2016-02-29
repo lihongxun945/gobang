@@ -68,7 +68,7 @@ var gen = function(board, deep) {
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
   if(twothrees.length) {
-    return [twothrees[0]].concat(threes);
+    return twothrees.concat(threes);
   }
 
   var result = threes.concat(

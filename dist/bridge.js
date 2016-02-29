@@ -176,7 +176,7 @@ module.exports = function(board, role, deep) {
 module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
-  countLimit: 20, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  countLimit: 15, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  7,  //算杀深度
 }
 
@@ -761,7 +761,7 @@ var gen = function(board, deep) {
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
   if(twothrees.length) {
-    return [twothrees[0]].concat(threes);
+    return twothrees.concat(threes);
   }
 
   var result = threes.concat(
