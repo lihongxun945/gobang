@@ -51,7 +51,6 @@ describe('test checkmate', function() {
 
 
   it(`it should be OK`, function() {
-    //两次冲四形成双三
     var s = new Date();
     b = [
       [ 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
@@ -69,4 +68,21 @@ describe('test checkmate', function() {
     assert.ok(p);
   });
       
+
+
+  it(`it should be OK`, function() {
+    var s = new Date();
+    b = [
+      [ 0, 1, 1, 0, 0, 0, 0],
+      [ 0, 2, 2, 2, 0, 0, 0],
+      [ 0, 0, 0, 0, 1, 0, 0],
+      [ 0, 0, 0, 0, 1, 0, 0],
+      [ 0, 0, 0, 0, 1, 0, 0],
+      [ 0, 0, 0, 0, 2, 0, 0],
+      [ 0, 0, 0, 0, 0, 0, 0],
+    ];
+    var p = c(b, 1);
+    assert.ok(p);
+  });
+
 });
