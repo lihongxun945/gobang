@@ -82,7 +82,7 @@ describe('test checkmate', function() {
       [ 0, 0, 0, 0, 0, 0, 0],
     ];
     var p = c(b, 1);
-    assert.ok(p);
+    assert.ok(!p);
   });
 
 });

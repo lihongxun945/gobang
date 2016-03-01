@@ -66,21 +66,23 @@ var findMin = function(board, role, score) {
           var s1 = scorePoint(board, p, role);
           var s2 = scorePoint(board, p, R.reverse(role));
           if(s1 >= S.FIVE) {
-            p = [i, j];
             p.score = - s1;
-            fives.unshift(p);
+            return [p];
+          } 
+          if(s1 >= S.FOUR) {
+            p.score = -s1;
+            fours.unshift(p);
+            continue;
           }
           if(s2 >= S.FIVE) {
             p.score = s2;
             fives.push(p);
-          }
-          if(s1 >= S.FOUR) {
-            p.score = -s1;
-            fours.unshift(p);
-          }
+            continue;
+          } 
           if(s2 >= S.FOUR) {
             p.score = s2;
             fours.push(p);
+            continue;
           }
 
           if(s1 >= score || s2 >= score) {

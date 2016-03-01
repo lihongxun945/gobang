@@ -75,21 +75,23 @@ var findMin = function(board, role, score) {
           var s1 = scorePoint(board, p, role);
           var s2 = scorePoint(board, p, R.reverse(role));
           if(s1 >= S.FIVE) {
-            p = [i, j];
             p.score = - s1;
-            fives.unshift(p);
+            return [p];
+          } 
+          if(s1 >= S.FOUR) {
+            p.score = -s1;
+            fours.unshift(p);
+            continue;
           }
           if(s2 >= S.FIVE) {
             p.score = s2;
             fives.push(p);
-          }
-          if(s1 >= S.FOUR) {
-            p.score = -s1;
-            fours.unshift(p);
-          }
+            continue;
+          } 
           if(s2 >= S.FOUR) {
             p.score = s2;
             fours.push(p);
+            continue;
           }
 
           if(s1 >= score || s2 >= score) {
@@ -212,7 +214,7 @@ module.exports = function(board, role, deep, onlyFour) {
 module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
-  countLimit: 15, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  countLimit: 12, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  7,  //算杀深度
 }
 
