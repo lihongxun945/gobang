@@ -374,17 +374,20 @@ module.exports = score;
  */
 var S = require("./score.js");
 var R = require("./role.js");
-var score = require("./count-to-score.js");
+var SCORE = require("./count-to-score.js");
 
 /*
  * 表示在当前位置下一个棋子后的分数
  */
 
-var s = function(board, p, role) {
+var s = function(board, p, role, config) {
   var result = 0;
   var count = 0, block = 0;
 
   var len = board.length;
+  var score = SCORE;
+
+  for(var k in config) score[k] = config[k];
 
   //横向
   count = 1;  //默认把当前位置当做己方棋子。因为算的是当前下了一个己方棋子后的分数
@@ -755,7 +758,7 @@ var gen = function(board, deep) {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
-        if(hasNeighbor(board, [i, j], 2, 1)) { //必须是有邻居的才行
+        if(hasNeighbor(board, [i, j], 2, 2)) { //必须是有邻居的才行
           var scoreHum = scorePoint(board, [i,j], R.hum);
           var scoreCom= scorePoint(board, [i,j], R.com);
 
@@ -873,6 +876,11 @@ var maxmin = function(board, deep) {
     board[p[0]][p[1]] = R.com;
     var v = - max(board, deep-1, MIN, (best > MIN ? best : MIN), R.hum);
 
+    //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
+    if(p[0]<3 || p[0] > 11 || p[1] < 3 || p[1] > 11) {
+      v = .5 * v;
+    }
+
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
     if(math.equal(v, best)) {
@@ -884,6 +892,8 @@ var maxmin = function(board, deep) {
       bestPoints = [];
       bestPoints.push(p);
     }
+
+
     board[p[0]][p[1]] = R.empty;
   }
   console.log("分数:"+best+", 待选节点:"+JSON.stringify(bestPoints));
@@ -987,10 +997,10 @@ module.exports = {
   THREE: 1000,
   FOUR: 10000,
   FIVE: 100000,
-  BLOCKED_ONE: 1,
+  BLOCKED_ONE: 2,
   BLOCKED_TWO: 10,
   BLOCKED_THREE: 100,
-  BLOCKED_FOUR: 1000
+  BLOCKED_FOUR: 1501  //这个1分是用来判断是否是冲四的
 }
 
 },{}],16:[function(require,module,exports){

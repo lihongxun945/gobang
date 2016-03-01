@@ -5,17 +5,20 @@
  */
 var S = require("./score.js");
 var R = require("./role.js");
-var score = require("./count-to-score.js");
+var SCORE = require("./count-to-score.js");
 
 /*
  * 表示在当前位置下一个棋子后的分数
  */
 
-var s = function(board, p, role) {
+var s = function(board, p, role, config) {
   var result = 0;
   var count = 0, block = 0;
 
   var len = board.length;
+  var score = SCORE;
+
+  for(var k in config) score[k] = config[k];
 
   //横向
   count = 1;  //默认把当前位置当做己方棋子。因为算的是当前下了一个己方棋子后的分数

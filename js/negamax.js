@@ -34,6 +34,11 @@ var maxmin = function(board, deep) {
     board[p[0]][p[1]] = R.com;
     var v = - max(board, deep-1, MIN, (best > MIN ? best : MIN), R.hum);
 
+    //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
+    if(p[0]<3 || p[0] > 11 || p[1] < 3 || p[1] > 11) {
+      v = .5 * v;
+    }
+
     //console.log(v, p);
     //如果跟之前的一个好，则把当前位子加入待选位子
     if(math.equal(v, best)) {
@@ -45,6 +50,8 @@ var maxmin = function(board, deep) {
       bestPoints = [];
       bestPoints.push(p);
     }
+
+
     board[p[0]][p[1]] = R.empty;
   }
   console.log("分数:"+best+", 待选节点:"+JSON.stringify(bestPoints));
