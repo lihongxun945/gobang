@@ -6,6 +6,7 @@ var win = require("./win.js");
 var math = require("./math.js");
 var checkmate = require("./checkmate.js");
 var config = require("./config.js");
+var Zobrist = require("../js/zobrist.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;

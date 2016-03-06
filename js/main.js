@@ -47,6 +47,10 @@ Board.prototype.start = function() {
   this.setStatus("欢迎加入五子棋游戏");
 
   this.started = true;
+
+  this.worker.postMessage({
+    type: "START"
+  });
 }
 
 Board.prototype.stop = function() {
@@ -116,14 +120,16 @@ Board.prototype.set = function(x, y, role) {
     throw new Error("此位置不为空");
   }
   this._set(x, y, role);
-  this.com();
+  this.com(x, y, role);
 }
 
 Board.prototype.com = function(x, y, role) {
   this.lock = true;
   this.time = new Date();
   this.worker.postMessage({
-    board: this.board
+    type: "GO",
+    x: x,
+    y: y
   });
   this.setStatus("电脑正在思考...");
 }
@@ -146,6 +152,9 @@ Board.prototype.back = function(step) {
     step --;
   }
   this.draw();
+  this.worker.postMessage({
+    type: "BACK"
+  });
 }
 
 

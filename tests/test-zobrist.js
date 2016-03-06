@@ -1,12 +1,11 @@
 var Zobrist = require("../js/zobrist.js");
 var assert = require('assert');
 
-describe('test evalute', function() {
-  it(`test Zobrist`, function() {
+describe('test Zobrist', function() {
+  it(`简单测试`, function() {
     var z = new Zobrist();
     z.init();
     var code = z.code;
-    console.log(code);
 
     console.log(z.go(1,1,1));
 
@@ -40,4 +39,3 @@ describe('test evalute', function() {
     assert.notEqual(code1, code2);
   });
 });
-
