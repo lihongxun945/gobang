@@ -82,7 +82,7 @@ var max = function(board, deep, alpha, beta, role) {
     return c.score;
   }
 
-  var v = evaluate(board);
+  var v = evaluate(board, role);
   count ++;
   if(deep <= 0 || win(board)) {
     return v;
