@@ -1,9 +1,8 @@
-var Zobrist = require("../js/zobrist.js");
+var z = require("../js/zobrist.js");
 var assert = require('assert');
 
 describe('test Zobrist', function() {
   it(`简单测试`, function() {
-    var z = new Zobrist();
     z.init();
     var code = z.code;
 
@@ -21,7 +20,6 @@ describe('test Zobrist', function() {
   });
 
   it(`两种不同顺序的走法应该返回同一个code`, function() {
-    var z = new Zobrist();
     z.init();
     z.go(1,1,1);
     z.go(1,2,2);

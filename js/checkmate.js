@@ -17,11 +17,18 @@ var scorePoint = require("./evaluate-point.js");
 var S = require("./score.js");
 var win = require("./win.js");
 var config = require("./config.js");
+var zobrist = require("./zobrist.js");
+
+var Cache = {};
 
 var debugNodeCount = 0;
 
 var MAX_SCORE = S.THREE;
 var MIN_SCORE = S.FOUR;
+
+var cacheCount = 0;
+var cacheGet = 0;
+
 
 //找到所有比目标分数大的位置
 var findMax = function(board, role, score) {
@@ -107,23 +114,34 @@ var max = function(board, role, deep) {
   debugNodeCount ++;
   if(deep <= 0) return false;
 
+  var c = Cache[zobrist.code];
+  if(c && c.deep >= deep) {
+    cacheGet ++;
+    return c.result;
+  }
+
   var points = findMax(board, role, MAX_SCORE);
   if(points.length && points[0].score >= S.FOUR) return [points[0]]; //为了减少一层搜索，活四就行了。
   if(points.length == 0) return false;
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = role;
+    zobrist.go(p[0], p[1], role);
     var m = min(board, role, deep-1);
+    zobrist.go(p[0], p[1], role);
     board[p[0]][p[1]] = R.empty;
     if(m) {
       if(m.length) {
         m.unshift(p); //注意 unshift 方法返回的是新数组长度，而不是新数组本身
+        cache(deep, m);
         return m;
       } else {
+        cache(deep, [p]);
         return [p];
       }
     }
   }
+  cache(deep, false);
   return false;
 }
 
@@ -135,25 +153,45 @@ var min = function(board, role, deep) {
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
+  var c = Cache[zobrist.code];
+  if(c && c.deep >= deep) {
+    cacheGet ++;
+    return c.result;
+  }
   var points = findMin(board, R.reverse(role), MIN_SCORE);
   if(points.length == 0) return false;
   if(points.length && -1 * points[0].score  >= S.FOUR) return false; //为了减少一层搜索，活四就行了。
 
   var cands = [];
+  var currentRole = R.reverse(role);
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = R.reverse(role);
+    board[p[0]][p[1]] = currentRole;
+    zobrist.go(p[0], p[1], currentRole);
     var m = max(board, role, deep-1);
+    zobrist.go(p[0], p[1], currentRole);
     board[p[0]][p[1]] = R.empty;
     if(m) {
       m.unshift(p);
       cands.push(m);
+      cache(deep, m);
       continue;
     } else {
+      cache(deep, false);
       return false; //只要有一种能防守住
     }
   }
-  return cands[Math.floor(cands.length*Math.random())];  //无法防守住
+  var result = cands[Math.floor(cands.length*Math.random())];  //无法防守住
+  cache(deep, result);
+  return result;
+}
+
+var cache = function(deep, result) {
+  Cache[zobrist.code] = {
+    deep: deep,
+    result: result
+  }
+  cacheCount ++;
 }
 
 //迭代加深

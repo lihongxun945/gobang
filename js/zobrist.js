@@ -25,4 +25,7 @@ Zobrist.prototype.go = function(x, y, role) {
   return this.code;
 }
 
-module.exports = Zobrist;
+var z = new Zobrist();
+z.init();
+
+module.exports = z;

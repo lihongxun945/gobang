@@ -6,7 +6,7 @@ var win = require("./win.js");
 var math = require("./math.js");
 var checkmate = require("./checkmate.js");
 var config = require("./config.js");
-var Zobrist = require("../js/zobrist.js");
+var zobrist = require("./zobrist.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
@@ -15,12 +15,17 @@ var total=0, //总节点数
     steps=0,  //总步数
     count,  //每次思考的节点数
     PVcut,
-    ABcut;  //AB剪枝次数
+    ABcut,  //AB剪枝次数
+    cacheCount=0, //zobrist缓存节点数
+    cacheGet=0; //zobrist缓存命中数量
+
+var Cache = {};
 
 /*
  * max min search
  * white is max, black is min
  */
+
 var maxmin = function(board, deep) {
   var best = MIN;
   var points = gen(board, deep);
@@ -33,6 +38,7 @@ var maxmin = function(board, deep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
+    zobrist.go(p[0],p[1], R.com);
     var v = - max(board, deep-1, MIN, (best > MIN ? best : MIN), R.hum);
 
     //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
@@ -54,6 +60,7 @@ var maxmin = function(board, deep) {
 
 
     board[p[0]][p[1]] = R.empty;
+    zobrist.go(p[0],p[1], R.com);
   }
   console.log("分数:"+best+", 待选节点:"+JSON.stringify(bestPoints));
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
@@ -61,13 +68,20 @@ var maxmin = function(board, deep) {
   steps ++;
   total += count;
   console.log('当前局面分数：' + best);
-  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
   console.log("================================");
   return result;
 }
 
 var max = function(board, deep, alpha, beta, role) {
+
+  var c = Cache[zobrist.code];
+  if(c && c.deep >= deep) {
+    cacheGet ++;
+    return c.score;
+  }
+
   var v = evaluate(board);
   count ++;
   if(deep <= 0 || win(board)) {
@@ -80,14 +94,17 @@ var max = function(board, deep, alpha, beta, role) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board[p[0]][p[1]] = role;
-    
-    var v = - max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
+    zobrist.go(p[0],p[1], role);
+
+    var v =- max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
     board[p[0]][p[1]] = R.empty;
+    zobrist.go(p[0],p[1], role);
     if(math.greatThan(v, best)) {
       best = v;
     }
     if(math.greatOrEqualThan(v, beta)) { //AB 剪枝
       ABcut ++;
+      cache(deep, v);
       return v;
     }
   }
@@ -95,10 +112,22 @@ var max = function(board, deep, alpha, beta, role) {
     ) {
     var mate = checkmate(board, role);
     if(mate) {
-      return mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
+      var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
+      cache(deep, score);
+      return score;
     }
   }
+  cache(deep, best);
+  
   return best;
+}
+
+var cache = function(deep, score) {
+  Cache[zobrist.code] = {
+    deep: deep,
+    score: score
+  }
+  cacheCount ++;
 }
 
 var deeping = function(board, deep) {
