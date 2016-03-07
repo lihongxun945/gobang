@@ -7,6 +7,7 @@ var math = require("./math.js");
 var checkmate = require("./checkmate.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
+var debug = require("./debug.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
@@ -62,13 +63,12 @@ var maxmin = function(board, deep) {
     board[p[0]][p[1]] = R.empty;
     zobrist.go(p[0],p[1], R.com);
   }
-  console.log("分数:"+best+", 待选节点:"+JSON.stringify(bestPoints));
+  console.log("分数:"+best.toFixed(3)+", 待选节点:"+JSON.stringify(bestPoints));
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   result.score = best;
   steps ++;
   total += count;
-  console.log('当前局面分数：' + best);
-  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount + ',算杀缓存命中:' + (debug.checkmate.cacheGet / debug.checkmate.cacheCount).toFixed(3) + ',' + debug.checkmate.cacheGet + '/'+debug.checkmate.cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
   console.log("================================");
   return result;
@@ -77,9 +77,11 @@ var maxmin = function(board, deep) {
 var max = function(board, deep, alpha, beta, role) {
 
   var c = Cache[zobrist.code];
-  if(c && c.deep >= deep) {
-    cacheGet ++;
-    return c.score;
+  if(c) {
+    if(c.deep >= deep || math.greatThan(c.score, SCORE.FOUR)) {
+      cacheGet ++;
+      return c.score;
+    }
   }
 
   var v = evaluate(board, role);

@@ -48,7 +48,7 @@ AI.prototype.back = function(step) {
 }
 module.exports = AI;
 
-},{"./config.js":4,"./negamax.js":13,"./role.js":15,"./zobrist.js":18}],2:[function(require,module,exports){
+},{"./config.js":4,"./negamax.js":14,"./role.js":16,"./zobrist.js":19}],2:[function(require,module,exports){
 var AI = require("./ai.js");
 
 var ai = new AI();
@@ -87,6 +87,7 @@ var S = require("./score.js");
 var win = require("./win.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
+var debug = require("./debug.js");
 
 var Cache = {};
 
@@ -95,8 +96,10 @@ var debugNodeCount = 0;
 var MAX_SCORE = S.THREE;
 var MIN_SCORE = S.FOUR;
 
-var cacheCount = 0;
-var cacheGet = 0;
+var debugCheckmate = debug.checkmate = {
+  cacheCount: 0,
+  cacheGet: 0
+}
 
 
 //找到所有比目标分数大的位置
@@ -184,9 +187,11 @@ var max = function(board, role, deep) {
   if(deep <= 0) return false;
 
   var c = Cache[zobrist.code];
-  if(c && c.deep >= deep) {
-    cacheGet ++;
-    return c.result;
+  if(c) {
+    if(c.deep >= deep || c.result !== false) {
+      debugCheckmate.cacheGet ++;
+      return c.result;
+    }
   }
 
   var points = findMax(board, role, MAX_SCORE);
@@ -223,9 +228,11 @@ var min = function(board, role, deep) {
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
   var c = Cache[zobrist.code];
-  if(c && c.deep >= deep) {
-    cacheGet ++;
-    return c.result;
+  if(c){
+    if(c.deep >= deep || c.result !== false) {
+      debugCheckmate.cacheGet ++;
+      return c.result;
+    }
   }
   var points = findMin(board, R.reverse(role), MIN_SCORE);
   if(points.length == 0) return false;
@@ -260,7 +267,7 @@ var cache = function(deep, result) {
     deep: deep,
     result: result
   }
-  cacheCount ++;
+  debugCheckmate.cacheCount ++;
 }
 
 //迭代加深
@@ -308,7 +315,7 @@ module.exports = function(board, role, deep, onlyFour) {
 
 }
 
-},{"./config.js":4,"./evaluate-point.js":6,"./neighbor.js":14,"./role.js":15,"./score.js":16,"./win.js":17,"./zobrist.js":18}],4:[function(require,module,exports){
+},{"./config.js":4,"./debug.js":6,"./evaluate-point.js":7,"./neighbor.js":15,"./role.js":16,"./score.js":17,"./win.js":18,"./zobrist.js":19}],4:[function(require,module,exports){
 module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
@@ -466,7 +473,11 @@ var score = function(count, block, empty) {
 
 module.exports = score;
 
-},{"./score.js":16}],6:[function(require,module,exports){
+},{"./score.js":17}],6:[function(require,module,exports){
+var debug = {};
+module.exports = debug;
+
+},{}],7:[function(require,module,exports){
 /*
  * 启发式评价函数
  * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
@@ -713,7 +724,7 @@ var s = function(board, p, role, config) {
 
 module.exports = s;
 
-},{"./count-to-score.js":5,"./role.js":15,"./score.js":16}],7:[function(require,module,exports){
+},{"./count-to-score.js":5,"./role.js":16,"./score.js":17}],8:[function(require,module,exports){
 var r = require("./role");
 var SCORE = require("./score.js");
 var score = require("./count-to-score.js");
@@ -754,7 +765,7 @@ var eRow = function(line, role) {
 
 module.exports = eRow;
 
-},{"./count-to-score.js":5,"./role":15,"./score.js":16}],8:[function(require,module,exports){
+},{"./count-to-score.js":5,"./role":16,"./score.js":17}],9:[function(require,module,exports){
 var eRow = require("./evaluate-row.js");
 
 var eRows = function(rows, role) {
@@ -767,7 +778,7 @@ var eRows = function(rows, role) {
 
 module.exports = eRows;
 
-},{"./evaluate-row.js":7}],9:[function(require,module,exports){
+},{"./evaluate-row.js":8}],10:[function(require,module,exports){
 var flat = require("./flat");
 var R = require("./role");
 var eRows = require("./evaluate-rows.js");
@@ -782,7 +793,7 @@ var evaluate = function(board, role) {
 
 module.exports = evaluate;
 
-},{"./evaluate-rows.js":8,"./flat":10,"./role":15}],10:[function(require,module,exports){
+},{"./evaluate-rows.js":9,"./flat":11,"./role":16}],11:[function(require,module,exports){
 //一维化，把二位的棋盘四个一位数组。
 var flat = function(board) {
   var result = [];
@@ -829,7 +840,7 @@ var flat = function(board) {
 
 module.exports = flat;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 /*
  * 产生待选的节点
  * 这个函数的优化非常重要，这个函数产生的节点数，实际就是搜索总数的底数。比如这里平均产生50个节点，进行4层搜索，则平均搜索节点数为50的4次方（在没有剪枝的情况下）
@@ -918,7 +929,7 @@ var gen = function(board, deep) {
 
 module.exports = gen;
 
-},{"./config.js":4,"./evaluate-point.js":6,"./neighbor.js":14,"./role.js":15,"./score.js":16}],12:[function(require,module,exports){
+},{"./config.js":4,"./evaluate-point.js":7,"./neighbor.js":15,"./role.js":16,"./score.js":17}],13:[function(require,module,exports){
 var threshold = 1.1;
 
 module.exports = {
@@ -939,7 +950,7 @@ module.exports = {
   }
 }
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 var evaluate = require("./evaluate");
 var gen = require("./gen");
 var R = require("./role");
@@ -949,6 +960,7 @@ var math = require("./math.js");
 var checkmate = require("./checkmate.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
+var debug = require("./debug.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
@@ -1004,13 +1016,12 @@ var maxmin = function(board, deep) {
     board[p[0]][p[1]] = R.empty;
     zobrist.go(p[0],p[1], R.com);
   }
-  console.log("分数:"+best+", 待选节点:"+JSON.stringify(bestPoints));
+  console.log("分数:"+best.toFixed(3)+", 待选节点:"+JSON.stringify(bestPoints));
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   result.score = best;
   steps ++;
   total += count;
-  console.log('当前局面分数：' + best);
-  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount + ',算杀缓存命中:' + (debug.checkmate.cacheGet / debug.checkmate.cacheCount).toFixed(3) + ',' + debug.checkmate.cacheGet + '/'+debug.checkmate.cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
   console.log("================================");
   return result;
@@ -1019,9 +1030,11 @@ var maxmin = function(board, deep) {
 var max = function(board, deep, alpha, beta, role) {
 
   var c = Cache[zobrist.code];
-  if(c && c.deep >= deep) {
-    cacheGet ++;
-    return c.score;
+  if(c) {
+    if(c.deep >= deep || math.greatThan(c.score, SCORE.FOUR)) {
+      cacheGet ++;
+      return c.score;
+    }
   }
 
   var v = evaluate(board, role);
@@ -1085,7 +1098,7 @@ var deeping = function(board, deep) {
 }
 module.exports = deeping;
 
-},{"./checkmate.js":3,"./config.js":4,"./evaluate":9,"./gen":11,"./math.js":12,"./role":15,"./score.js":16,"./win.js":17,"./zobrist.js":18}],14:[function(require,module,exports){
+},{"./checkmate.js":3,"./config.js":4,"./debug.js":6,"./evaluate":10,"./gen":12,"./math.js":13,"./role":16,"./score.js":17,"./win.js":18,"./zobrist.js":19}],15:[function(require,module,exports){
 var R = require("./role");
 //有邻居
 var hasNeighbor = function(board, point, distance, count) {
@@ -1110,7 +1123,7 @@ var hasNeighbor = function(board, point, distance, count) {
 
 module.exports = hasNeighbor;
 
-},{"./role":15}],15:[function(require,module,exports){
+},{"./role":16}],16:[function(require,module,exports){
 module.exports = {
   com: 2,
   hum: 1,
@@ -1120,7 +1133,7 @@ module.exports = {
   }
 }
 
-},{}],16:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 module.exports = {
   ONE: 10,
   TWO: 100,
@@ -1133,7 +1146,7 @@ module.exports = {
   BLOCKED_FOUR: 1501  //这个1分是用来判断是否是冲四的
 }
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var flat = require("./flat.js");
 var eRow = require("./evaluate-row.js");
 var r = require("./role");
@@ -1155,7 +1168,7 @@ module.exports = function(board) {
   return false;
 }
 
-},{"./evaluate-row.js":7,"./flat.js":10,"./role":15,"./score.js":16}],18:[function(require,module,exports){
+},{"./evaluate-row.js":8,"./flat.js":11,"./role":16,"./score.js":17}],19:[function(require,module,exports){
 var R = require("./role.js");
 
 var Zobrist = function(size) {
@@ -1188,4 +1201,4 @@ z.init();
 
 module.exports = z;
 
-},{"./role.js":15}]},{},[2]);
+},{"./role.js":16}]},{},[2]);

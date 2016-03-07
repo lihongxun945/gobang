@@ -18,6 +18,7 @@ var S = require("./score.js");
 var win = require("./win.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
+var debug = require("./debug.js");
 
 var Cache = {};
 
@@ -26,8 +27,10 @@ var debugNodeCount = 0;
 var MAX_SCORE = S.THREE;
 var MIN_SCORE = S.FOUR;
 
-var cacheCount = 0;
-var cacheGet = 0;
+var debugCheckmate = debug.checkmate = {
+  cacheCount: 0,
+  cacheGet: 0
+}
 
 
 //找到所有比目标分数大的位置
@@ -115,9 +118,11 @@ var max = function(board, role, deep) {
   if(deep <= 0) return false;
 
   var c = Cache[zobrist.code];
-  if(c && c.deep >= deep) {
-    cacheGet ++;
-    return c.result;
+  if(c) {
+    if(c.deep >= deep || c.result !== false) {
+      debugCheckmate.cacheGet ++;
+      return c.result;
+    }
   }
 
   var points = findMax(board, role, MAX_SCORE);
@@ -154,9 +159,11 @@ var min = function(board, role, deep) {
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
   var c = Cache[zobrist.code];
-  if(c && c.deep >= deep) {
-    cacheGet ++;
-    return c.result;
+  if(c){
+    if(c.deep >= deep || c.result !== false) {
+      debugCheckmate.cacheGet ++;
+      return c.result;
+    }
   }
   var points = findMin(board, R.reverse(role), MIN_SCORE);
   if(points.length == 0) return false;
@@ -191,7 +198,7 @@ var cache = function(deep, result) {
     deep: deep,
     result: result
   }
-  cacheCount ++;
+  debugCheckmate.cacheCount ++;
 }
 
 //迭代加深
