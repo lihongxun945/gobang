@@ -186,11 +186,13 @@ var max = function(board, role, deep) {
   debugNodeCount ++;
   if(deep <= 0) return false;
 
-  var c = Cache[zobrist.code];
-  if(c) {
-    if(c.deep >= deep || c.result !== false) {
-      debugCheckmate.cacheGet ++;
-      return c.result;
+  if(config.cache) {
+    var c = Cache[zobrist.code];
+    if(c) {
+      if(c.deep >= deep || c.result !== false) {
+        debugCheckmate.cacheGet ++;
+        return c.result;
+      }
     }
   }
 
@@ -227,11 +229,13 @@ var min = function(board, role, deep) {
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
-  var c = Cache[zobrist.code];
-  if(c){
-    if(c.deep >= deep || c.result !== false) {
-      debugCheckmate.cacheGet ++;
-      return c.result;
+  if(config.cache) {
+    var c = Cache[zobrist.code];
+    if(c){
+      if(c.deep >= deep || c.result !== false) {
+        debugCheckmate.cacheGet ++;
+        return c.result;
+      }
     }
   }
   var points = findMin(board, R.reverse(role), MIN_SCORE);
@@ -263,6 +267,7 @@ var min = function(board, role, deep) {
 }
 
 var cache = function(deep, result) {
+  if(!config.cache) return;
   Cache[zobrist.code] = {
     deep: deep,
     result: result
@@ -321,6 +326,7 @@ module.exports = {
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 15, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  7,  //算杀深度
+  cache: true,  //是否使用置换表
 }
 
 },{}],5:[function(require,module,exports){
@@ -1029,11 +1035,13 @@ var maxmin = function(board, deep) {
 
 var max = function(board, deep, alpha, beta, role) {
 
-  var c = Cache[zobrist.code];
-  if(c) {
-    if(c.deep >= deep || math.greatThan(c.score, SCORE.FOUR)) {
-      cacheGet ++;
-      return c.score;
+  if(config.cache) {
+    var c = Cache[zobrist.code];
+    if(c) {
+      if(c.deep >= deep) {
+        cacheGet ++;
+        return c.score;
+      }
     }
   }
 
@@ -1078,6 +1086,7 @@ var max = function(board, deep, alpha, beta, role) {
 }
 
 var cache = function(deep, score) {
+  if(!config.cache) return;
   Cache[zobrist.code] = {
     deep: deep,
     score: score

@@ -117,11 +117,13 @@ var max = function(board, role, deep) {
   debugNodeCount ++;
   if(deep <= 0) return false;
 
-  var c = Cache[zobrist.code];
-  if(c) {
-    if(c.deep >= deep || c.result !== false) {
-      debugCheckmate.cacheGet ++;
-      return c.result;
+  if(config.cache) {
+    var c = Cache[zobrist.code];
+    if(c) {
+      if(c.deep >= deep || c.result !== false) {
+        debugCheckmate.cacheGet ++;
+        return c.result;
+      }
     }
   }
 
@@ -158,11 +160,13 @@ var min = function(board, role, deep) {
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
-  var c = Cache[zobrist.code];
-  if(c){
-    if(c.deep >= deep || c.result !== false) {
-      debugCheckmate.cacheGet ++;
-      return c.result;
+  if(config.cache) {
+    var c = Cache[zobrist.code];
+    if(c){
+      if(c.deep >= deep || c.result !== false) {
+        debugCheckmate.cacheGet ++;
+        return c.result;
+      }
     }
   }
   var points = findMin(board, R.reverse(role), MIN_SCORE);
@@ -194,6 +198,7 @@ var min = function(board, role, deep) {
 }
 
 var cache = function(deep, result) {
+  if(!config.cache) return;
   Cache[zobrist.code] = {
     deep: deep,
     result: result

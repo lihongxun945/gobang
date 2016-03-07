@@ -76,11 +76,13 @@ var maxmin = function(board, deep) {
 
 var max = function(board, deep, alpha, beta, role) {
 
-  var c = Cache[zobrist.code];
-  if(c) {
-    if(c.deep >= deep || math.greatThan(c.score, SCORE.FOUR)) {
-      cacheGet ++;
-      return c.score;
+  if(config.cache) {
+    var c = Cache[zobrist.code];
+    if(c) {
+      if(c.deep >= deep) {
+        cacheGet ++;
+        return c.score;
+      }
     }
   }
 
@@ -125,6 +127,7 @@ var max = function(board, deep, alpha, beta, role) {
 }
 
 var cache = function(deep, score) {
+  if(!config.cache) return;
   Cache[zobrist.code] = {
     deep: deep,
     score: score
