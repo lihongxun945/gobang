@@ -322,11 +322,11 @@ module.exports = function(board, role, deep, onlyFour) {
 
 },{"./config.js":4,"./debug.js":6,"./evaluate-point.js":7,"./neighbor.js":15,"./role.js":16,"./score.js":17,"./win.js":18,"./zobrist.js":19}],4:[function(require,module,exports){
 module.exports = {
-  searchDeep: 4,  //搜索深度
+  searchDeep: 6,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
-  countLimit: 15, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  7,  //算杀深度
-  cache: true,  //是否使用置换表
+  countLimit: 10, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  checkmateDeep:  5,  //算杀深度
+  cache: false,  //是否使用置换表
 }
 
 },{}],5:[function(require,module,exports){
@@ -999,7 +999,7 @@ var maxmin = function(board, deep) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
     zobrist.go(p[0],p[1], R.com);
-    var v = - max(board, deep-1, MIN, (best > MIN ? best : MIN), R.hum);
+    var v = - max(board, deep-1, -MAX, -best, R.hum);
 
     //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
     if(p[0]<3 || p[0] > 11 || p[1] < 3 || p[1] > 11) {
@@ -1071,7 +1071,7 @@ var max = function(board, deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep <= 2 ) && role == R.com && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
+  if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
     var mate = checkmate(board, role);
     if(mate) {

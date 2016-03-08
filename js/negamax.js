@@ -40,7 +40,7 @@ var maxmin = function(board, deep) {
     var p = points[i];
     board[p[0]][p[1]] = R.com;
     zobrist.go(p[0],p[1], R.com);
-    var v = - max(board, deep-1, MIN, (best > MIN ? best : MIN), R.hum);
+    var v = - max(board, deep-1, -MAX, -best, R.hum);
 
     //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
     if(p[0]<3 || p[0] > 11 || p[1] < 3 || p[1] > 11) {
@@ -112,7 +112,7 @@ var max = function(board, deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep <= 2 ) && role == R.com && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
+  if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
     var mate = checkmate(board, role);
     if(mate) {
