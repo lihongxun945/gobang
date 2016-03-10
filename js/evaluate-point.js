@@ -10,16 +10,16 @@ var typeToScore = require("./type-to-score.js");
  * 表示在当前位置下一个棋子后的分数
  */
 
-var s = function(board, p, role, includeSelf) {
+var s = function(board, p, role) {
   var result = 0;
   var count = 0, block = 0;
 
   var len = board.length;
 
   function reset() {
-    count = includeSelf ? 1 : 0;
+    count = 1;
     block = 0;
-    empty = includeSelf ? 0 : 1;
+    empty = 0;
   }
   
 

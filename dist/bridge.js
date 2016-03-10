@@ -515,16 +515,16 @@ var typeToScore = require("./type-to-score.js");
  * 表示在当前位置下一个棋子后的分数
  */
 
-var s = function(board, p, role, includeSelf) {
+var s = function(board, p, role) {
   var result = 0;
   var count = 0, block = 0;
 
   var len = board.length;
 
   function reset() {
-    count = includeSelf ? 1 : 0;
+    count = 1;
     block = 0;
-    empty = includeSelf ? 0 : 1;
+    empty = 0;
   }
   
 
@@ -753,6 +753,7 @@ var evaluate = function(board, role, includeSelf) {
   
   var max = - S.FIVE;
   var min = - S.FIVE;
+  role = role || R.com;
 
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
@@ -800,8 +801,8 @@ var gen = function(board, deep) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
         if(hasNeighbor(board, [i, j], 2, 1)) { //必须是有邻居的才行
-          var scoreHum = scorePoint(board, [i,j], R.hum, true);
-          var scoreCom= scorePoint(board, [i,j], R.com, true);
+          var scoreHum = scorePoint(board, [i,j], R.hum);
+          var scoreCom= scorePoint(board, [i,j], R.com);
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             return [[i, j]];
@@ -971,7 +972,7 @@ var max = function(board, deep, alpha, beta, role) {
     }
   }
 
-  var v = evaluate(board, role, false);
+  var v = evaluate(board, role);
   count ++;
   if(deep <= 0 || math.greatOrEqualThan(v, T.FIVE)) {
     return v;

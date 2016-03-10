@@ -102,6 +102,7 @@ Board.prototype._set = function(x, y, role) {
   this.draw();
   var value = e(this.board, R.com, false);
   var self = this;
+  return;
   if(value >= S.FIVE/2) {
     $.alert("电脑赢了！", function() {
       self.stop();

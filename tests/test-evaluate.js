@@ -7,25 +7,27 @@ var b
 describe('test evalute', function() {
   it(`test one`, function() {
     b = [
-      [0, 0, 0],
-      [0, 2, 0],
-      [0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 2, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b), 4*S.ONE);
+    assert.equal(e(b, 2), 4*S.ONE);
 
     b = [
       [0, 0, 0],
       [0, 1, 0],
       [0, 0, 0],
     ];
-    assert.equal(e(b), 4*S.ONE * -1);
+    assert.equal(e(b, 1), 4*S.ONE * -1);
 
     b = [
       [0, 2, 0],
       [0, 1, 0],
       [0, 0, 0],
     ];
-    assert.equal(e(b), (S.ONE + 2*S.BLOCKED_ONE) - (3*S.ONE + S.BLOCKED_ONE));
+    assert.equal(e(b, 1), (S.ONE + 2*S.BLOCKED_ONE) - (3*S.ONE + S.BLOCKED_ONE));
   });
 
   it(`test two`, function() {
@@ -37,7 +39,7 @@ describe('test evalute', function() {
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b), S.TWO + 6*S.BLOCKED_ONE);
+    assert.equal(e(b), S.TWO);
 
     b = [
       [0, 0, 0, 0, 0, 0],
@@ -47,7 +49,7 @@ describe('test evalute', function() {
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b), S.TWO + 6*S.ONE);
+    assert.equal(e(b), S.TWO);
   });
 
   it(`test three`, function() {
@@ -59,7 +61,7 @@ describe('test evalute', function() {
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b), S.THREE + 9*S.BLOCKED_ONE);
+    assert.equal(e(b), S.THREE);
 
     b = [
       [0, 0, 0, 0, 0, 0],
@@ -69,7 +71,7 @@ describe('test evalute', function() {
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b), S.THREE + 9*S.ONE);
+    assert.equal(e(b), S.THREE);
 
     b = [
       [0, 0, 0, 0, 0, 0],
@@ -79,7 +81,7 @@ describe('test evalute', function() {
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b), S.THREE + 9*S.ONE);
+    assert.equal(e(b), S.THREE);
 
 
     b = [
@@ -90,7 +92,7 @@ describe('test evalute', function() {
       [0, 0, 0, 0, 2, 0],
       [0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b), S.THREE + 9*S.ONE);
+    assert.equal(e(b), S.THREE);
   });
 
 
@@ -103,7 +105,7 @@ describe('test evalute', function() {
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b), S.FOUR + 12*S.BLOCKED_ONE);
+    assert.equal(e(b), S.FOUR);
 
     b = [
       [0, 0, 0, 0, 0, 0],
@@ -113,7 +115,7 @@ describe('test evalute', function() {
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b), S.FOUR + 12*S.ONE);
+    assert.equal(e(b), S.FOUR);
   });
 
 
@@ -127,7 +129,7 @@ describe('test evalute', function() {
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b), S.FIVE + 14*S.BLOCKED_ONE);
+    assert.equal(e(b), S.FIVE);
 
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -140,7 +142,7 @@ describe('test evalute', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0]
     ];
-    assert.equal(e(b), S.FIVE + 15*S.ONE);
+    assert.equal(e(b), S.FIVE);
 
   });
 });

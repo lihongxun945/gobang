@@ -8,6 +8,7 @@ var evaluate = function(board, role, includeSelf) {
   
   var max = - S.FIVE;
   var min = - S.FIVE;
+  role = role || R.com;
 
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {

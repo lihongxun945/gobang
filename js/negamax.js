@@ -88,7 +88,7 @@ var max = function(board, deep, alpha, beta, role) {
     }
   }
 
-  var v = evaluate(board, role, false);
+  var v = evaluate(board, role);
   count ++;
   if(deep <= 0 || math.greatOrEqualThan(v, T.FIVE)) {
     return v;

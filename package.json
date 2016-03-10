@@ -18,7 +18,8 @@
     "test-checkmate": "mocha tests/test-checkmate.js",
     "test-m": "mocha tests/test-max-min.js",
     "test-evaluate-point": "mocha tests/test-evaluate-point.js",
-    "test-zobrist": "mocha tests/test-zobrist.js"
+    "test-zobrist": "mocha tests/test-zobrist.js",
+    "test-win": "mocha tests/test-win.js"
   },
   "author": "Hongxun Lee <lihongxun945@gmail.com> (http://light7.org/)",
   "homepage": "http://gobang.light7.cn/",

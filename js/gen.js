@@ -27,8 +27,8 @@ var gen = function(board, deep) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
         if(hasNeighbor(board, [i, j], 2, 1)) { //必须是有邻居的才行
-          var scoreHum = scorePoint(board, [i,j], R.hum, true);
-          var scoreCom= scorePoint(board, [i,j], R.com, true);
+          var scoreHum = scorePoint(board, [i,j], R.hum);
+          var scoreCom= scorePoint(board, [i,j], R.com);
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             return [[i, j]];
