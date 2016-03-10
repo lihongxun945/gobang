@@ -12,14 +12,16 @@ var typeToScore = require("./type-to-score.js");
 
 var s = function(board, p, role) {
   var result = 0;
-  var count = 0, block = 0;
+  var count = 0, block = 0,
+    secondCount = 0;  //另一个方向的count
 
   var len = board.length;
 
   function reset() {
     count = 1;
     block = 0;
-    empty = 0;
+    empty = -1;
+    secondCount = 0;  //另一个方向的count
   }
   
 
@@ -32,7 +34,7 @@ var s = function(board, p, role) {
     }
     var t = board[p[0]][i];
     if(t === R.empty) {
-      if(!empty && i<len-1 && board[p[0]][i+1] == role) {
+      if(empty == -1 && i<len-1 && board[p[0]][i+1] == role) {
         empty = count;
         continue;
       } else {
@@ -48,6 +50,7 @@ var s = function(board, p, role) {
     }
   }
 
+
   for(var i=p[1]-1;true;i--) {
     if(i<0) {
       block ++;
@@ -55,22 +58,24 @@ var s = function(board, p, role) {
     }
     var t = board[p[0]][i];
     if(t === R.empty) {
-      if(!empty && i>0 && board[p[0]][i-1] == role) {
-        empty = count;
+      if(empty == -1 && i>0 && board[p[0]][i-1] == role) {
+        empty = 0;  //注意这里是0，因为是从右往左走的
         continue;
       } else {
         break;
       }
     }
     if(t === role) {
-      count ++;
-      empty && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
+      secondCount ++;
+      empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
       continue;
     } else {
       block ++;
       break;
     }
   }
+
+  count+= secondCount;
 
 
   result += type(count, block, empty);
@@ -85,7 +90,7 @@ var s = function(board, p, role) {
     }
     var t = board[i][p[1]];
     if(t === R.empty) {
-      if(!empty && i<len-1 && board[i+1][p[1]] == role) {
+      if(empty == -1 && i<len-1 && board[i+1][p[1]] == role) {
         empty = count;
         continue;
       } else {
@@ -108,16 +113,16 @@ var s = function(board, p, role) {
     }
     var t = board[i][p[1]];
     if(t === R.empty) {
-      if(!empty && i>0 && board[i-1][p[1]] == role) {
-        empty = count;
+      if(empty == -1 && i>0 && board[i-1][p[1]] == role) {
+        empty = 0;
         continue;
       } else {
         break;
       }
     }
     if(t === role) {
-      count ++;
-      empty && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
+      secondCount++;
+      empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
       continue;
     } else {
       block ++;
@@ -125,6 +130,7 @@ var s = function(board, p, role) {
     }
   }
 
+  count+= secondCount;
   result += type(count, block, empty);
 
 
@@ -139,7 +145,7 @@ var s = function(board, p, role) {
     }
     var t = board[x][y];
     if(t === R.empty) {
-      if(!empty && (x<len-1 && y < len-1) && board[x+1][y+1] == role) {
+      if(empty == -1 && (x<len-1 && y < len-1) && board[x+1][y+1] == role) {
         empty = count;
         continue;
       } else {
@@ -163,16 +169,16 @@ var s = function(board, p, role) {
     }
     var t = board[x][y];
     if(t === R.empty) {
-      if(!empty && (x>0 && y>0) && board[x-1][y-1] == role) {
-        empty = count;
+      if(empty == -1 && (x>0 && y>0) && board[x-1][y-1] == role) {
+        empty = 0;
         continue;
       } else {
         break;
       }
     }
     if(t === role) {
-      count ++;
-      empty && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
+      secondCount ++;
+      empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
       continue;
     } else {
       block ++;
@@ -180,8 +186,8 @@ var s = function(board, p, role) {
     }
   }
 
+  count+= secondCount;
   result += type(count, block, empty);
-  console.log(result, count, block, empty);
 
 
   // \/
@@ -195,7 +201,7 @@ var s = function(board, p, role) {
     }
     var t = board[x][y];
     if(t === R.empty) {
-      if(!empty && (x<len-1 && y<len-1) && board[x+1][y-1] == role) {
+      if(empty == -1 && (x<len-1 && y<len-1) && board[x+1][y-1] == role) {
         empty = count;
         continue;
       } else {
@@ -219,16 +225,16 @@ var s = function(board, p, role) {
     }
     var t = board[x][y];
     if(t === R.empty) {
-      if(!empty && (x>0 && y>0) && board[x-1][y+1] == role) {
-        empty = count;
+      if(empty == -1 && (x>0 && y>0) && board[x-1][y+1] == role) {
+        empty = 0;
         continue;
       } else {
         break;
       }
     }
     if(t === role) {
-      count ++;
-      empty && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
+      secondCount++;
+      empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
       continue;
     } else {
       block ++;
@@ -236,9 +242,9 @@ var s = function(board, p, role) {
     }
   }
 
+  count+= secondCount;
   result += type(count, block, empty);
 
-  console.log(result);
 
   return typeToScore(result);
 }
