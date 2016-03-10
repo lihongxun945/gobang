@@ -3,7 +3,7 @@ module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 10, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  0,  //算杀深度
+  checkmateDeep:  7,  //算杀深度
   cache: false,  //是否使用置换表
 }
 
@@ -430,6 +430,7 @@ module.exports = evaluate;
 var e = require("./evaluate.js");
 var S = require("./score.js");
 var R = require("./role.js");
+var W = require("./win.js");
 
 var Board = function(container, status) {
   this.container = container;
@@ -529,14 +530,13 @@ Board.prototype._set = function(x, y, role) {
   this.board[x][y] = role;
   this.steps.push([x,y]);
   this.draw();
-  var value = e(this.board, R.com, false);
+  var winner = W(this.board);
   var self = this;
-  return;
-  if(value >= S.FIVE/2) {
+  if(winner == R.com) {
     $.alert("电脑赢了！", function() {
       self.stop();
     });
-  } else if (value <= -S.FIVE/2) {
+  } else if (winner == R.hum) {
     $.alert("恭喜你赢了！", function() {
       self.stop();
     });
@@ -601,7 +601,7 @@ $("#back").click(function() {
   b.back();
 });
 
-},{"./evaluate.js":4,"./role.js":7,"./score.js":8}],6:[function(require,module,exports){
+},{"./evaluate.js":4,"./role.js":7,"./score.js":8,"./win.js":10}],6:[function(require,module,exports){
 var R = require("./role");
 //有邻居
 var hasNeighbor = function(board, point, distance, count) {
@@ -666,7 +666,7 @@ var T = require("./score.js");
 var s = function(type) {
   if(type < T.FOUR && type >= T.BLOCKED_FOUR) {
 
-    if(type >= T.BLOCKED_FOUR && type < T.BLOCKED_FOUR * 2) {
+    if(type >= T.BLOCKED_FOUR && type < (T.BLOCKED_FOUR + T.THREE)) {
       return T.THREE;
     } else {
       return T.FOUR;
@@ -677,4 +677,125 @@ var s = function(type) {
 
 module.exports = s;
 
-},{"./score.js":8}]},{},[5]);
+},{"./score.js":8}],10:[function(require,module,exports){
+var R = require("./role.js");
+var isFive = function(board, p, role) {
+  var len = board.length;
+  var count = 1;
+
+  var reset = function() {
+    count = 1;
+  }
+
+  for(var i=p[1]+1;true;i++) {
+    if(i>=len) break;
+    var t = board[p[0]][i];
+    if(t !== role) break;
+    count ++;
+  }
+
+
+  for(var i=p[1]-1;true;i--) {
+    if(i<0) break;
+    var t = board[p[0]][i];
+    if(t !== role) break;
+    count ++;
+  }
+
+  if(count >= 5) return true;
+
+  //纵向
+  reset();
+
+  for(var i=p[0]+1;true;i++) {
+    if(i>=len) {
+      break;
+    }
+    var t = board[i][p[1]];
+    if(t !== role) break;
+    count ++;
+  }
+
+  for(var i=p[0]-1;true;i--) {
+    if(i<0) {
+      break;
+    }
+    var t = board[i][p[1]];
+    if(t !== role) break;
+    count ++;
+  }
+
+
+  if(count >= 5) return true;
+  // \\
+  reset();
+
+  for(var i=1;true;i++) {
+    var x = p[0]+i, y = p[1]+i;
+    if(x>=len || y>=len) {
+      break;
+    }
+    var t = board[x][y];
+    if(t !== role) break;
+      
+    count ++;
+  }
+
+  for(var i=1;true;i++) {
+    var x = p[0]-i, y = p[1]-i;
+    if(x<0||y<0) {
+      break;
+    }
+    var t = board[x][y];
+    if(t !== role) break;
+    count ++;
+  }
+
+  if(count >= 5) return true;
+
+  // \/
+  reset();
+
+  for(var i=1; true;i++) {
+    var x = p[0]+i, y = p[1]-i;
+    if(x<0||y<0||x>=len||y>=len) {
+      break;
+    }
+    var t = board[x][y];
+    if(t !== role) break;
+    count ++;
+  }
+
+  for(var i=1;true;i++) {
+    var x = p[0]-i, y = p[1]+i;
+    if(x<0||y<0||x>=len||y>=len) {
+      break;
+    }
+    var t = board[x][y];
+    if(t !== role) break;
+    count ++;
+  }
+
+  if(count >= 5) return true;
+
+  return false;
+
+}
+
+
+var w = function(board) {
+  for(var i=0;i<board.length;i++) {
+    for(var j=0;j<board[i].length;j++) {
+      var t = board[i][j];
+      if(t !== R.empty) {
+        var r = isFive(board, [i, j], t);
+        if(r) return t;
+      }
+    }
+  }
+  return false;
+}
+
+module.exports = w;
+
+},{"./role.js":7}]},{},[5]);

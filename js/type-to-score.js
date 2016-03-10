@@ -8,7 +8,7 @@ var T = require("./score.js");
 var s = function(type) {
   if(type < T.FOUR && type >= T.BLOCKED_FOUR) {
 
-    if(type >= T.BLOCKED_FOUR && type < T.BLOCKED_FOUR * 2) {
+    if(type >= T.BLOCKED_FOUR && type < (T.BLOCKED_FOUR + T.THREE)) {
       return T.THREE;
     } else {
       return T.FOUR;

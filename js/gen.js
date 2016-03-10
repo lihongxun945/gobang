@@ -13,6 +13,7 @@ var scorePoint = require("./evaluate-point.js");
 var hasNeighbor = require("./neighbor.js");
 var S = require("./score.js");
 var config = require("./config.js");
+var zobrist = require("./zobrist.js");
 
 var gen = function(board, deep) {
   
@@ -26,7 +27,7 @@ var gen = function(board, deep) {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
-        if(hasNeighbor(board, [i, j], 2, 1)) { //必须是有邻居的才行
+        if(hasNeighbor(board, [i, j], 2, 2)) { //必须是有邻居的才行
           var scoreHum = scorePoint(board, [i,j], R.hum);
           var scoreCom= scorePoint(board, [i,j], R.com);
 

@@ -1,10 +1,10 @@
 var R = require("./role.js");
 var isFive = function(board, p, role) {
   var len = board.length;
-  var count = 0;
+  var count = 1;
 
   var reset = function() {
-    count = 0;
+    count = 1;
   }
 
   for(var i=p[1]+1;true;i++) {
@@ -38,7 +38,7 @@ var isFive = function(board, p, role) {
 
   for(var i=p[0]-1;true;i--) {
     if(i<0) {
-      block ++;
+      break;
     }
     var t = board[i][p[1]];
     if(t !== role) break;
@@ -108,7 +108,8 @@ var w = function(board) {
     for(var j=0;j<board[i].length;j++) {
       var t = board[i][j];
       if(t !== R.empty) {
-        if(isFive(board, [i, j], t)) return t;
+        var r = isFive(board, [i, j], t);
+        if(r) return t;
       }
     }
   }

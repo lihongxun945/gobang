@@ -15,6 +15,7 @@ var R = require("./role.js");
 var hasNeighbor = require("./neighbor.js");
 var scorePoint = require("./evaluate-point.js");
 var S = require("./SCORE.js");
+var W = require("./win.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
 var debug = require("./debug.js");
@@ -155,7 +156,7 @@ var max = function(board, role, deep) {
 //只要有一种方式能防守住，就可以了
 var min = function(board, role, deep) {
   debugNodeCount ++;
-  var w = win(board);
+  var w = W(board);
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
@@ -222,7 +223,6 @@ var deeping = function(board, role, deep) {
 }
 
 module.exports = function(board, role, deep, onlyFour) {
-  return false;
 
   deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
