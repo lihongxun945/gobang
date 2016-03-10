@@ -1,4 +1,23 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/*
+ * 棋型表示
+ * 用一个6位数表示棋型，从高位到低位分别表示
+ * 连五，活四，眠四，活三，活二/眠三，活一/眠二, 眠一
+ */
+
+module.exports = {
+  ONE: 10,
+  TWO: 100,
+  THREE: 1000,
+  FOUR: 100000,
+  FIVE: 1000000,
+  BLOCKED_ONE: 1,
+  BLOCKED_TWO: 10,
+  BLOCKED_THREE: 100,
+  BLOCKED_FOUR: 10000
+}
+
+},{}],2:[function(require,module,exports){
 var m = require("./negamax.js");
 var R = require("./role.js");
 var zobrist = require("./zobrist.js");
@@ -48,7 +67,7 @@ AI.prototype.back = function(step) {
 }
 module.exports = AI;
 
-},{"./config.js":4,"./negamax.js":14,"./role.js":16,"./zobrist.js":19}],2:[function(require,module,exports){
+},{"./config.js":5,"./negamax.js":12,"./role.js":14,"./zobrist.js":17}],3:[function(require,module,exports){
 var AI = require("./ai.js");
 
 var ai = new AI();
@@ -66,7 +85,7 @@ onmessage = function(e) {
   }
 }
 
-},{"./ai.js":1}],3:[function(require,module,exports){
+},{"./ai.js":2}],4:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -83,8 +102,7 @@ onmessage = function(e) {
 var R = require("./role.js");
 var hasNeighbor = require("./neighbor.js");
 var scorePoint = require("./evaluate-point.js");
-var S = require("./score.js");
-var win = require("./win.js");
+var S = require("./SCORE.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
 var debug = require("./debug.js");
@@ -292,6 +310,7 @@ var deeping = function(board, role, deep) {
 }
 
 module.exports = function(board, role, deep, onlyFour) {
+  return false;
 
   deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
@@ -320,85 +339,85 @@ module.exports = function(board, role, deep, onlyFour) {
 
 }
 
-},{"./config.js":4,"./debug.js":6,"./evaluate-point.js":7,"./neighbor.js":15,"./role.js":16,"./score.js":17,"./win.js":18,"./zobrist.js":19}],4:[function(require,module,exports){
+},{"./SCORE.js":1,"./config.js":5,"./debug.js":7,"./evaluate-point.js":8,"./neighbor.js":13,"./role.js":14,"./zobrist.js":17}],5:[function(require,module,exports){
 module.exports = {
-  searchDeep: 6,  //搜索深度
+  searchDeep: 4,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 10, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  5,  //算杀深度
+  checkmateDeep:  0,  //算杀深度
   cache: false,  //是否使用置换表
 }
 
-},{}],5:[function(require,module,exports){
-var SCORE = require("./score.js");
+},{}],6:[function(require,module,exports){
+var score = require("./score.js");
 
-var score = function(count, block, empty) {
+var t = function(count, block, empty) {
 
   if(empty === undefined) empty = 0;
 
   //没有空位
   if(empty == 0) {
-    if(count >= 5) return SCORE.FIVE;
+    if(count >= 5) return score.FIVE;
     if(block === 0) {
       switch(count) {
-        case 1: return SCORE.ONE;
-        case 2: return SCORE.TWO;
-        case 3: return SCORE.THREE;
-        case 4: return SCORE.FOUR;
+        case 1: return score.ONE;
+        case 2: return score.TWO;
+        case 3: return score.THREE;
+        case 4: return score.FOUR;
       }
     }
 
     if(block === 1) {
       switch(count) {
-        case 1: return SCORE.BLOCKED_ONE;
-        case 2: return SCORE.BLOCKED_TWO;
-        case 3: return SCORE.BLOCKED_THREE;
-        case 4: return SCORE.BLOCKED_FOUR;
+        case 1: return score.BLOCKED_ONE;
+        case 2: return score.BLOCKED_TWO;
+        case 3: return score.BLOCKED_THREE;
+        case 4: return score.BLOCKED_FOUR;
       }
     }
 
   } else if(empty === 1 || empty == count-1) {
     //第1个是空位
     if(count >= 6) {
-      return SCORE.FIVE;
+      return score.FIVE;
     }
     if(block === 0) {
       switch(count) {
-        case 2: return SCORE.TWO;
+        case 2: return score.TWO;
         case 3:
-        case 4: return SCORE.THREE;
-        case 5: return SCORE.FOUR;
+        case 4: return score.THREE;
+        case 5: return score.FOUR;
       }
     }
 
     if(block === 1) {
       switch(count) {
-        case 2: return SCORE.BLOCKED_TWO;
-        case 3: return SCORE.BLOCKED_THREE;
-        case 4: return SCORE.BLOCKED_FOUR;
-        case 5: return SCORE.BLOCKED_FOUR;
+        case 2: return score.BLOCKED_TWO;
+        case 3: return score.BLOCKED_THREE;
+        case 4: return score.BLOCKED_FOUR;
+        case 5: return score.BLOCKED_FOUR;
       }
     }
   } else if(empty === 2 || empty == count-2) {
     //第二个是空位
     if(count >= 7) {
-      return SCORE.FIVE;
+      return score.FIVE;
     }
     if(block === 0) {
       switch(count) {
         case 3:
         case 4:
-        case 5: return SCORE.THREE;
-        case 6: return SCORE.FOUR;
+        case 5: return score.THREE;
+        case 6: return score.FOUR;
       }
     }
 
     if(block === 1) {
       switch(count) {
-        case 3: return SCORE.BLOCKED_THREE;
-        case 4: return SCORE.BLOCKED_FOUR;
-        case 5: return SCORE.BLOCKED_FOUR;
-        case 6: return SCORE.FOUR;
+        case 3: return score.BLOCKED_THREE;
+        case 4: return score.BLOCKED_FOUR;
+        case 5: return score.BLOCKED_FOUR;
+        case 6: return score.FOUR;
       }
     }
 
@@ -406,19 +425,19 @@ var score = function(count, block, empty) {
       switch(count) {
         case 4:
         case 5:
-        case 6: return SCORE.BLOCKED_FOUR;
+        case 6: return score.BLOCKED_FOUR;
       }
     }
   } else if(empty === 3 || empty == count-3) {
     if(count >= 8) {
-      return SCORE.FIVE;
+      return score.FIVE;
     }
     if(block === 0) {
       switch(count) {
         case 4:
-        case 5: return SCORE.THREE;
-        case 6: return SCORE.THREE*2;
-        case 7: return SCORE.FOUR;
+        case 5: return score.THREE;
+        case 6: return score.THREE*2;
+        case 7: return score.FOUR;
       }
     }
 
@@ -426,8 +445,8 @@ var score = function(count, block, empty) {
       switch(count) {
         case 4:
         case 5:
-        case 6: return SCORE.BLOCKED_FOUR;
-        case 7: return SCORE.FOUR;
+        case 6: return score.BLOCKED_FOUR;
+        case 7: return score.FOUR;
       }
     }
 
@@ -436,19 +455,19 @@ var score = function(count, block, empty) {
         case 4:
         case 5:
         case 6:
-        case 7: return SCORE.BLOCKED_FOUR;
+        case 7: return score.BLOCKED_FOUR;
       }
     }
   } else if(empty === 4 || empty == count-4) {
     if(count >= 9) {
-      return SCORE.FIVE;
+      return score.FIVE;
     }
     if(block === 0) {
       switch(count) {
         case 5:
         case 6:
         case 7:
-        case 8: return SCORE.FOUR;
+        case 8: return score.FOUR;
       }
     }
 
@@ -457,8 +476,8 @@ var score = function(count, block, empty) {
         case 4:
         case 5:
         case 6:
-        case 7: return SCORE.BLOCKED_FOUR;
-        case 8: return SCORE.FOUR;
+        case 7: return score.BLOCKED_FOUR;
+        case 8: return score.FOUR;
       }
     }
 
@@ -467,49 +486,49 @@ var score = function(count, block, empty) {
         case 5:
         case 6:
         case 7:
-        case 8: return SCORE.BLOCKED_FOUR;
+        case 8: return score.BLOCKED_FOUR;
       }
     }
   } else if(empty === 5 || empty == count-5) {
-    return SCORE.FIVE;
+    return score.FIVE;
   }
 
   return 0;
 }
 
-module.exports = score;
+module.exports = t;
 
-},{"./score.js":17}],6:[function(require,module,exports){
+},{"./score.js":15}],7:[function(require,module,exports){
 var debug = {};
 module.exports = debug;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /*
  * 启发式评价函数
  * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
  * 并且是只给某一个角色打分
  */
-var S = require("./score.js");
 var R = require("./role.js");
-var SCORE = require("./count-to-score.js");
-
+var type = require("./count-to-type.js");
+var typeToScore = require("./type-to-score.js");
 /*
  * 表示在当前位置下一个棋子后的分数
  */
 
-var s = function(board, p, role, config) {
+var s = function(board, p, role, includeSelf) {
   var result = 0;
   var count = 0, block = 0;
 
   var len = board.length;
-  var score = SCORE;
 
-  for(var k in config) score[k] = config[k];
+  function reset() {
+    count = includeSelf ? 1 : 0;
+    block = 0;
+    empty = includeSelf ? 0 : 1;
+  }
+  
 
-  //横向
-  count = 1;  //默认把当前位置当做己方棋子。因为算的是当前下了一个己方棋子后的分数
-  block = 0;
-  empty = 0;
+  reset();
 
   for(var i=p[1]+1;true;i++) {
     if(i>=len) {
@@ -557,12 +576,10 @@ var s = function(board, p, role, config) {
     }
   }
 
-  result += score(count, block, empty);
+  result += type(count, block, empty);
 
   //纵向
-  count = 1;
-  block = 0;
-  empty = 0;
+  reset();
 
   for(var i=p[0]+1;true;i++) {
     if(i>=len) {
@@ -610,13 +627,11 @@ var s = function(board, p, role, config) {
     }
   }
 
-  result += score(count, block, empty);
+  result += type(count, block, empty);
 
 
   // \\
-  count = 1;
-  block = 0;
-  empty = 0;
+  reset();
 
   for(var i=1;true;i++) {
     var x = p[0]+i, y = p[1]+i;
@@ -666,13 +681,11 @@ var s = function(board, p, role, config) {
     }
   }
 
-  result += score(count, block, empty);
+  result += type(count, block, empty);
 
 
   // \/
-  count = 1;
-  block = 0;
-  empty = 0;
+  reset();
 
   for(var i=1; true;i++) {
     var x = p[0]+i, y = p[1]-i;
@@ -722,132 +735,42 @@ var s = function(board, p, role, config) {
     }
   }
 
-  result += score(count, block, empty);
+  result += type(count, block, empty);
 
-  return result;
-
+  return typeToScore(result);
 }
 
 module.exports = s;
 
-},{"./count-to-score.js":5,"./role.js":16,"./score.js":17}],8:[function(require,module,exports){
-var r = require("./role");
-var SCORE = require("./score.js");
-var score = require("./count-to-score.js");
+},{"./count-to-type.js":6,"./role.js":14,"./type-to-score.js":16}],9:[function(require,module,exports){
+var R = require("./role.js");
+var scorePoint = require("./evaluate-point.js");
+var hasNeighbor = require("./neighbor.js");
+var S = require("./score.js");
+var config = require("./config.js");
 
+var evaluate = function(board, role, includeSelf) {
+  
+  var max = - S.FIVE;
+  var min = - S.FIVE;
 
-var eRow = function(line, role) {
-  var count = 0; // 连子数
-  var block = 0; // 封闭数
-  var empty = 0;  //空位数
-  var value = 0;  //分数
-
-  for(var i=0;i<line.length;i++) {
-    if(line[i] == role) { // 发现第一个己方棋子
-      count=1;
-      block=0;
-      empty=0;
-
-      //判断左边界
-      if(i==0) block=1;
-      else if(line[i-1] != r.empty) block = 1;
-
-      //计算己方棋子数
-      for(i=i+1;i<line.length;i++) {
-        if(line[i] == role) {
-          count ++;
-        } else if(!empty && i < line.length-1 && line[i] == r.empty && line[i+1] == role) empty=count;  //只计算中间的一个空位，也就是己方棋子之间的一个空位。
-        else break;
+  for(var i=0;i<board.length;i++) {
+    for(var j=0;j<board[i].length;j++) {
+      if(board[i][j] == R.empty) {
+        if(hasNeighbor(board, [i, j], 2, 1)) { //必须是有邻居的才行
+          max = Math.max(scorePoint(board, [i,j], role, includeSelf), max);
+          min = Math.max(scorePoint(board, [i,j], R.reverse(role), includeSelf), min);
+        }
       }
-
-      //判断右边界
-      if(i==line.length || line[i] != r.empty) block++;
-      value += score(count, block, empty);
     }
   }
 
-  return value;
-}
-
-module.exports = eRow;
-
-},{"./count-to-score.js":5,"./role":16,"./score.js":17}],9:[function(require,module,exports){
-var eRow = require("./evaluate-row.js");
-
-var eRows = function(rows, role) {
-  var r = 0;
-  for(var i=0;i<rows.length;i++) {
-    r+=eRow(rows[i], role);
-  }
-  return r;
-}
-
-module.exports = eRows;
-
-},{"./evaluate-row.js":8}],10:[function(require,module,exports){
-var flat = require("./flat");
-var R = require("./role");
-var eRows = require("./evaluate-rows.js");
-
-var evaluate = function(board, role) {
-  role = role || R.com;
-  var rows = flat(board);
-  var comScore = eRows(rows, role);
-  var humScore = eRows(rows, R.reverse(role));
-
-  return comScore - humScore;
+  return max-min;
 }
 
 module.exports = evaluate;
 
-},{"./evaluate-rows.js":9,"./flat":11,"./role":16}],11:[function(require,module,exports){
-//一维化，把二位的棋盘四个一位数组。
-var flat = function(board) {
-  var result = [];
-  var len = board.length;
-
-  //横向
-  for(var i=0;i<len;i++) {
-    result.push(board[i]);
-  }
-
-
-  //纵向
-  for(var i=0;i<len;i++) {
-    var col = [];
-    for(var j=0;j<len;j++) {
-      col.push(board[j][i]);
-    }
-    result.push(col);
-  }
-
-
-  // \/ 方向
-  for(var i=0;i<len*2;i++) {
-    var line = [];
-    for(var j=0;j<=i && j<len;j++) {
-      if(i-j<len) line.push(board[i-j][j]);
-    }
-    if(line.length) result.push(line);
-  }
-
-
-  // \\ 方向
-  for(var i=-1*len+1;i<len;i++) {
-    var line = [];
-    for(var j=0;j<len;j++) {
-      if(j+i>=0 && j+i<len) line.push(board[j+i][j]);
-    }
-    if(line.length) result.push(line);
-  }
-
-  
-  return result;
-}
-
-module.exports = flat;
-
-},{}],12:[function(require,module,exports){
+},{"./config.js":5,"./evaluate-point.js":8,"./neighbor.js":13,"./role.js":14,"./score.js":15}],10:[function(require,module,exports){
 /*
  * 产生待选的节点
  * 这个函数的优化非常重要，这个函数产生的节点数，实际就是搜索总数的底数。比如这里平均产生50个节点，进行4层搜索，则平均搜索节点数为50的4次方（在没有剪枝的情况下）
@@ -877,8 +800,8 @@ var gen = function(board, deep) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
         if(hasNeighbor(board, [i, j], 2, 1)) { //必须是有邻居的才行
-          var scoreHum = scorePoint(board, [i,j], R.hum);
-          var scoreCom= scorePoint(board, [i,j], R.com);
+          var scoreHum = scorePoint(board, [i,j], R.hum, true);
+          var scoreCom= scorePoint(board, [i,j], R.com, true);
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             return [[i, j]];
@@ -936,7 +859,7 @@ var gen = function(board, deep) {
 
 module.exports = gen;
 
-},{"./config.js":4,"./evaluate-point.js":7,"./neighbor.js":15,"./role.js":16,"./score.js":17}],13:[function(require,module,exports){
+},{"./config.js":5,"./evaluate-point.js":8,"./neighbor.js":13,"./role.js":14,"./score.js":15}],11:[function(require,module,exports){
 var threshold = 1.1;
 
 module.exports = {
@@ -957,12 +880,11 @@ module.exports = {
   }
 }
 
-},{}],14:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var evaluate = require("./evaluate");
 var gen = require("./gen");
 var R = require("./role");
-var SCORE = require("./score.js");
-var win = require("./win.js");
+var T = SCORE = require("./score.js");
 var math = require("./math.js");
 var checkmate = require("./checkmate.js");
 var config = require("./config.js");
@@ -1049,9 +971,9 @@ var max = function(board, deep, alpha, beta, role) {
     }
   }
 
-  var v = evaluate(board, role);
+  var v = evaluate(board, role, false);
   count ++;
-  if(deep <= 0 || win(board)) {
+  if(deep <= 0 || math.greatOrEqualThan(v, T.FIVE)) {
     return v;
   }
   
@@ -1111,7 +1033,7 @@ var deeping = function(board, deep) {
 }
 module.exports = deeping;
 
-},{"./checkmate.js":3,"./config.js":4,"./debug.js":6,"./evaluate":10,"./gen":12,"./math.js":13,"./role":16,"./score.js":17,"./win.js":18,"./zobrist.js":19}],15:[function(require,module,exports){
+},{"./checkmate.js":4,"./config.js":5,"./debug.js":7,"./evaluate":9,"./gen":10,"./math.js":11,"./role":14,"./score.js":15,"./zobrist.js":17}],13:[function(require,module,exports){
 var R = require("./role");
 //有邻居
 var hasNeighbor = function(board, point, distance, count) {
@@ -1136,7 +1058,7 @@ var hasNeighbor = function(board, point, distance, count) {
 
 module.exports = hasNeighbor;
 
-},{"./role":16}],16:[function(require,module,exports){
+},{"./role":14}],14:[function(require,module,exports){
 module.exports = {
   com: 2,
   hum: 1,
@@ -1146,42 +1068,31 @@ module.exports = {
   }
 }
 
-},{}],17:[function(require,module,exports){
-module.exports = {
-  ONE: 10,
-  TWO: 100,
-  THREE: 1000,
-  FOUR: 10000,
-  FIVE: 100000,
-  BLOCKED_ONE: 2,
-  BLOCKED_TWO: 10,
-  BLOCKED_THREE: 100,
-  BLOCKED_FOUR: 1501  //这个1分是用来判断是否是冲四的
-}
+},{}],15:[function(require,module,exports){
+arguments[4][1][0].apply(exports,arguments)
+},{"dup":1}],16:[function(require,module,exports){
+var T = require("./score.js");
 
-},{}],18:[function(require,module,exports){
-var flat = require("./flat.js");
-var eRow = require("./evaluate-row.js");
-var r = require("./role");
-var S = require("./score.js");
+/*
+ * 只做一件事，就是修复冲四:
+ * 如果是单独一个冲四，则将分数将至和活三一样
+ * 如果是冲四活三或者双冲四，则分数和活四一样
+ */
+var s = function(type) {
+  if(type < T.FOUR && type >= T.BLOCKED_FOUR) {
 
-module.exports = function(board) {
-  var rows = flat(board);
-
-  for(var i=0;i<rows.length;i++) {
-    var value = eRow(rows[i], r.com);
-    if(value >= S.FIVE) {
-      return r.com;
-    } 
-    value = eRow(rows[i], r.hum);
-    if (value >= S.FIVE) {
-      return r.hum;
+    if(type >= T.BLOCKED_FOUR && type < T.BLOCKED_FOUR * 2) {
+      return T.THREE;
+    } else {
+      return T.FOUR;
     }
   }
-  return false;
+  return type;
 }
 
-},{"./evaluate-row.js":8,"./flat.js":11,"./role":16,"./score.js":17}],19:[function(require,module,exports){
+module.exports = s;
+
+},{"./score.js":15}],17:[function(require,module,exports){
 var R = require("./role.js");
 
 var Zobrist = function(size) {
@@ -1214,4 +1125,4 @@ z.init();
 
 module.exports = z;
 
-},{"./role.js":16}]},{},[2]);
+},{"./role.js":14}]},{},[3]);

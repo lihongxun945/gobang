@@ -1,8 +1,7 @@
 var evaluate = require("./evaluate");
 var gen = require("./gen");
 var R = require("./role");
-var SCORE = require("./score.js");
-var win = require("./win.js");
+var T = SCORE = require("./score.js");
 var math = require("./math.js");
 var checkmate = require("./checkmate.js");
 var config = require("./config.js");
@@ -89,9 +88,9 @@ var max = function(board, deep, alpha, beta, role) {
     }
   }
 
-  var v = evaluate(board, role);
+  var v = evaluate(board, role, false);
   count ++;
-  if(deep <= 0 || win(board)) {
+  if(deep <= 0 || math.greatOrEqualThan(v, T.FIVE)) {
     return v;
   }
   

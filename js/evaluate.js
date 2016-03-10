@@ -1,14 +1,26 @@
-var flat = require("./flat");
-var R = require("./role");
-var eRows = require("./evaluate-rows.js");
+var R = require("./role.js");
+var scorePoint = require("./evaluate-point.js");
+var hasNeighbor = require("./neighbor.js");
+var S = require("./score.js");
+var config = require("./config.js");
 
-var evaluate = function(board, role) {
-  role = role || R.com;
-  var rows = flat(board);
-  var comScore = eRows(rows, role);
-  var humScore = eRows(rows, R.reverse(role));
+var evaluate = function(board, role, includeSelf) {
+  
+  var max = - S.FIVE;
+  var min = - S.FIVE;
 
-  return comScore - humScore;
+  for(var i=0;i<board.length;i++) {
+    for(var j=0;j<board[i].length;j++) {
+      if(board[i][j] == R.empty) {
+        if(hasNeighbor(board, [i, j], 2, 1)) { //必须是有邻居的才行
+          max = Math.max(scorePoint(board, [i,j], role, includeSelf), max);
+          min = Math.max(scorePoint(board, [i,j], R.reverse(role), includeSelf), min);
+        }
+      }
+    }
+  }
+
+  return max-min;
 }
 
 module.exports = evaluate;

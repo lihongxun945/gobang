@@ -1,7 +1,6 @@
 var e = require("./evaluate.js");
 var S = require("./score.js");
 var R = require("./role.js");
-var win = require("./win.js");
 
 var Board = function(container, status) {
   this.container = container;
@@ -101,14 +100,13 @@ Board.prototype._set = function(x, y, role) {
   this.board[x][y] = role;
   this.steps.push([x,y]);
   this.draw();
-  var value = e(this.board);
-  var w = win(this.board);
+  var value = e(this.board, R.com, false);
   var self = this;
-  if(w == R.com) {
+  if(value >= S.FIVE/2) {
     $.alert("电脑赢了！", function() {
       self.stop();
     });
-  } else if (w == R.hum) {
+  } else if (value <= -S.FIVE/2) {
     $.alert("恭喜你赢了！", function() {
       self.stop();
     });

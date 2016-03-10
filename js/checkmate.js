@@ -14,8 +14,7 @@
 var R = require("./role.js");
 var hasNeighbor = require("./neighbor.js");
 var scorePoint = require("./evaluate-point.js");
-var S = require("./score.js");
-var win = require("./win.js");
+var S = require("./SCORE.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
 var debug = require("./debug.js");
@@ -223,6 +222,7 @@ var deeping = function(board, role, deep) {
 }
 
 module.exports = function(board, role, deep, onlyFour) {
+  return false;
 
   deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
