@@ -4,7 +4,7 @@ var assert = require('assert');
 
 var b;
 
-describe('test evalute', function() {
+describe('test evalute point', function() {
   it(`test one`, function() {
     b = [
       [0, 0, 0, 0, 0, 0, 0],

@@ -22,12 +22,14 @@ var total=0, //总节点数
 
 var Cache = {};
 
+var checkmateDeep = config.checkmateDeep;
+
 /*
  * max min search
  * white is max, black is min
  */
 
-var maxmin = function(board, deep) {
+var maxmin = function(board, deep, _checkmateDeep) {
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
@@ -35,6 +37,7 @@ var maxmin = function(board, deep) {
   count = 0;
   ABcut = 0;
   PVcut = 0;
+  checkmateDeep = _checkmateDeep || checkmateDeep;
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -114,7 +117,7 @@ var max = function(board, deep, alpha, beta, role) {
   }
   if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
-    var mate = checkmate(board, role);
+    var mate = checkmate(board, role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
       cache(deep, score);

@@ -3,6 +3,7 @@ var R = require("./role");
 var eRows = require("./evaluate-rows.js");
 
 var evaluate = function(board, role) {
+  role = role || R.com;
   var rows = flat(board);
   var comScore = eRows(rows, role);
   var humScore = eRows(rows, R.reverse(role));

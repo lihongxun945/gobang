@@ -27,7 +27,7 @@ var score = function(count, block, empty) {
     }
 
   } else if(empty === 1 || empty == count-1) {
-    //第二个是空位
+    //第1个是空位
     if(count >= 6) {
       return SCORE.FIVE;
     }
@@ -44,7 +44,7 @@ var score = function(count, block, empty) {
       switch(count) {
         case 2: return SCORE.BLOCKED_TWO;
         case 3: return SCORE.BLOCKED_THREE;
-        case 4: return SCORE.THREE;
+        case 4: return SCORE.BLOCKED_FOUR;
         case 5: return SCORE.BLOCKED_FOUR;
       }
     }
@@ -208,6 +208,7 @@ var R = require("./role");
 var eRows = require("./evaluate-rows.js");
 
 var evaluate = function(board, role) {
+  role = role || R.com;
   var rows = flat(board);
   var comScore = eRows(rows, role);
   var humScore = eRows(rows, R.reverse(role));

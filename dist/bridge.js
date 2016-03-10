@@ -358,7 +358,7 @@ var score = function(count, block, empty) {
     }
 
   } else if(empty === 1 || empty == count-1) {
-    //第二个是空位
+    //第1个是空位
     if(count >= 6) {
       return SCORE.FIVE;
     }
@@ -375,7 +375,7 @@ var score = function(count, block, empty) {
       switch(count) {
         case 2: return SCORE.BLOCKED_TWO;
         case 3: return SCORE.BLOCKED_THREE;
-        case 4: return SCORE.THREE;
+        case 4: return SCORE.BLOCKED_FOUR;
         case 5: return SCORE.BLOCKED_FOUR;
       }
     }
@@ -790,6 +790,7 @@ var R = require("./role");
 var eRows = require("./evaluate-rows.js");
 
 var evaluate = function(board, role) {
+  role = role || R.com;
   var rows = flat(board);
   var comScore = eRows(rows, role);
   var humScore = eRows(rows, R.reverse(role));
@@ -875,7 +876,7 @@ var gen = function(board, deep) {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
-        if(hasNeighbor(board, [i, j], 2, 2)) { //必须是有邻居的才行
+        if(hasNeighbor(board, [i, j], 2, 1)) { //必须是有邻居的才行
           var scoreHum = scorePoint(board, [i,j], R.hum);
           var scoreCom= scorePoint(board, [i,j], R.com);
 
@@ -981,12 +982,14 @@ var total=0, //总节点数
 
 var Cache = {};
 
+var checkmateDeep = config.checkmateDeep;
+
 /*
  * max min search
  * white is max, black is min
  */
 
-var maxmin = function(board, deep) {
+var maxmin = function(board, deep, _checkmateDeep) {
   var best = MIN;
   var points = gen(board, deep);
   var bestPoints = [];
@@ -994,6 +997,7 @@ var maxmin = function(board, deep) {
   count = 0;
   ABcut = 0;
   PVcut = 0;
+  checkmateDeep = _checkmateDeep || checkmateDeep;
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -1073,7 +1077,7 @@ var max = function(board, deep, alpha, beta, role) {
   }
   if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
-    var mate = checkmate(board, role);
+    var mate = checkmate(board, role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
       cache(deep, score);
