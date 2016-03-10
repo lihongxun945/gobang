@@ -224,12 +224,14 @@ var s = function(board, p, role) {
     }
     if(t === role) {
       count ++;
+      empty && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
       continue;
     } else {
       block ++;
       break;
     }
   }
+
 
   result += type(count, block, empty);
 
@@ -275,6 +277,7 @@ var s = function(board, p, role) {
     }
     if(t === role) {
       count ++;
+      empty && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
       continue;
     } else {
       block ++;
@@ -329,6 +332,7 @@ var s = function(board, p, role) {
     }
     if(t === role) {
       count ++;
+      empty && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
       continue;
     } else {
       block ++;
@@ -337,6 +341,7 @@ var s = function(board, p, role) {
   }
 
   result += type(count, block, empty);
+  console.log(result, count, block, empty);
 
 
   // \/
@@ -383,6 +388,7 @@ var s = function(board, p, role) {
     }
     if(t === role) {
       count ++;
+      empty && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
       continue;
     } else {
       block ++;
@@ -391,6 +397,8 @@ var s = function(board, p, role) {
   }
 
   result += type(count, block, empty);
+
+  console.log(result);
 
   return typeToScore(result);
 }
