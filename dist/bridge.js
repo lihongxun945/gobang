@@ -976,7 +976,7 @@ var s = function(board, p, role) {
 module.exports = s;
 
 },{"./count-to-type.js":7,"./role.js":13,"./type-to-score.js":15}],10:[function(require,module,exports){
-var threshold = 1.1;
+var threshold = 1.2;
 
 module.exports = {
   greatThan: function(a, b) {
