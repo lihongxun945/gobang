@@ -32,7 +32,7 @@ var t = function(count, block, empty) {
     }
     if(block === 0) {
       switch(count) {
-        case 2: return score.TWO;
+        case 2: return score.TWO/2;
         case 3:
         case 4: return score.THREE;
         case 5: return score.FOUR;
