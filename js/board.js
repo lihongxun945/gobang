@@ -159,6 +159,7 @@ Board.prototype.evaluate = function(role) {
 Board.prototype.gen = function() {
   var fives = [];
   var fours=[];
+  var blockedfours = [];
   var twothrees=[];
   var threes = [];
   var twos = [];
@@ -182,6 +183,10 @@ Board.prototype.gen = function() {
             fours.unshift([i,j]);
           } else if(scoreHum >= S.FOUR) {
             fours.push([i,j]);
+          } else if(scoreCom >= S.BLOCKED_FOUR) {
+            blockedfours.unshift([i,j]);
+          } else if(scoreHum >= S.BLOCKED_FOUR) {
+            blockedfours.push([i,j]);
           } else if(scoreCom >= 2*S.THREE) {
             //能成双三也行
             twothrees.unshift([i,j]);
@@ -208,6 +213,9 @@ Board.prototype.gen = function() {
   
   //注意，只要返回第一个即可，如果双方都有活四，则第一个是自己的
   if(fours.length) return [fours[0]];
+
+  //冲四活三
+  if(blockedfours.length) return [blockedfours[0]];
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
   if(twothrees.length) {

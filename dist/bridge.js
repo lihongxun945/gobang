@@ -206,6 +206,7 @@ Board.prototype.evaluate = function(role) {
 Board.prototype.gen = function() {
   var fives = [];
   var fours=[];
+  var blockedfours = [];
   var twothrees=[];
   var threes = [];
   var twos = [];
@@ -229,6 +230,10 @@ Board.prototype.gen = function() {
             fours.unshift([i,j]);
           } else if(scoreHum >= S.FOUR) {
             fours.push([i,j]);
+          } else if(scoreCom >= S.BLOCKED_FOUR) {
+            blockedfours.unshift([i,j]);
+          } else if(scoreHum >= S.BLOCKED_FOUR) {
+            blockedfours.push([i,j]);
           } else if(scoreCom >= 2*S.THREE) {
             //能成双三也行
             twothrees.unshift([i,j]);
@@ -255,6 +260,9 @@ Board.prototype.gen = function() {
   
   //注意，只要返回第一个即可，如果双方都有活四，则第一个是自己的
   if(fours.length) return [fours[0]];
+
+  //冲四活三
+  if(blockedfours.length) return [blockedfours[0]];
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
   if(twothrees.length) {
@@ -555,7 +563,7 @@ module.exports = {
   searchDeep: 6,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 10, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  0,  //算杀深度
+  checkmateDeep:  5,  //算杀深度
   cache: false,  //是否使用置换表
 }
 
@@ -972,19 +980,19 @@ var threshold = 1.1;
 
 module.exports = {
   greatThan: function(a, b) {
-    return a > b * threshold;
+    return a >= b * threshold;
   },
   greatOrEqualThan: function(a, b) {
-    return a * threshold > b;
+    return a * threshold >= b;
   },
   littleThan: function(a, b) {
-    return a * threshold < b;
+    return a * threshold <= b;
   },
   littleOrEqualThan: function(a, b) {
-    return a < b * threshold;
+    return a <= b * threshold;
   },
   equal: function(a, b) {
-    return (a * threshold > b) && (a < b * threshold);
+    return (a * threshold >= b) && (a <= b * threshold);
   }
 }
 
@@ -1185,8 +1193,12 @@ var s = function(type) {
   if(type < T.FOUR && type >= T.BLOCKED_FOUR) {
 
     if(type >= T.BLOCKED_FOUR && type < (T.BLOCKED_FOUR + T.THREE)) {
+      //单独冲四，意义不大
       return T.THREE;
+    } else if(type >= T.BLOCKED_FOUR + T.THREE && type < T.BLOCKED_FOUR * 2) {
+      return T.BLOCKED_FOUR;  //冲四活三，比双三分高，但是比活四分低，所以当做冲四处理
     } else {
+      //双冲四 等同于活四
       return T.FOUR;
     }
   }
