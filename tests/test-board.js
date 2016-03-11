@@ -26,4 +26,21 @@ describe('test board', function() {
     board.put([2, 5], 2);
     assert.ok(equal(board.evaluate(2), S.FOUR));
   });
+
+  it(`test gen`, function() {
+    b = [
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 2, 2, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0],
+    ];
+    board.init(b);
+    assert.ok(board.gen().length);
+  });
+
+
 });

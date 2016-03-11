@@ -1,4 +1,3 @@
-var e = require("./evaluate.js");
 var S = require("./score.js");
 var R = require("./role.js");
 var W = require("./win.js");

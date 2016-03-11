@@ -1,4 +1,3 @@
-var gen = require("./gen");
 var R = require("./role");
 var T = SCORE = require("./score.js");
 var math = require("./math.js");
@@ -29,7 +28,7 @@ var checkmateDeep = config.checkmateDeep;
 
 var maxmin = function(deep, _checkmateDeep) {
   var best = MIN;
-  var points = gen(board.board);
+  var points = board.gen();
   var bestPoints = [];
 
   count = 0;
@@ -92,7 +91,7 @@ var max = function(deep, alpha, beta, role) {
   }
   
   var best = MIN;
-  var points = gen(board.board, deep);
+  var points = board.gen();
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
