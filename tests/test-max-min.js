@@ -1,11 +1,11 @@
 var c = require("../js/negamax.js");
+var board = require("../js/board.js");
 var assert = require('assert');
 
 describe('test maxmin', function() {
 
 
   it(`it should be OK`, function() {
-    return;
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -19,7 +19,9 @@ describe('test maxmin', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    var p = c(b, 6, 0);
+    board.init(b);
+    var p = c(4, 0);
+    console.log("######", p);
     assert.ok(p); //6层是 [3,3], [2,4], [8,8] 
   });
 
@@ -37,8 +39,9 @@ describe('test maxmin', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    var p = c(b, 4, 0);
-    assert.ok(p); //6层是 [3,3], [2,4], [8,8] 
+    board.init(b);
+    var p = c(4, 0);
+    assert.ok(p);
     //[4, 2], [3,3],[5,5],[2,4],[1,5],[3,4]
   });
 

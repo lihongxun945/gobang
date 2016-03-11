@@ -22,52 +22,166 @@ var m = require("./negamax.js");
 var R = require("./role.js");
 var zobrist = require("./zobrist.js");
 var config = require("./config.js");
+var board = require("./board.js");
 
 var AI = function() {
   this.steps = [];
 }
 
 AI.prototype.start = function(size) {
-  this.board = [];
-  for(var i=0;i<size;i++) {
-    var row = [];
-    for(var j=0;j<size;j++) {
-      row.push(0);
+  board.init(size);
+}
+
+AI.prototype.set = function(x, y) {
+  board.put([x,y], R.hum, true);
+  var p = m(config.searchDeep);
+  board.put(p, R.com, true);
+  return p;
+}
+
+AI.prototype.back = function() {
+  board.back();
+}
+module.exports = AI;
+
+},{"./board.js":3,"./config.js":6,"./negamax.js":13,"./role.js":15,"./zobrist.js":19}],3:[function(require,module,exports){
+var scorePoint = require("./evaluate-point.js");
+var zobrist = require("./zobrist.js");
+var hasNeighbor = require("./neighbor.js");
+var R = require("./role.js");
+var S = require("./score.js");
+
+var Board = function() {
+}
+
+Board.prototype.init = function(sizeOrBoard) {
+  this.steps = [];
+  if(sizeOrBoard.length) {
+    this.board = sizeOrBoard;
+  } else {
+    this.board = [];
+    for(var i=0;i<sizeOrBoard;i++) {
+      var row = [];
+      for(var j=0;j<sizeOrBoard;j++) {
+        row.push(0);
+      }
+      this.board.push(row);
     }
-    this.board.push(row);
+    this.board[7][7] = R.com;
+    this.steps.push([7, 7]);
   }
-  this.board[7][7] = R.com;
-  this.steps.push([7, 7]);
+  this.initScore();
   this.zobrist = zobrist;
   this.zobrist.go(7, 7, R.com);
 }
 
-AI.prototype.set = function(x, y) {
-  this.board[x][y] = R.hum;
-  this.zobrist.go(x, y, R.hum);
-  this.steps.push([x,y]);
-  var p = m(this.board, config.searchDeep, this.zobrist);
-  this.board[p[0]][p[1]] = R.com;
-  this.zobrist.go(p[0], p[1], R.com);
-  this.steps.push(p);
-  return p;
-}
+Board.prototype.initScore = function() {
 
-AI.prototype.back = function(step) {
-  step = step || 1;
-  while(step && this.steps.length >= 2) {
-    var s = this.steps.pop();
-    this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]]);
-    this.board[s[0]][s[1]] = R.empty;
-    s = this.steps.pop();
-    this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]]);
-    this.board[s[0]][s[1]] = R.empty;
-    step --;
+  this.comMaxScore = - S.FIVE;
+  this.humMaxScore = - S.FIVE;
+
+  var board = this.board;
+
+  for(var i=0;i<board.length;i++) {
+    for(var j=0;j<board[i].length;j++) {
+      if(board[i][j] == R.empty) {
+        if(hasNeighbor(board, [i, j], 2, 2)) { //必须是有邻居的才行
+          this.comMaxScore = Math.max(scorePoint(board, [i, j], R.com), this.comMaxScore);
+          this.humMaxScore = Math.max(scorePoint(board, [i, j], R.hum), this.humMaxScore);
+        }
+      }
+    }
   }
 }
-module.exports = AI;
 
-},{"./config.js":5,"./negamax.js":12,"./role.js":14,"./zobrist.js":18}],3:[function(require,module,exports){
+//只更新一个点附近的分数
+Board.prototype.updateScore = function(p) {
+  var radius = 8,
+      board = this.board,
+      len = this.board.length;
+
+  // -
+  for(var i=-radius;i<radius;i++) {
+    var x = p[0], y = p[1]+i;
+    if(y<0) continue;
+    if(y>=len) break;
+    if(board[x][y] !== R.empty) continue;
+    this.comMaxScore = Math.max(scorePoint(this.board, [x, y], R.com), this.comMaxScore);
+    this.humMaxScore = Math.max(scorePoint(this.board, [x, y], R.hum), this.humMaxScore);
+  }
+
+  // |
+  for(var i=-radius;i<radius;i++) {
+    var x = p[0]+i, y = p[1];
+    if(x<0) continue;
+    if(x>=len) break;
+    if(board[x][y] !== R.empty) continue;
+    this.comMaxScore = Math.max(scorePoint(this.board, [x, y], R.com), this.comMaxScore);
+    this.humMaxScore = Math.max(scorePoint(this.board, [x, y], R.hum), this.humMaxScore);
+  }
+
+  // \
+  for(var i=-radius;i<radius;i++) {
+    var x = p[0]+i, y = p[1]+i;
+    if(x<0 || y<0) continue;
+    if(x>=len || y>=len) break;
+    if(board[x][y] !== R.empty) continue;
+    this.comMaxScore = Math.max(scorePoint(this.board, [x, y], R.com), this.comMaxScore);
+    this.humMaxScore = Math.max(scorePoint(this.board, [x, y], R.hum), this.humMaxScore);
+  }
+
+  // /
+  for(var i=-radius;i<radius;i++) {
+    var x = p[0]+i, y = p[1]-i;
+    if(x<0 || y<0) continue;
+    if(x>=len || y>=len) continue;
+    if(board[x][y] !== R.empty) continue;
+    this.comMaxScore = Math.max(scorePoint(this.board, [x, y], R.com), this.comMaxScore);
+    this.humMaxScore = Math.max(scorePoint(this.board, [x, y], R.hum), this.humMaxScore);
+  }
+}
+
+//下子
+Board.prototype.put = function(p, role, record) {
+  this.board[p[0]][p[1]] = role;
+  this.updateScore(p);
+  if(record) this.steps.push(p);
+}
+
+//移除棋子
+Board.prototype.remove = function(p) {
+  var r = this.board[p[0]][p[1]];
+  this.zobrist.go(p[0], p[1], r);
+  this.board[p[0]][p[1]] = R.empty;
+  this.updateScore(p);
+}
+
+//悔棋
+Board.prototype.back = function() {
+  var s = this.steps.pop();
+  this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]]);
+  this.board[s[0]][s[1]] = R.empty;
+  this.updateScore(s);
+  var s = this.steps.pop();
+  this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]]);
+  this.board[s[0]][s[1]] = R.empty;
+  this.updateScore(s);
+}
+
+//棋面估分
+Board.prototype.evaluate = function(role) {
+  return (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
+}
+
+//启发函数
+Board.prototype.gen = function() {
+}
+
+var board = new Board();
+
+module.exports = board;
+
+},{"./evaluate-point.js":9,"./neighbor.js":14,"./role.js":15,"./score.js":16,"./zobrist.js":19}],4:[function(require,module,exports){
 var AI = require("./ai.js");
 
 var ai = new AI();
@@ -85,7 +199,7 @@ onmessage = function(e) {
   }
 }
 
-},{"./ai.js":2}],4:[function(require,module,exports){
+},{"./ai.js":2}],5:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -339,7 +453,7 @@ module.exports = function(board, role, deep, onlyFour) {
 
 }
 
-},{"./SCORE.js":1,"./config.js":5,"./debug.js":7,"./evaluate-point.js":8,"./neighbor.js":13,"./role.js":14,"./win.js":17,"./zobrist.js":18}],5:[function(require,module,exports){
+},{"./SCORE.js":1,"./config.js":6,"./debug.js":8,"./evaluate-point.js":9,"./neighbor.js":14,"./role.js":15,"./win.js":18,"./zobrist.js":19}],6:[function(require,module,exports){
 module.exports = {
   searchDeep: 4,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
@@ -348,7 +462,7 @@ module.exports = {
   cache: false,  //是否使用置换表
 }
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var score = require("./score.js");
 
 var t = function(count, block, empty) {
@@ -498,11 +612,11 @@ var t = function(count, block, empty) {
 
 module.exports = t;
 
-},{"./score.js":15}],7:[function(require,module,exports){
+},{"./score.js":16}],8:[function(require,module,exports){
 var debug = {};
 module.exports = debug;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*
  * 启发式评价函数
  * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
@@ -756,7 +870,7 @@ var s = function(board, p, role) {
 
 module.exports = s;
 
-},{"./count-to-type.js":6,"./role.js":14,"./type-to-score.js":16}],9:[function(require,module,exports){
+},{"./count-to-type.js":7,"./role.js":15,"./type-to-score.js":17}],10:[function(require,module,exports){
 var R = require("./role.js");
 var scorePoint = require("./evaluate-point.js");
 var hasNeighbor = require("./neighbor.js");
@@ -780,12 +894,14 @@ var evaluate = function(board, role) {
     }
   }
 
+  console.log(max, min);
+
   return max-min;
 }
 
 module.exports = evaluate;
 
-},{"./config.js":5,"./evaluate-point.js":8,"./neighbor.js":13,"./role.js":14,"./score.js":15}],10:[function(require,module,exports){
+},{"./config.js":6,"./evaluate-point.js":9,"./neighbor.js":14,"./role.js":15,"./score.js":16}],11:[function(require,module,exports){
 /*
  * 产生待选的节点
  * 这个函数的优化非常重要，这个函数产生的节点数，实际就是搜索总数的底数。比如这里平均产生50个节点，进行4层搜索，则平均搜索节点数为50的4次方（在没有剪枝的情况下）
@@ -875,7 +991,7 @@ var gen = function(board, deep) {
 
 module.exports = gen;
 
-},{"./config.js":5,"./evaluate-point.js":8,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./zobrist.js":18}],11:[function(require,module,exports){
+},{"./config.js":6,"./evaluate-point.js":9,"./neighbor.js":14,"./role.js":15,"./score.js":16,"./zobrist.js":19}],12:[function(require,module,exports){
 var threshold = 1.1;
 
 module.exports = {
@@ -896,7 +1012,7 @@ module.exports = {
   }
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var evaluate = require("./evaluate");
 var gen = require("./gen");
 var R = require("./role");
@@ -904,8 +1020,8 @@ var T = SCORE = require("./score.js");
 var math = require("./math.js");
 var checkmate = require("./checkmate.js");
 var config = require("./config.js");
-var zobrist = require("./zobrist.js");
 var debug = require("./debug.js");
+var board = require("./board.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
@@ -927,21 +1043,20 @@ var checkmateDeep = config.checkmateDeep;
  * white is max, black is min
  */
 
-var maxmin = function(board, deep, _checkmateDeep) {
+var maxmin = function(deep, _checkmateDeep) {
   var best = MIN;
-  var points = gen(board, deep);
+  var points = gen(board.board);
   var bestPoints = [];
 
   count = 0;
   ABcut = 0;
   PVcut = 0;
-  checkmateDeep = _checkmateDeep || checkmateDeep;
+  checkmateDeep = (_checkmateDeep == undefined ? checkmateDeep : _checkmateDeep);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = R.com;
-    zobrist.go(p[0],p[1], R.com);
-    var v = - max(board, deep-1, -MAX, -best, R.hum);
+    board.put(p, R.com);
+    var v = - max(deep-1, -MAX, -best, R.hum);
 
     //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
     if(p[0]<3 || p[0] > 11 || p[1] < 3 || p[1] > 11) {
@@ -961,8 +1076,7 @@ var maxmin = function(board, deep, _checkmateDeep) {
     }
 
 
-    board[p[0]][p[1]] = R.empty;
-    zobrist.go(p[0],p[1], R.com);
+    board.remove(p);
   }
   console.log("分数:"+best.toFixed(3)+", 待选节点:"+JSON.stringify(bestPoints));
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
@@ -975,10 +1089,10 @@ var maxmin = function(board, deep, _checkmateDeep) {
   return result;
 }
 
-var max = function(board, deep, alpha, beta, role) {
+var max = function(deep, alpha, beta, role) {
 
   if(config.cache) {
-    var c = Cache[zobrist.code];
+    var c = Cache[board.zobrist.code];
     if(c) {
       if(c.deep >= deep) {
         cacheGet ++;
@@ -987,23 +1101,22 @@ var max = function(board, deep, alpha, beta, role) {
     }
   }
 
-  var v = evaluate(board, role);
+  var v = board.evaluate(role);
   count ++;
   if(deep <= 0 || math.greatOrEqualThan(v, T.FIVE)) {
     return v;
   }
   
   var best = MIN;
-  var points = gen(board, deep);
+  var points = gen(board.board, deep);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = role;
-    zobrist.go(p[0],p[1], role);
+    board.put(p, role);
 
-    var v =- max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
-    board[p[0]][p[1]] = R.empty;
-    zobrist.go(p[0],p[1], role);
+    var v = - max(deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
+    board.remove(p);
+
     if(math.greatThan(v, best)) {
       best = v;
     }
@@ -1015,7 +1128,7 @@ var max = function(board, deep, alpha, beta, role) {
   }
   if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
-    var mate = checkmate(board, role, checkmateDeep);
+    var mate = checkmate(board.board, role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
       cache(deep, score);
@@ -1029,27 +1142,27 @@ var max = function(board, deep, alpha, beta, role) {
 
 var cache = function(deep, score) {
   if(!config.cache) return;
-  Cache[zobrist.code] = {
+  Cache[board.zobrist.code] = {
     deep: deep,
     score: score
   }
   cacheCount ++;
 }
 
-var deeping = function(board, deep) {
+var deeping = function(deep) {
   deep = deep === undefined ? config.searchDeep : deep;
   //迭代加深
   //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
   var result;
   for(var i=2;i<=deep; i+=2) {
-    result = maxmin(board, i);
+    result = maxmin(i);
     if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
   }
   return result;
 }
 module.exports = deeping;
 
-},{"./checkmate.js":4,"./config.js":5,"./debug.js":7,"./evaluate":9,"./gen":10,"./math.js":11,"./role":14,"./score.js":15,"./zobrist.js":18}],13:[function(require,module,exports){
+},{"./board.js":3,"./checkmate.js":5,"./config.js":6,"./debug.js":8,"./evaluate":10,"./gen":11,"./math.js":12,"./role":15,"./score.js":16}],14:[function(require,module,exports){
 var R = require("./role");
 //有邻居
 var hasNeighbor = function(board, point, distance, count) {
@@ -1074,7 +1187,7 @@ var hasNeighbor = function(board, point, distance, count) {
 
 module.exports = hasNeighbor;
 
-},{"./role":14}],14:[function(require,module,exports){
+},{"./role":15}],15:[function(require,module,exports){
 module.exports = {
   com: 2,
   hum: 1,
@@ -1084,9 +1197,9 @@ module.exports = {
   }
 }
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"dup":1}],16:[function(require,module,exports){
+},{"dup":1}],17:[function(require,module,exports){
 var T = require("./score.js");
 
 /*
@@ -1108,7 +1221,7 @@ var s = function(type) {
 
 module.exports = s;
 
-},{"./score.js":15}],17:[function(require,module,exports){
+},{"./score.js":16}],18:[function(require,module,exports){
 var R = require("./role.js");
 var isFive = function(board, p, role) {
   var len = board.length;
@@ -1229,7 +1342,7 @@ var w = function(board) {
 
 module.exports = w;
 
-},{"./role.js":14}],18:[function(require,module,exports){
+},{"./role.js":15}],19:[function(require,module,exports){
 var R = require("./role.js");
 
 var Zobrist = function(size) {
@@ -1262,4 +1375,4 @@ z.init();
 
 module.exports = z;
 
-},{"./role.js":14}]},{},[3]);
+},{"./role.js":15}]},{},[4]);

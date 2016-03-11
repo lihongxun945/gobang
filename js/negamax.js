@@ -1,12 +1,11 @@
-var evaluate = require("./evaluate");
 var gen = require("./gen");
 var R = require("./role");
 var T = SCORE = require("./score.js");
 var math = require("./math.js");
 var checkmate = require("./checkmate.js");
 var config = require("./config.js");
-var zobrist = require("./zobrist.js");
 var debug = require("./debug.js");
+var board = require("./board.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
@@ -28,21 +27,20 @@ var checkmateDeep = config.checkmateDeep;
  * white is max, black is min
  */
 
-var maxmin = function(board, deep, _checkmateDeep) {
+var maxmin = function(deep, _checkmateDeep) {
   var best = MIN;
-  var points = gen(board, deep);
+  var points = gen(board.board);
   var bestPoints = [];
 
   count = 0;
   ABcut = 0;
   PVcut = 0;
-  checkmateDeep = _checkmateDeep || checkmateDeep;
+  checkmateDeep = (_checkmateDeep == undefined ? checkmateDeep : _checkmateDeep);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = R.com;
-    zobrist.go(p[0],p[1], R.com);
-    var v = - max(board, deep-1, -MAX, -best, R.hum);
+    board.put(p, R.com);
+    var v = - max(deep-1, -MAX, -best, R.hum);
 
     //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
     if(p[0]<3 || p[0] > 11 || p[1] < 3 || p[1] > 11) {
@@ -62,8 +60,7 @@ var maxmin = function(board, deep, _checkmateDeep) {
     }
 
 
-    board[p[0]][p[1]] = R.empty;
-    zobrist.go(p[0],p[1], R.com);
+    board.remove(p);
   }
   console.log("分数:"+best.toFixed(3)+", 待选节点:"+JSON.stringify(bestPoints));
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
@@ -76,10 +73,10 @@ var maxmin = function(board, deep, _checkmateDeep) {
   return result;
 }
 
-var max = function(board, deep, alpha, beta, role) {
+var max = function(deep, alpha, beta, role) {
 
   if(config.cache) {
-    var c = Cache[zobrist.code];
+    var c = Cache[board.zobrist.code];
     if(c) {
       if(c.deep >= deep) {
         cacheGet ++;
@@ -88,23 +85,22 @@ var max = function(board, deep, alpha, beta, role) {
     }
   }
 
-  var v = evaluate(board, role);
+  var v = board.evaluate(role);
   count ++;
   if(deep <= 0 || math.greatOrEqualThan(v, T.FIVE)) {
     return v;
   }
   
   var best = MIN;
-  var points = gen(board, deep);
+  var points = gen(board.board, deep);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = role;
-    zobrist.go(p[0],p[1], role);
+    board.put(p, role);
 
-    var v =- max(board, deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
-    board[p[0]][p[1]] = R.empty;
-    zobrist.go(p[0],p[1], role);
+    var v = - max(deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
+    board.remove(p);
+
     if(math.greatThan(v, best)) {
       best = v;
     }
@@ -116,7 +112,7 @@ var max = function(board, deep, alpha, beta, role) {
   }
   if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
-    var mate = checkmate(board, role, checkmateDeep);
+    var mate = checkmate(board.board, role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
       cache(deep, score);
@@ -130,20 +126,20 @@ var max = function(board, deep, alpha, beta, role) {
 
 var cache = function(deep, score) {
   if(!config.cache) return;
-  Cache[zobrist.code] = {
+  Cache[board.zobrist.code] = {
     deep: deep,
     score: score
   }
   cacheCount ++;
 }
 
-var deeping = function(board, deep) {
+var deeping = function(deep) {
   deep = deep === undefined ? config.searchDeep : deep;
   //迭代加深
   //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
   var result;
   for(var i=2;i<=deep; i+=2) {
-    result = maxmin(board, i);
+    result = maxmin(i);
     if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
   }
   return result;
