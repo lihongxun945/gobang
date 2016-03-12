@@ -44,7 +44,7 @@ AI.prototype.back = function() {
 }
 module.exports = AI;
 
-},{"./board.js":3,"./config.js":6,"./negamax.js":11,"./role.js":13,"./zobrist.js":17}],3:[function(require,module,exports){
+},{"./board.js":3,"./config.js":7,"./negamax.js":12,"./role.js":14,"./zobrist.js":18}],3:[function(require,module,exports){
 var scorePoint = require("./evaluate-point.js");
 var zobrist = require("./zobrist.js");
 var hasNeighbor = require("./neighbor.js");
@@ -300,7 +300,7 @@ var board = new Board();
 
 module.exports = board;
 
-},{"./config.js":6,"./evaluate-point.js":9,"./neighbor.js":12,"./role.js":13,"./score.js":14,"./zobrist.js":17}],4:[function(require,module,exports){
+},{"./config.js":7,"./evaluate-point.js":10,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./zobrist.js":18}],4:[function(require,module,exports){
 var AI = require("./ai.js");
 
 var ai = new AI();
@@ -319,6 +319,260 @@ onmessage = function(e) {
 }
 
 },{"./ai.js":2}],5:[function(require,module,exports){
+/*
+ * 算杀
+ * 算杀的原理和极大极小值搜索是一样的
+ * 不过算杀只考虑冲四活三这类对方必须防守的棋
+ * 因此算杀的复杂度虽然是 M^N ，但是底数M特别小，可以算到16步以上的杀棋。
+ */
+
+/*
+ * 基本思路
+ * 电脑有活三或者冲四，认为是玩家必须防守的
+ * 玩家防守的时候却不一定根据电脑的棋来走，而是选择走自己最好的棋，比如有可能是自己选择冲四
+ */
+
+var R = require("./role.js");
+var hasNeighbor = require("./neighbor.js");
+var scorePoint = require("./evaluate-point.js");
+var S = require("./SCORE.js");
+var W = require("./win.js");
+var config = require("./config.js");
+var zobrist = require("./zobrist.js");
+var debug = require("./debug.js");
+
+var Cache = {};
+
+var debugNodeCount = 0;
+
+var MAX_SCORE = S.THREE;
+var MIN_SCORE = S.FOUR;
+
+var debugCheckmate = debug.checkmate = {
+  cacheCount: 0,
+  cacheGet: 0
+}
+
+
+//找到所有比目标分数大的位置
+var findMax = function(board, role, score) {
+  var result = [];
+  for(var i=0;i<board.length;i++) {
+    for(var j=0;j<board[i].length;j++) {
+      if(board[i][j] == R.empty) {
+        var p = [i, j];
+        if(hasNeighbor(board, p, 2, 1)) { //必须是有邻居的才行
+
+          var s = scorePoint(board, p, role);
+          p.score = s;
+          if(s >= S.FIVE) {
+            return [p];
+          }
+          if(s >= score) {
+            result.push(p);
+          }
+        }
+      }
+    }
+  }
+  //注意对结果进行排序
+  result.sort(function(a, b) {
+    return b.score - a.score;
+  });
+  return result;
+}
+
+
+//找到所有比目标分数大的位置
+var findMin = function(board, role, score) {
+  var result = [];
+  var fives = [];
+  var fours = [];
+  for(var i=0;i<board.length;i++) {
+    for(var j=0;j<board[i].length;j++) {
+      if(board[i][j] == R.empty) {
+        var p = [i, j];
+        if(hasNeighbor(board, p, 2, 1)) { //必须是有邻居的才行
+
+          var s1 = scorePoint(board, p, role);
+          var s2 = scorePoint(board, p, R.reverse(role));
+          if(s1 >= S.FIVE) {
+            p.score = - s1;
+            return [p];
+          } 
+          if(s1 >= S.FOUR) {
+            p.score = -s1;
+            fours.unshift(p);
+            continue;
+          }
+          if(s2 >= S.FIVE) {
+            p.score = s2;
+            fives.push(p);
+            continue;
+          } 
+          if(s2 >= S.FOUR) {
+            p.score = s2;
+            fours.push(p);
+            continue;
+          }
+
+          if(s1 >= score || s2 >= score) {
+            p = [i, j];
+            p.score = s1;
+            result.push(p);
+          }
+        }
+      }
+    }
+  }
+  if(fives.length) return [fives[0]];
+  if(fours.length) return [fours[0]];
+  //注意对结果进行排序
+  result.sort(function(a, b) {
+    return Math.abs(b.score) - Math.abs(a.score);
+  });
+  return result;
+}
+
+var max = function(board, role, deep) {
+  debugNodeCount ++;
+  if(deep <= 0) return false;
+
+  if(config.cache) {
+    var c = Cache[zobrist.code];
+    if(c) {
+      if(c.deep >= deep || c.result !== false) {
+        debugCheckmate.cacheGet ++;
+        return c.result;
+      }
+    }
+  }
+
+  var points = findMax(board, role, MAX_SCORE);
+  if(points.length && points[0].score >= S.FOUR) return [points[0]]; //为了减少一层搜索，活四就行了。
+  if(points.length == 0) return false;
+  for(var i=0;i<points.length;i++) {
+    var p = points[i];
+    board[p[0]][p[1]] = role;
+    zobrist.go(p[0], p[1], role);
+    var m = min(board, role, deep-1);
+    zobrist.go(p[0], p[1], role);
+    board[p[0]][p[1]] = R.empty;
+    if(m) {
+      if(m.length) {
+        m.unshift(p); //注意 unshift 方法返回的是新数组长度，而不是新数组本身
+        cache(deep, m);
+        return m;
+      } else {
+        cache(deep, [p]);
+        return [p];
+      }
+    }
+  }
+  cache(deep, false);
+  return false;
+}
+
+
+//只要有一种方式能防守住，就可以了
+var min = function(board, role, deep) {
+  debugNodeCount ++;
+  var w = W(board);
+  if(w == role) return true;
+  if(w == R.reverse(role)) return false;
+  if(deep <= 0) return false;
+  if(config.cache) {
+    var c = Cache[zobrist.code];
+    if(c){
+      if(c.deep >= deep || c.result !== false) {
+        debugCheckmate.cacheGet ++;
+        return c.result;
+      }
+    }
+  }
+  var points = findMin(board, R.reverse(role), MIN_SCORE);
+  if(points.length == 0) return false;
+  if(points.length && -1 * points[0].score  >= S.FOUR) return false; //为了减少一层搜索，活四就行了。
+
+  var cands = [];
+  var currentRole = R.reverse(role);
+  for(var i=0;i<points.length;i++) {
+    var p = points[i];
+    board[p[0]][p[1]] = currentRole;
+    zobrist.go(p[0], p[1], currentRole);
+    var m = max(board, role, deep-1);
+    zobrist.go(p[0], p[1], currentRole);
+    board[p[0]][p[1]] = R.empty;
+    if(m) {
+      m.unshift(p);
+      cands.push(m);
+      cache(deep, m);
+      continue;
+    } else {
+      cache(deep, false);
+      return false; //只要有一种能防守住
+    }
+  }
+  var result = cands[Math.floor(cands.length*Math.random())];  //无法防守住
+  cache(deep, result);
+  return result;
+}
+
+var cache = function(deep, result) {
+  if(!config.cache) return;
+  Cache[zobrist.code] = {
+    deep: deep,
+    result: result
+  }
+  debugCheckmate.cacheCount ++;
+}
+
+//迭代加深
+var deeping = function(board, role, deep) {
+  var start = new Date();
+  debugNodeCount = 0;
+  for(var i=1;i<=deep;i++) {
+    var result = max(board, role, i);
+    if(result) break; //找到一个就行
+  }
+  var time = Math.round(new Date() - start);
+  if(result) console.log("算杀成功("+time+"毫秒, "+ debugNodeCount + "个节点):" + JSON.stringify(result));
+  else {
+    //console.log("算杀失败("+time+"毫秒)");
+  }
+  return result;
+}
+
+module.exports = function(board, role, deep, onlyFour) {
+
+  deep = deep || config.checkmateDeep;
+  if(deep <= 0) return false;
+
+  //先计算冲四赢的
+  MAX_SCORE = S.FOUR;
+  MIN_SCORE = S.FIVE;
+
+  var result = deeping(board, role, deep);
+  if(result) {
+    result.score = S.FOUR;
+    return result;
+  }
+
+  if(onlyFour) return false;  //只计算冲四
+
+  //再计算通过 活三 赢的；
+  MAX_SCORE = S.THREE;
+  MIN_SCORE = S.FOUR;
+  result = deeping(board, role, deep);
+  if(result) {
+    result.score = S.THREE*2; //虽然不如活四分数高，但是还是比活三分数要高的
+  }
+
+  return result;
+
+}
+
+},{"./SCORE.js":1,"./config.js":7,"./debug.js":9,"./evaluate-point.js":10,"./neighbor.js":13,"./role.js":14,"./win.js":17,"./zobrist.js":18}],6:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -569,7 +823,7 @@ module.exports = function(role, deep, onlyFour) {
 
 }
 
-},{"./SCORE.js":1,"./board.js":3,"./config.js":6,"./debug.js":8,"./evaluate-point.js":9,"./neighbor.js":12,"./role.js":13,"./win.js":16,"./zobrist.js":17}],6:[function(require,module,exports){
+},{"./SCORE.js":1,"./board.js":3,"./config.js":7,"./debug.js":9,"./evaluate-point.js":10,"./neighbor.js":13,"./role.js":14,"./win.js":17,"./zobrist.js":18}],7:[function(require,module,exports){
 module.exports = {
   searchDeep: 6,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
@@ -578,7 +832,7 @@ module.exports = {
   cache: false,  //是否使用置换表
 }
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var score = require("./score.js");
 
 var t = function(count, block, empty) {
@@ -728,11 +982,11 @@ var t = function(count, block, empty) {
 
 module.exports = t;
 
-},{"./score.js":14}],8:[function(require,module,exports){
+},{"./score.js":15}],9:[function(require,module,exports){
 var debug = {};
 module.exports = debug;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*
  * 启发式评价函数
  * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
@@ -986,7 +1240,7 @@ var s = function(board, p, role) {
 
 module.exports = s;
 
-},{"./count-to-type.js":7,"./role.js":13,"./type-to-score.js":15}],10:[function(require,module,exports){
+},{"./count-to-type.js":8,"./role.js":14,"./type-to-score.js":16}],11:[function(require,module,exports){
 var threshold = 1.1;
 
 module.exports = {
@@ -1007,11 +1261,12 @@ module.exports = {
   }
 }
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 var R = require("./role");
 var T = SCORE = require("./score.js");
 var math = require("./math.js");
 var checkmate = require("./checkmate.js");
+var checkmateFast = require("./checkmate-fast.js");
 var config = require("./config.js");
 var debug = require("./debug.js");
 var board = require("./board.js");
@@ -1121,7 +1376,8 @@ var max = function(deep, alpha, beta, role) {
   }
   if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
-    var mate = checkmate(role, checkmateDeep);
+    //var mate = checkmate(role, checkmateDeep);
+    var mate = checkmateFast(board.board, role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
       cache(deep, score);
@@ -1155,7 +1411,7 @@ var deeping = function(deep) {
 }
 module.exports = deeping;
 
-},{"./board.js":3,"./checkmate.js":5,"./config.js":6,"./debug.js":8,"./math.js":10,"./role":13,"./score.js":14}],12:[function(require,module,exports){
+},{"./board.js":3,"./checkmate-fast.js":5,"./checkmate.js":6,"./config.js":7,"./debug.js":9,"./math.js":11,"./role":14,"./score.js":15}],13:[function(require,module,exports){
 var R = require("./role");
 //有邻居
 var hasNeighbor = function(board, point, distance, count) {
@@ -1180,7 +1436,7 @@ var hasNeighbor = function(board, point, distance, count) {
 
 module.exports = hasNeighbor;
 
-},{"./role":13}],13:[function(require,module,exports){
+},{"./role":14}],14:[function(require,module,exports){
 module.exports = {
   com: 2,
   hum: 1,
@@ -1190,9 +1446,9 @@ module.exports = {
   }
 }
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"dup":1}],15:[function(require,module,exports){
+},{"dup":1}],16:[function(require,module,exports){
 var T = require("./score.js");
 
 /*
@@ -1218,7 +1474,7 @@ var s = function(type) {
 
 module.exports = s;
 
-},{"./score.js":14}],16:[function(require,module,exports){
+},{"./score.js":15}],17:[function(require,module,exports){
 var R = require("./role.js");
 var isFive = function(board, p, role) {
   var len = board.length;
@@ -1339,7 +1595,7 @@ var w = function(board) {
 
 module.exports = w;
 
-},{"./role.js":13}],17:[function(require,module,exports){
+},{"./role.js":14}],18:[function(require,module,exports){
 var R = require("./role.js");
 
 var Zobrist = function(size) {
@@ -1372,4 +1628,4 @@ z.init();
 
 module.exports = z;
 
-},{"./role.js":13}]},{},[4]);
+},{"./role.js":14}]},{},[4]);

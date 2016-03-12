@@ -2,6 +2,7 @@ var R = require("./role");
 var T = SCORE = require("./score.js");
 var math = require("./math.js");
 var checkmate = require("./checkmate.js");
+var checkmateFast = require("./checkmate-fast.js");
 var config = require("./config.js");
 var debug = require("./debug.js");
 var board = require("./board.js");
@@ -111,7 +112,8 @@ var max = function(deep, alpha, beta, role) {
   }
   if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
-    var mate = checkmate(role, checkmateDeep);
+    //var mate = checkmate(role, checkmateDeep);
+    var mate = checkmateFast(board.board, role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
       cache(deep, score);
