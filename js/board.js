@@ -50,9 +50,6 @@ Board.prototype.init = function(sizeOrBoard) {
 
 Board.prototype.initScore = function() {
 
-  this.comMaxScore = - S.FIVE;
-  this.humMaxScore = - S.FIVE;
-
   var board = this.board;
 
   for(var i=0;i<board.length;i++) {
@@ -63,8 +60,6 @@ Board.prototype.initScore = function() {
           var hs = scorePoint(board, [i, j], R.hum);
           this.comScore[i][j] = cs;
           this.humScore[i][j] = hs;
-          this.comMaxScore = Math.max(cs, this.comMaxScore);
-          this.humMaxScore = Math.max(hs, this.humMaxScore);
         }
       }
     }
@@ -83,8 +78,9 @@ Board.prototype.updateScore = function(p) {
     var hs = scorePoint(board, [x, y], R.hum);
     self.comScore[x][y] = cs;
     self.humScore[x][y] = hs;
-    self.comMaxScore = Math.max(cs, self.comMaxScore);
-    self.humMaxScore = Math.max(hs, self.humMaxScore);
+    //注意下面这样写是错的！因为很可能最高分已经没了，不是总是取最高分的，这样分数会越来越高的。所以改成每次遍历计算
+    /*self.comMaxScore = Math.max(cs, self.comMaxScore);
+    self.humMaxScore = Math.max(hs, self.humMaxScore);*/
   }
   // -
   for(var i=-radius;i<radius;i++) {
@@ -121,6 +117,9 @@ Board.prototype.updateScore = function(p) {
     if(board[x][y] !== R.empty) continue;
     update(x, y);
   }
+
+
+  //通过遍历来计算最高分
 }
 
 //下子
@@ -152,6 +151,20 @@ Board.prototype.back = function() {
 
 //棋面估分
 Board.prototype.evaluate = function(role) {
+  this.comMaxScore = - S.FIVE;
+  this.humMaxScore = - S.FIVE;
+
+  var board = this.board;
+
+  //遍历出最高分，开销不大
+  for(var i=0;i<board.length;i++) {
+    for(var j=0;j<board[i].length;j++) {
+      if(board[i][j] == R.empty) {
+        this.comMaxScore = Math.max(this.comScore[i][j], this.comMaxScore);
+        this.humMaxScore = Math.max(this.humScore[i][j], this.humMaxScore);
+      }
+    }
+  }
   return (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
 }
 
