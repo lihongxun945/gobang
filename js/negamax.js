@@ -111,7 +111,7 @@ var max = function(deep, alpha, beta, role) {
   }
   if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
-    var mate = checkmate(board.board, role, checkmateDeep);
+    var mate = checkmate(role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
       cache(deep, score);

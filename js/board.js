@@ -139,6 +139,7 @@ Board.prototype.remove = function(p) {
 
 //悔棋
 Board.prototype.back = function() {
+  if(this.steps.length < 2) return;
   var s = this.steps.pop();
   this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]]);
   this.board[s[0]][s[1]] = R.empty;

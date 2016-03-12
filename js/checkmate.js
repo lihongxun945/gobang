@@ -19,6 +19,7 @@ var W = require("./win.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
 var debug = require("./debug.js");
+var board = require("./board.js");
 
 var Cache = {};
 
@@ -34,15 +35,15 @@ var debugCheckmate = debug.checkmate = {
 
 
 //找到所有比目标分数大的位置
-var findMax = function(board, role, score) {
+var findMax = function(role, score) {
   var result = [];
-  for(var i=0;i<board.length;i++) {
-    for(var j=0;j<board[i].length;j++) {
-      if(board[i][j] == R.empty) {
+  for(var i=0;i<board.board.length;i++) {
+    for(var j=0;j<board.board[i].length;j++) {
+      if(board.board[i][j] == R.empty) {
         var p = [i, j];
-        if(hasNeighbor(board, p, 2, 1)) { //必须是有邻居的才行
+        if(hasNeighbor(board.board, p, 2, 1)) { //必须是有邻居的才行
 
-          var s = scorePoint(board, p, role);
+          var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
           p.score = s;
           if(s >= S.FIVE) {
             return [p];
@@ -63,18 +64,18 @@ var findMax = function(board, role, score) {
 
 
 //找到所有比目标分数大的位置
-var findMin = function(board, role, score) {
+var findMin = function(role, score) {
   var result = [];
   var fives = [];
   var fours = [];
-  for(var i=0;i<board.length;i++) {
-    for(var j=0;j<board[i].length;j++) {
-      if(board[i][j] == R.empty) {
+  for(var i=0;i<board.board.length;i++) {
+    for(var j=0;j<board.board[i].length;j++) {
+      if(board.board[i][j] == R.empty) {
         var p = [i, j];
-        if(hasNeighbor(board, p, 2, 1)) { //必须是有邻居的才行
+        if(hasNeighbor(board.board, p, 2, 1)) { //必须是有邻居的才行
 
-          var s1 = scorePoint(board, p, role);
-          var s2 = scorePoint(board, p, R.reverse(role));
+          var s1 = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
+          var s2 = (role == R.com ? board.humScore[p[0]][p[1]] : board.comScore[p[0]][p[1]]);
           if(s1 >= S.FIVE) {
             p.score = - s1;
             return [p];
@@ -113,7 +114,7 @@ var findMin = function(board, role, score) {
   return result;
 }
 
-var max = function(board, role, deep) {
+var max = function(role, deep) {
   debugNodeCount ++;
   if(deep <= 0) return false;
 
@@ -127,16 +128,14 @@ var max = function(board, role, deep) {
     }
   }
 
-  var points = findMax(board, role, MAX_SCORE);
+  var points = findMax(role, MAX_SCORE);
   if(points.length && points[0].score >= S.FOUR) return [points[0]]; //为了减少一层搜索，活四就行了。
   if(points.length == 0) return false;
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = role;
-    zobrist.go(p[0], p[1], role);
-    var m = min(board, role, deep-1);
-    zobrist.go(p[0], p[1], role);
-    board[p[0]][p[1]] = R.empty;
+    board.put(p, role);
+    var m = min(role, deep-1);
+    board.remove(p);
     if(m) {
       if(m.length) {
         m.unshift(p); //注意 unshift 方法返回的是新数组长度，而不是新数组本身
@@ -154,9 +153,9 @@ var max = function(board, role, deep) {
 
 
 //只要有一种方式能防守住，就可以了
-var min = function(board, role, deep) {
+var min = function(role, deep) {
   debugNodeCount ++;
-  var w = W(board);
+  var w = W(board.board);
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
@@ -169,7 +168,7 @@ var min = function(board, role, deep) {
       }
     }
   }
-  var points = findMin(board, R.reverse(role), MIN_SCORE);
+  var points = findMin(R.reverse(role), MIN_SCORE);
   if(points.length == 0) return false;
   if(points.length && -1 * points[0].score  >= S.FOUR) return false; //为了减少一层搜索，活四就行了。
 
@@ -177,11 +176,9 @@ var min = function(board, role, deep) {
   var currentRole = R.reverse(role);
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board[p[0]][p[1]] = currentRole;
-    zobrist.go(p[0], p[1], currentRole);
-    var m = max(board, role, deep-1);
-    zobrist.go(p[0], p[1], currentRole);
-    board[p[0]][p[1]] = R.empty;
+    board.put(p, currentRole);
+    var m = max(role, deep-1);
+    board.remove(p);
     if(m) {
       m.unshift(p);
       cands.push(m);
@@ -207,11 +204,11 @@ var cache = function(deep, result) {
 }
 
 //迭代加深
-var deeping = function(board, role, deep) {
+var deeping = function(role, deep) {
   var start = new Date();
   debugNodeCount = 0;
   for(var i=1;i<=deep;i++) {
-    var result = max(board, role, i);
+    var result = max(role, i);
     if(result) break; //找到一个就行
   }
   var time = Math.round(new Date() - start);
@@ -222,7 +219,7 @@ var deeping = function(board, role, deep) {
   return result;
 }
 
-module.exports = function(board, role, deep, onlyFour) {
+module.exports = function(role, deep, onlyFour) {
 
   deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
@@ -231,7 +228,7 @@ module.exports = function(board, role, deep, onlyFour) {
   MAX_SCORE = S.FOUR;
   MIN_SCORE = S.FIVE;
 
-  var result = deeping(board, role, deep);
+  var result = deeping(role, deep);
   if(result) {
     result.score = S.FOUR;
     return result;
@@ -242,7 +239,7 @@ module.exports = function(board, role, deep, onlyFour) {
   //再计算通过 活三 赢的；
   MAX_SCORE = S.THREE;
   MIN_SCORE = S.FOUR;
-  result = deeping(board, role, deep);
+  result = deeping(role, deep);
   if(result) {
     result.score = S.THREE*2; //虽然不如活四分数高，但是还是比活三分数要高的
   }
