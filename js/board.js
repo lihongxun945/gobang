@@ -9,6 +9,7 @@ var Board = function() {
 }
 
 Board.prototype.init = function(sizeOrBoard) {
+  this.evaluateCache = {};
   this.steps = [];
   this.zobrist = zobrist;
   var size;
@@ -125,6 +126,7 @@ Board.prototype.updateScore = function(p) {
 //下子
 Board.prototype.put = function(p, role, record) {
   this.board[p[0]][p[1]] = role;
+  this.zobrist.go(p[0], p[1], role);
   this.updateScore(p);
   if(record) this.steps.push(p);
 }
@@ -152,6 +154,7 @@ Board.prototype.back = function() {
 
 //棋面估分
 Board.prototype.evaluate = function(role) {
+  if(this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
   this.comMaxScore = - S.FIVE;
   this.humMaxScore = - S.FIVE;
 
@@ -166,7 +169,11 @@ Board.prototype.evaluate = function(role) {
       }
     }
   }
-  return (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
+  var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
+  this.evaluateCache[this.zobrist.code] = result;
+
+  return result;
+
 }
 
 //启发函数

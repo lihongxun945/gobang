@@ -56,6 +56,7 @@ var Board = function() {
 }
 
 Board.prototype.init = function(sizeOrBoard) {
+  this.evaluateCache = {};
   this.steps = [];
   this.zobrist = zobrist;
   var size;
@@ -172,6 +173,7 @@ Board.prototype.updateScore = function(p) {
 //下子
 Board.prototype.put = function(p, role, record) {
   this.board[p[0]][p[1]] = role;
+  this.zobrist.go(p[0], p[1], role);
   this.updateScore(p);
   if(record) this.steps.push(p);
 }
@@ -199,6 +201,7 @@ Board.prototype.back = function() {
 
 //棋面估分
 Board.prototype.evaluate = function(role) {
+  if(this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
   this.comMaxScore = - S.FIVE;
   this.humMaxScore = - S.FIVE;
 
@@ -213,7 +216,11 @@ Board.prototype.evaluate = function(role) {
       }
     }
   }
-  return (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
+  var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
+  this.evaluateCache[this.zobrist.code] = result;
+
+  return result;
+
 }
 
 //启发函数
@@ -829,7 +836,7 @@ module.exports = {
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 8, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度
-  cache: false,  //是否使用置换表
+  cache: false,  //是否使用效率不高的置换表
 }
 
 },{}],8:[function(require,module,exports){
