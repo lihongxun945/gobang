@@ -1,6 +1,5 @@
-var c = require("../js/checkmate.js");
+var c = require("../js/checkmate-fast.js");
 var assert = require('assert');
-var board = require("../js/board.js");
 
 describe('test checkmate', function() {
 
@@ -13,8 +12,7 @@ describe('test checkmate', function() {
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
     ];
-    board.init(b);
-    var p = c(1, 8);
+    var p = c(b, 1, 8);
     assert.ok(p);
   });
 
@@ -30,8 +28,7 @@ describe('test checkmate', function() {
       [0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0]
     ];
-    board.init(b);
-    var p = c(1, 10);
+    var p = c(b, 1, 10);
     assert.ok(p);
   });
 
@@ -48,8 +45,7 @@ describe('test checkmate', function() {
       [ 0, 0, 0, 0, 1, 0, 0, 0, 0],
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    board.init(b);
-    var p = c(1, 6);
+    var p = c(b, 1, 6);
     assert.ok(p);
   });
 
@@ -61,15 +57,14 @@ describe('test checkmate', function() {
       [ 0, 0, 0, 1, 1, 0, 0, 0, 0, 0],
       [ 0, 0, 0, 0, 1, 0, 2, 0, 0, 0],
       [ 0, 0, 1, 2, 1, 1, 0, 0, 0, 0],
-      [ 0, 0, 1, 2, 1, 2, 2, 0, 0, 0],
+      [ 0, 0, 0, 2, 1, 2, 2, 0, 0, 0],
       [ 0, 0, 0, 1, 2, 0, 0, 0, 0, 0],
       [ 0, 0, 0, 0, 0, 2, 0, 0, 0, 0],
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    board.init(b);
-    var p = c(1);
+    var p = c(b, 1);
     assert.ok(p);
   });
       
@@ -86,8 +81,7 @@ describe('test checkmate', function() {
       [ 0, 0, 0, 0, 2, 0, 0],
       [ 0, 0, 0, 0, 0, 0, 0],
     ];
-    board.init(b);
-    var p = c(1);
+    var p = c(b, 1);
     assert.ok(!p);
   });
 
