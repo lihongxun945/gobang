@@ -22,7 +22,7 @@ var Board = function(container, status) {
     self.set(x, y, 1);
   });
 
-  this.worker = new Worker("./dist/bridge.js");
+  this.worker = new Worker("./dist/bridge.js?r="+(+new Date()));
 
   this.worker.onmessage = function(e) {
     self._set(e.data[0], e.data[1], R.com);
