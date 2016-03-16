@@ -34,7 +34,7 @@ var t = function(count, block, empty) {
       switch(count) {
         case 2: return score.TWO/2;
         case 3:
-        case 4: return score.THREE;
+        case 4: return score.BLOCKED_FOUR;
         case 5: return score.FOUR;
       }
     }
@@ -56,7 +56,7 @@ var t = function(count, block, empty) {
       switch(count) {
         case 3:
         case 4:
-        case 5: return score.THREE;
+        case 5: return score.BLOCKED_FOUR;
         case 6: return score.FOUR;
       }
     }
@@ -85,7 +85,7 @@ var t = function(count, block, empty) {
       switch(count) {
         case 4:
         case 5: return score.THREE;
-        case 6: return score.THREE*2;
+        case 6: return score.BLOCKED_FOUR;
         case 7: return score.FOUR;
       }
     }
