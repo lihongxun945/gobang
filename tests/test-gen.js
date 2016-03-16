@@ -1,6 +1,6 @@
-var g = require("../js/gen.js");
 var assert = require('assert');
-var b;
+var board = require("../js/board.js");
+var b
 
 describe('test gen', function() {
   it(`should be ok`, function() {
@@ -14,6 +14,29 @@ describe('test gen', function() {
       [0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.ok(g(b).length);
+    board.init(b);
+    assert.ok(board.gen(b).length);
+  });
+
+  it(`test 冲四活三`, function() {
+    //冲四活三比双三优先级高
+    b = [
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 2, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 2, 0, 0, 0, 0, 0, 0],
+      [2, 2, 2, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    ];
+    board.init(b);
+    //结果排在第一的应该是 [3, 3]
+    var r = board.gen(b);
+    console.log(r);
+    assert.equal(r[0][0], 3);
+    assert.equal(r[0][1], 3);
   });
 });

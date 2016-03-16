@@ -236,6 +236,7 @@ Board.prototype.gen = function() {
   if(fives.length) return [fives[0]];
   
   //注意一个活三可以有两个位置形成活四，但是不能只考虑其中一个，要从多个中考虑更好的选择
+  //所以不能碰到活四就返回第一个，应该需要考虑多个
   if(fours.length) return fours;
 
   //冲四活三

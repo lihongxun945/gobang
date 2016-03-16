@@ -282,8 +282,9 @@ Board.prototype.gen = function() {
   //如果成五，是必杀棋，直接返回
   if(fives.length) return [fives[0]];
   
-  //注意，只要返回第一个即可，如果双方都有活四，则第一个是自己的
-  if(fours.length) return [fours[0]];
+  //注意一个活三可以有两个位置形成活四，但是不能只考虑其中一个，要从多个中考虑更好的选择
+  //所以不能碰到活四就返回第一个，应该需要考虑多个
+  if(fours.length) return fours;
 
   //冲四活三
   if(blockedfours.length) return [blockedfours[0]];
@@ -1473,10 +1474,10 @@ var s = function(type) {
       //单独冲四，意义不大
       return T.THREE;
     } else if(type >= T.BLOCKED_FOUR + T.THREE && type < T.BLOCKED_FOUR * 2) {
-      return T.BLOCKED_FOUR;  //冲四活三，比双三分高，但是比活四分低，所以当做冲四处理
+      return T.FOUR;  //冲四活三，比双三分高，相当于自己形成活四
     } else {
-      //双冲四 等同于活四
-      return T.FOUR;
+      //双冲四 比活四分数也高
+      return T.FOUR * 2;
     }
   }
   return type;
