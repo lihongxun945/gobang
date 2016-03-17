@@ -1,5 +1,5 @@
-var w = require("../js/win.js");
 var assert = require('assert');
+var board = require("../js/board.js");
 var b;
 
 describe('test win', function() {
@@ -14,7 +14,8 @@ describe('test win', function() {
       [0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(w(b), false);
+    board.init(b);
+    assert.equal(board.win(), false);
   });
   it(`should win`, function() {
     b = [
@@ -27,6 +28,7 @@ describe('test win', function() {
       [0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(w(b), 1);
+    board.init(b);
+    assert.equal(board.win(), 1);
   });
 });

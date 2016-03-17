@@ -12,10 +12,8 @@
  */
 
 var R = require("./role.js");
-var hasNeighbor = require("./neighbor.js");
 var scorePoint = require("./evaluate-point.js");
 var S = require("./SCORE.js");
-var W = require("./win.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
 var debug = require("./debug.js");
@@ -41,7 +39,7 @@ var findMax = function(role, score) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
         var p = [i, j];
-        if(hasNeighbor(board.board, p, 2, 1)) { //必须是有邻居的才行
+        if(board.hasNeighbor(p, 2, 1)) { //必须是有邻居的才行
 
           var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
           p.score = s;
@@ -72,7 +70,7 @@ var findMin = function(role, score) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
         var p = [i, j];
-        if(hasNeighbor(board.board, p, 2, 1)) { //必须是有邻居的才行
+        if(board.hasNeighbor(p, 2, 1)) { //必须是有邻居的才行
 
           var s1 = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
           var s2 = (role == R.com ? board.humScore[p[0]][p[1]] : board.comScore[p[0]][p[1]]);
@@ -155,7 +153,7 @@ var max = function(role, deep) {
 //只要有一种方式能防守住，就可以了
 var min = function(role, deep) {
   debugNodeCount ++;
-  var w = W(board.board);
+  var w = board.win();
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;

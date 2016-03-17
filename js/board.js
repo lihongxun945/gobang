@@ -1,6 +1,5 @@
 var scorePoint = require("./evaluate-point.js");
 var zobrist = require("./zobrist.js");
-var hasNeighbor = require("./neighbor.js");
 var R = require("./role.js");
 var S = require("./score.js");
 var config = require("./config.js");
@@ -56,7 +55,7 @@ Board.prototype.initScore = function() {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
-        if(hasNeighbor(board, [i, j], 2, 2)) { //必须是有邻居的才行
+        if(this.hasNeighbor([i, j], 2, 2)) { //必须是有邻居的才行
           var cs = scorePoint(board, [i, j], R.com);
           var hs = scorePoint(board, [i, j], R.hum);
           this.comScore[i][j] = cs;
@@ -194,7 +193,7 @@ Board.prototype.gen = function() {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
-        if(hasNeighbor(board, [i, j], 2, 2)) { //必须是有邻居的才行
+        if(this.hasNeighbor([i, j], 2, 2)) { //必须是有邻居的才行
           var scoreHum = this.humScore[i][j];
           var scoreCom = this.comScore[i][j];
 
@@ -258,6 +257,144 @@ Board.prototype.gen = function() {
   }
 
   return result;
+}
+
+Board.prototype.hasNeighbor = function(point, distance, count) {
+  var board = this.board;
+  var len = board.length;
+  var startX = point[0]-distance;
+  var endX = point[0]+distance;
+  var startY = point[1]-distance;
+  var endY = point[1]+distance;
+  for(var i=startX;i<=endX;i++) {
+    if(i<0||i>=len) continue;
+    for(var j=startY;j<=endY;j++) {
+      if(j<0||j>=len) continue;
+      if(i==point[0] && j==point[1]) continue;
+      if(board[i][j] != R.empty) {
+        count --;
+        if(count <= 0) return true;
+      }
+    }
+  }
+  return false;
+}
+
+Board.prototype.win = function() {
+  var board = this.board;
+  var isFive = function(p, role) {
+    var len = board.length;
+    var count = 1;
+
+    var reset = function() {
+      count = 1;
+    }
+
+    for(var i=p[1]+1;true;i++) {
+      if(i>=len) break;
+      var t = board[p[0]][i];
+      if(t !== role) break;
+      count ++;
+    }
+
+
+    for(var i=p[1]-1;true;i--) {
+      if(i<0) break;
+      var t = board[p[0]][i];
+      if(t !== role) break;
+      count ++;
+    }
+
+    if(count >= 5) return true;
+
+    //纵向
+    reset();
+
+    for(var i=p[0]+1;true;i++) {
+      if(i>=len) {
+        break;
+      }
+      var t = board[i][p[1]];
+      if(t !== role) break;
+      count ++;
+    }
+
+    for(var i=p[0]-1;true;i--) {
+      if(i<0) {
+        break;
+      }
+      var t = board[i][p[1]];
+      if(t !== role) break;
+      count ++;
+    }
+
+
+    if(count >= 5) return true;
+    // \\
+    reset();
+
+    for(var i=1;true;i++) {
+      var x = p[0]+i, y = p[1]+i;
+      if(x>=len || y>=len) {
+        break;
+      }
+      var t = board[x][y];
+      if(t !== role) break;
+
+      count ++;
+    }
+
+    for(var i=1;true;i++) {
+      var x = p[0]-i, y = p[1]-i;
+      if(x<0||y<0) {
+        break;
+      }
+      var t = board[x][y];
+      if(t !== role) break;
+      count ++;
+    }
+
+    if(count >= 5) return true;
+
+    // \/
+    reset();
+
+    for(var i=1; true;i++) {
+      var x = p[0]+i, y = p[1]-i;
+      if(x<0||y<0||x>=len||y>=len) {
+        break;
+      }
+      var t = board[x][y];
+      if(t !== role) break;
+      count ++;
+    }
+
+    for(var i=1;true;i++) {
+      var x = p[0]-i, y = p[1]+i;
+      if(x<0||y<0||x>=len||y>=len) {
+        break;
+      }
+      var t = board[x][y];
+      if(t !== role) break;
+      count ++;
+    }
+
+    if(count >= 5) return true;
+
+    return false;
+  }
+
+
+  for(var i=0;i<board.length;i++) {
+    for(var j=0;j<board[i].length;j++) {
+      var t = board[i][j];
+      if(t !== R.empty) {
+        var r = isFive([i, j], t);
+        if(r) return t;
+      }
+    }
+  }
+  return false;
 }
 
 var board = new Board();

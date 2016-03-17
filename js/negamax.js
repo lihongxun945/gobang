@@ -2,7 +2,6 @@ var R = require("./role");
 var T = SCORE = require("./score.js");
 var math = require("./math.js");
 var checkmate = require("./checkmate.js");
-var checkmateFast = require("./checkmate-fast.js");
 var config = require("./config.js");
 var debug = require("./debug.js");
 var board = require("./board.js");
@@ -27,7 +26,7 @@ var checkmateDeep = config.checkmateDeep;
  * white is max, black is min
  */
 
-var maxmin = function(deep, _checkmateDeep) {
+var negamax = function(deep, _checkmateDeep) {
   var best = MIN;
   var points = board.gen();
   var bestPoints = [];
@@ -40,7 +39,7 @@ var maxmin = function(deep, _checkmateDeep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board.put(p, R.com);
-    var v = - max(deep-1, -MAX, -best, R.hum);
+    var v = - r(deep-1, -MAX, -best, R.hum);
 
     //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
     if(p[0]<3 || p[0] > 11 || p[1] < 3 || p[1] > 11) {
@@ -73,7 +72,7 @@ var maxmin = function(deep, _checkmateDeep) {
   return result;
 }
 
-var max = function(deep, alpha, beta, role) {
+var r = function(deep, alpha, beta, role) {
 
   if(config.cache) {
     var c = Cache[board.zobrist.code];
@@ -98,7 +97,7 @@ var max = function(deep, alpha, beta, role) {
     var p = points[i];
     board.put(p, role);
 
-    var v = - max(deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
+    var v = - r(deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
     board.remove(p);
 
     if(math.greatThan(v, best)) {
@@ -112,8 +111,7 @@ var max = function(deep, alpha, beta, role) {
   }
   if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
     ) {
-    //var mate = checkmate(role, checkmateDeep);
-    var mate = checkmateFast(board.board, role, checkmateDeep);
+    var mate = checkmate(role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
       cache(deep, score);
@@ -140,7 +138,7 @@ var deeping = function(deep) {
   //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
   var result;
   for(var i=2;i<=deep; i+=2) {
-    result = maxmin(i);
+    result = negamax(i);
     if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
   }
   return result;
