@@ -19,7 +19,7 @@ var Board = function(container, status) {
     x = Math.floor((x+self.offset)/self.step) - 1;
     y = Math.floor((y+self.offset)/self.step) - 1;
 
-    self.set(x, y, 1);
+    self.set(x, y, R.hum);
   });
 
   this.worker = new Worker("./dist/bridge.js?r="+(+new Date()));

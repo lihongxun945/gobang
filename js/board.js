@@ -25,9 +25,6 @@ Board.prototype.init = function(sizeOrBoard) {
       }
       this.board.push(row);
     }
-    this.board[7][7] = R.com;
-    this.steps.push([7, 7]);
-    this.zobrist.go(7, 7, R.com);
   }
 
 
@@ -193,7 +190,7 @@ Board.prototype.gen = function() {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
-        if(this.hasNeighbor([i, j], 2, 2)) { //必须是有邻居的才行
+        if(this.hasNeighbor([i, j], 2, 1)) { //必须是有邻居的才行
           var scoreHum = this.humScore[i][j];
           var scoreCom = this.comScore[i][j];
 

@@ -62,7 +62,7 @@ AI.prototype.back = function() {
 }
 module.exports = AI;
 
-},{"./board.js":3,"./config.js":6,"./negamax.js":10,"./role.js":11,"./zobrist.js":13}],3:[function(require,module,exports){
+},{"./board.js":3,"./config.js":5,"./negamax.js":9,"./role.js":11,"./zobrist.js":13}],3:[function(require,module,exports){
 var scorePoint = require("./evaluate-point.js");
 var zobrist = require("./zobrist.js");
 var R = require("./role.js");
@@ -463,27 +463,7 @@ var board = new Board();
 
 module.exports = board;
 
-},{"./config.js":6,"./evaluate-point.js":8,"./role.js":11,"./score.js":12,"./zobrist.js":13}],4:[function(require,module,exports){
-var AI = require("./ai.js");
-var R = require("./role.js");
-
-var ai = new AI();
-
-
-onmessage = function(e) {
-  var d = e.data;
-  if(d.type == "START") {
-    ai.start(15);
-    ai.set(7,7,R.com);
-  } else if(d.type == "GO") {
-    var p = ai.turn(e.data.x, e.data.y);
-    postMessage(p);
-  } else if(d.type == "BACK") {
-    ai.back();
-  }
-}
-
-},{"./ai.js":2,"./role.js":11}],5:[function(require,module,exports){
+},{"./config.js":5,"./evaluate-point.js":7,"./role.js":11,"./score.js":12,"./zobrist.js":13}],4:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -732,7 +712,7 @@ module.exports = function(role, deep, onlyFour) {
 
 }
 
-},{"./SCORE.js":1,"./board.js":3,"./config.js":6,"./debug.js":7,"./evaluate-point.js":8,"./role.js":11,"./zobrist.js":13}],6:[function(require,module,exports){
+},{"./SCORE.js":1,"./board.js":3,"./config.js":5,"./debug.js":6,"./evaluate-point.js":7,"./role.js":11,"./zobrist.js":13}],5:[function(require,module,exports){
 module.exports = {
   searchDeep: 6,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
@@ -741,11 +721,11 @@ module.exports = {
   cache: false,  //是否使用效率不高的置换表
 }
 
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var debug = {};
 module.exports = debug;
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 /*
  * 启发式评价函数
  * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
@@ -1160,7 +1140,7 @@ var fixScore = function(type) {
 
 module.exports = s;
 
-},{"./role.js":11,"./score.js":12}],9:[function(require,module,exports){
+},{"./role.js":11,"./score.js":12}],8:[function(require,module,exports){
 var threshold = 1.1;
 
 module.exports = {
@@ -1181,7 +1161,7 @@ module.exports = {
   }
 }
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var R = require("./role");
 var T = SCORE = require("./score.js");
 var math = require("./math.js");
@@ -1293,7 +1273,7 @@ var r = function(deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1) & role === R.com) {
+  if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)) {
     var mate = checkmate(role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(.8, mate.length);
@@ -1328,7 +1308,48 @@ var deeping = function(deep) {
 }
 module.exports = deeping;
 
-},{"./board.js":3,"./checkmate.js":5,"./config.js":6,"./debug.js":7,"./math.js":9,"./role":11,"./score.js":12}],11:[function(require,module,exports){
+},{"./board.js":3,"./checkmate.js":4,"./config.js":5,"./debug.js":6,"./math.js":8,"./role":11,"./score.js":12}],10:[function(require,module,exports){
+(function (process){
+var AI = require("./ai.js");
+var readline = require('readline');
+console.log(readline);
+
+var rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: false
+});
+
+var ai = new AI();
+
+var boardMode = false;
+
+rl.on('line', function(line){
+  var args = line.split(" ");
+  if(boardMode) {
+    var t = line.split(",");
+  } else if(args[0] === "BEGIN") {
+    var r = ai.begin();
+    return r.joint(",");
+  } else if(args[0] === "START") {
+    ai.start(args[1] ? parseInt(args[1]) : 20);
+    console.log("OK");
+  } else if (args[0] === "TURN") {
+    var p = args[1].split(",");
+    var r = ai.trun(parseInt(p[0]), parseInt(p[1]));
+    console.log(r.join(","));
+  } else if(line == "BOARD") {
+    boardMode = true;
+  } else if(line == "DONE") {
+    boardMode = false;
+    var r = ai.begin();
+    return r.join(",");
+  }
+
+})
+
+}).call(this,require('_process'))
+},{"./ai.js":2,"_process":15,"readline":14}],11:[function(require,module,exports){
 module.exports = {
   com: 1,
   hum: 2,
@@ -1373,4 +1394,99 @@ z.init();
 
 module.exports = z;
 
-},{"./role.js":11}]},{},[4]);
+},{"./role.js":11}],14:[function(require,module,exports){
+
+},{}],15:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = setTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    clearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}]},{},[10]);

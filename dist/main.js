@@ -20,7 +20,7 @@ var Board = function(container, status) {
     x = Math.floor((x+self.offset)/self.step) - 1;
     y = Math.floor((y+self.offset)/self.step) - 1;
 
-    self.set(x, y, 1);
+    self.set(x, y, R.hum);
   });
 
   this.worker = new Worker("./dist/bridge.js?r="+(+new Date()));
@@ -174,8 +174,8 @@ $("#back").click(function() {
 
 },{"./role.js":2,"./score.js":3,"./win.js":4}],2:[function(require,module,exports){
 module.exports = {
-  com: 2,
-  hum: 1,
+  com: 1,
+  hum: 2,
   empty: 0,
   reverse: function(r) {
     return r == 1 ? 2 : 1;
