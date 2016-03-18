@@ -255,7 +255,9 @@ Board.prototype.gen = function() {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
-        if(this.hasNeighbor([i, j], 2, 2)) { //必须是有邻居的才行
+        var neighbor = [2,2];
+        if(this.steps.length < 4) neighbor = [2, 1];
+        if(this.hasNeighbor([i, j], neighbor[0], neighbor[1])) { //必须是有邻居的才行
           var scoreHum = this.humScore[i][j];
           var scoreCom = this.comScore[i][j];
 
@@ -307,6 +309,9 @@ Board.prototype.gen = function() {
   if(twothrees.length) {
     return twothrees.concat(threes);
   }
+
+
+  //if(threes.length) return threes;  //TODO: 这里会比较激进，只要能成活三的点都优先考虑。
 
   var result = threes.concat(
       twos.concat(
@@ -696,7 +701,7 @@ var deeping = function(role, deep) {
     if(result) break; //找到一个就行
   }
   var time = Math.round(new Date() - start);
-  if(result) console.log("算杀成功("+time+"毫秒, "+ debugNodeCount + "个节点):" + JSON.stringify(result));
+  if(result) config.log && console.log("算杀成功("+time+"毫秒, "+ debugNodeCount + "个节点):" + JSON.stringify(result));
   else {
     //console.log("算杀失败("+time+"毫秒)");
   }
@@ -738,6 +743,7 @@ module.exports = {
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 10, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度
+  log: false,
   cache: false,  //是否使用效率不高的置换表
 }
 
@@ -1245,14 +1251,14 @@ var negamax = function(deep, _checkmateDeep) {
 
     board.remove(p);
   }
-  console.log("分数:"+best.toFixed(3)+", 待选节点:"+JSON.stringify(bestPoints));
+  config.log && console.log("分数:"+best.toFixed(3)+", 待选节点:"+JSON.stringify(bestPoints));
   var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
   result.score = best;
   steps ++;
   total += count;
-  console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount + ',算杀缓存命中:' + (debug.checkmate.cacheGet / debug.checkmate.cacheCount).toFixed(3) + ',' + debug.checkmate.cacheGet + '/'+debug.checkmate.cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
-  console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
-  console.log("================================");
+  config.log && console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount + ',算杀缓存命中:' + (debug.checkmate.cacheGet / debug.checkmate.cacheCount).toFixed(3) + ',' + debug.checkmate.cacheGet + '/'+debug.checkmate.cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  config.log && console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
+  config.log && console.log("================================");
   return result;
 }
 
