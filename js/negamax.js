@@ -109,11 +109,10 @@ var r = function(deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)
-    ) {
+  if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)) {
     var mate = checkmate(role, checkmateDeep);
     if(mate) {
-      var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
+      var score = mate.score * Math.pow(.8, mate.length);
       cache(deep, score);
       return score;
     }

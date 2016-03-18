@@ -719,7 +719,7 @@ module.exports = function(role, deep, onlyFour) {
 module.exports = {
   searchDeep: 6,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
-  countLimit: 8, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  countLimit: 10, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度
   cache: false,  //是否使用效率不高的置换表
 }
@@ -1280,7 +1280,7 @@ var r = function(deep, alpha, beta, role) {
     ) {
     var mate = checkmate(role, checkmateDeep);
     if(mate) {
-      var score = mate.score * Math.pow(.8, mate.length) * (role === R.com ? 1 : -1);
+      var score = mate.score * Math.pow(.8, mate.length);
       cache(deep, score);
       return score;
     }
