@@ -38,9 +38,6 @@ Board.prototype.start = function() {
   if(this.started) return;
   this.initBoard();
   
-  this.board[7][7] = R.com;
-  this.steps.push([7, 7]);
-
   this.draw();
 
   this.setStatus("欢迎加入五子棋游戏");
@@ -49,6 +46,27 @@ Board.prototype.start = function() {
 
   this.worker.postMessage({
     type: "START"
+  });
+
+  var self = this;
+
+  $.modal({
+    title: "请选择选手",
+    buttons: [
+      {
+        text: "电脑先手",
+        onClick: function(){
+          self.worker.postMessage({
+            type: "BEGIN"
+          });
+        }
+      },
+      {
+        text: "玩家先手",
+        onClick: function(){
+        }
+      }
+    ]
   });
 }
 
