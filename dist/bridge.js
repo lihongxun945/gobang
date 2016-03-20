@@ -256,7 +256,7 @@ Board.prototype.gen = function() {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
         var neighbor = [2,2];
-        if(this.steps.length < 4) neighbor = [2, 1];
+        if(this.steps.length < 6) neighbor = [1, 1];
         if(this.hasNeighbor([i, j], neighbor[0], neighbor[1])) { //必须是有邻居的才行
           var scoreHum = this.humScore[i][j];
           var scoreCom = this.comScore[i][j];
@@ -310,15 +310,13 @@ Board.prototype.gen = function() {
     return twothrees.concat(threes);
   }
 
-
-  //if(threes.length) return threes;  //TODO: 这里会比较激进，只要能成活三的点都优先考虑。
-
   var result = threes.concat(
       twos.concat(
         neighbors
       )
     );
 
+  //这种分数低的，就不用全部计算了
   if(result.length>config.countLimit) {
     return result.slice(0, config.countLimit);
   }
@@ -530,7 +528,7 @@ var findMax = function(role, score) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
         var p = [i, j];
-        if(board.hasNeighbor(p, 2, 1)) { //必须是有邻居的才行
+        if(board.hasNeighbor(p, 2, 2)) { //必须是有邻居的才行
 
           var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
           p.score = s;
@@ -1147,6 +1145,8 @@ var countToScore = function(count, block, empty) {
   return 0;
 }
 
+//冲四的分其实肯定比活三高，但是如果这样的话容易形成盲目冲四的问题，所以如果发现电脑有无意义的冲四，则将分数降低到和活三一样
+//而对于冲四活三这种杀棋，则将分数提高。
 var fixScore = function(type) {
   if(type < score.FOUR && type >= score.BLOCKED_FOUR) {
 

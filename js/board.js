@@ -191,7 +191,7 @@ Board.prototype.gen = function() {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
         var neighbor = [2,2];
-        if(this.steps.length < 4) neighbor = [2, 1];
+        if(this.steps.length < 6) neighbor = [1, 1];
         if(this.hasNeighbor([i, j], neighbor[0], neighbor[1])) { //必须是有邻居的才行
           var scoreHum = this.humScore[i][j];
           var scoreCom = this.comScore[i][j];
@@ -245,15 +245,13 @@ Board.prototype.gen = function() {
     return twothrees.concat(threes);
   }
 
-
-  //if(threes.length) return threes;  //TODO: 这里会比较激进，只要能成活三的点都优先考虑。
-
   var result = threes.concat(
       twos.concat(
         neighbors
       )
     );
 
+  //这种分数低的，就不用全部计算了
   if(result.length>config.countLimit) {
     return result.slice(0, config.countLimit);
   }

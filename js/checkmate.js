@@ -39,7 +39,7 @@ var findMax = function(role, score) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
         var p = [i, j];
-        if(board.hasNeighbor(p, 2, 1)) { //必须是有邻居的才行
+        if(board.hasNeighbor(p, 2, 2)) { //必须是有邻居的才行
 
           var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
           p.score = s;

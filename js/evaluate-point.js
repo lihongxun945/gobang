@@ -393,6 +393,8 @@ var countToScore = function(count, block, empty) {
   return 0;
 }
 
+//冲四的分其实肯定比活三高，但是如果这样的话容易形成盲目冲四的问题，所以如果发现电脑有无意义的冲四，则将分数降低到和活三一样
+//而对于冲四活三这种杀棋，则将分数提高。
 var fixScore = function(type) {
   if(type < score.FOUR && type >= score.BLOCKED_FOUR) {
 

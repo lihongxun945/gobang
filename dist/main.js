@@ -80,7 +80,7 @@ Board.prototype.draw = function() {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] != 0) {
         var chessman = $("<div class='chessman'></div>").appendTo(container);
-        if(board[i][j] == 2) chessman.addClass("black");
+        if(board[i][j] == 1) chessman.addClass("black");
         chessman.css("top", this.offset + i*this.step);
         chessman.css("left", this.offset + j*this.step);
       }
