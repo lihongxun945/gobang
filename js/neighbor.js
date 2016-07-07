@@ -1,5 +1,6 @@
 var R = require("./role");
 //有邻居
+// 在X/Y各 +/-distance 范围内有 count 个棋子，则return true.
 var hasNeighbor = function(board, point, distance, count) {
   var len = board.length;
   var startX = point[0]-distance;

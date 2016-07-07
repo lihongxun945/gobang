@@ -1,23 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/*
- * 棋型表示
- * 用一个6位数表示棋型，从高位到低位分别表示
- * 连五，活四，眠四，活三，活二/眠三，活一/眠二, 眠一
- */
-
-module.exports = {
-  ONE: 10,
-  TWO: 100,
-  THREE: 1000,
-  FOUR: 100000,
-  FIVE: 1000000,
-  BLOCKED_ONE: 1,
-  BLOCKED_TWO: 10,
-  BLOCKED_THREE: 100,
-  BLOCKED_FOUR: 10000
-}
-
-},{}],2:[function(require,module,exports){
 var m = require("./negamax.js");
 var R = require("./role.js");
 var zobrist = require("./zobrist.js");
@@ -44,7 +25,7 @@ AI.prototype.back = function() {
 }
 module.exports = AI;
 
-},{"./board.js":3,"./config.js":7,"./negamax.js":12,"./role.js":14,"./zobrist.js":18}],3:[function(require,module,exports){
+},{"./board.js":2,"./config.js":6,"./negamax.js":11,"./role.js":13,"./zobrist.js":17}],2:[function(require,module,exports){
 var scorePoint = require("./evaluate-point.js");
 var zobrist = require("./zobrist.js");
 var hasNeighbor = require("./neighbor.js");
@@ -93,7 +74,7 @@ Board.prototype.init = function(sizeOrBoard) {
   }
 
   this.initScore();
-  
+
 }
 
 Board.prototype.initScore = function() {
@@ -241,7 +222,7 @@ Board.prototype.gen = function() {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
-        if(hasNeighbor(board, [i, j], 2, 2)) { //必须是有邻居的才行
+        if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
           var scoreHum = this.humScore[i][j];
           var scoreCom = this.comScore[i][j];
 
@@ -281,7 +262,7 @@ Board.prototype.gen = function() {
 
   //如果成五，是必杀棋，直接返回
   if(fives.length) return [fives[0]];
-  
+
   //注意一个活三可以有两个位置形成活四，但是不能只考虑其中一个，要从多个中考虑更好的选择
   //所以不能碰到活四就返回第一个，应该需要考虑多个
   if(fours.length) return fours;
@@ -311,7 +292,7 @@ var board = new Board();
 
 module.exports = board;
 
-},{"./config.js":7,"./evaluate-point.js":10,"./neighbor.js":13,"./role.js":14,"./score.js":15,"./zobrist.js":18}],4:[function(require,module,exports){
+},{"./config.js":6,"./evaluate-point.js":9,"./neighbor.js":12,"./role.js":13,"./score.js":14,"./zobrist.js":17}],3:[function(require,module,exports){
 var AI = require("./ai.js");
 
 var ai = new AI();
@@ -329,7 +310,7 @@ onmessage = function(e) {
   }
 }
 
-},{"./ai.js":2}],5:[function(require,module,exports){
+},{"./ai.js":1}],4:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -346,7 +327,7 @@ onmessage = function(e) {
 var R = require("./role.js");
 var hasNeighbor = require("./neighbor.js");
 var scorePoint = require("./evaluate-point.js");
-var S = require("./SCORE.js");
+var S = require("./score.js");
 var W = require("./win.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
@@ -410,7 +391,7 @@ var findMin = function(board, role, score) {
           if(s1 >= S.FIVE) {
             p.score = - s1;
             return [p];
-          } 
+          }
           if(s1 >= S.FOUR) {
             p.score = -s1;
             fours.unshift(p);
@@ -420,7 +401,7 @@ var findMin = function(board, role, score) {
             p.score = s2;
             fives.push(p);
             continue;
-          } 
+          }
           if(s2 >= S.FOUR) {
             p.score = s2;
             fours.push(p);
@@ -583,7 +564,7 @@ module.exports = function(board, role, deep, onlyFour) {
 
 }
 
-},{"./SCORE.js":1,"./config.js":7,"./debug.js":9,"./evaluate-point.js":10,"./neighbor.js":13,"./role.js":14,"./win.js":17,"./zobrist.js":18}],6:[function(require,module,exports){
+},{"./config.js":6,"./debug.js":8,"./evaluate-point.js":9,"./neighbor.js":12,"./role.js":13,"./score.js":14,"./win.js":16,"./zobrist.js":17}],5:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -600,7 +581,7 @@ module.exports = function(board, role, deep, onlyFour) {
 var R = require("./role.js");
 var hasNeighbor = require("./neighbor.js");
 var scorePoint = require("./evaluate-point.js");
-var S = require("./SCORE.js");
+var S = require("./score.js");
 var W = require("./win.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
@@ -665,7 +646,7 @@ var findMin = function(role, score) {
           if(s1 >= S.FIVE) {
             p.score = - s1;
             return [p];
-          } 
+          }
           if(s1 >= S.FOUR) {
             p.score = -s1;
             fours.unshift(p);
@@ -675,7 +656,7 @@ var findMin = function(role, score) {
             p.score = s2;
             fives.push(p);
             continue;
-          } 
+          }
           if(s2 >= S.FOUR) {
             p.score = s2;
             fours.push(p);
@@ -834,16 +815,16 @@ module.exports = function(role, deep, onlyFour) {
 
 }
 
-},{"./SCORE.js":1,"./board.js":3,"./config.js":7,"./debug.js":9,"./evaluate-point.js":10,"./neighbor.js":13,"./role.js":14,"./win.js":17,"./zobrist.js":18}],7:[function(require,module,exports){
+},{"./board.js":2,"./config.js":6,"./debug.js":8,"./evaluate-point.js":9,"./neighbor.js":12,"./role.js":13,"./score.js":14,"./win.js":16,"./zobrist.js":17}],6:[function(require,module,exports){
 module.exports = {
-  searchDeep: 6,  //搜索深度
+  searchDeep: 8,  //搜索深度
   deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 8, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度
   cache: false,  //是否使用效率不高的置换表
 }
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var score = require("./score.js");
 
 var t = function(count, block, empty) {
@@ -993,11 +974,11 @@ var t = function(count, block, empty) {
 
 module.exports = t;
 
-},{"./score.js":15}],9:[function(require,module,exports){
+},{"./score.js":14}],8:[function(require,module,exports){
 var debug = {};
 module.exports = debug;
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*
  * 启发式评价函数
  * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
@@ -1251,7 +1232,7 @@ var s = function(board, p, role) {
 
 module.exports = s;
 
-},{"./count-to-type.js":8,"./role.js":14,"./type-to-score.js":16}],11:[function(require,module,exports){
+},{"./count-to-type.js":7,"./role.js":13,"./type-to-score.js":15}],10:[function(require,module,exports){
 var threshold = 1.1;
 
 module.exports = {
@@ -1272,7 +1253,7 @@ module.exports = {
   }
 }
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var R = require("./role");
 var T = SCORE = require("./score.js");
 var math = require("./math.js");
@@ -1422,9 +1403,10 @@ var deeping = function(deep) {
 }
 module.exports = deeping;
 
-},{"./board.js":3,"./checkmate-fast.js":5,"./checkmate.js":6,"./config.js":7,"./debug.js":9,"./math.js":11,"./role":14,"./score.js":15}],13:[function(require,module,exports){
+},{"./board.js":2,"./checkmate-fast.js":4,"./checkmate.js":5,"./config.js":6,"./debug.js":8,"./math.js":10,"./role":13,"./score.js":14}],12:[function(require,module,exports){
 var R = require("./role");
 //有邻居
+// 在X/Y各 +/-distance 范围内有 count 个棋子，则return true.
 var hasNeighbor = function(board, point, distance, count) {
   var len = board.length;
   var startX = point[0]-distance;
@@ -1447,7 +1429,7 @@ var hasNeighbor = function(board, point, distance, count) {
 
 module.exports = hasNeighbor;
 
-},{"./role":14}],14:[function(require,module,exports){
+},{"./role":13}],13:[function(require,module,exports){
 module.exports = {
   com: 2,
   hum: 1,
@@ -1457,9 +1439,26 @@ module.exports = {
   }
 }
 
+},{}],14:[function(require,module,exports){
+/*
+ * 棋型表示
+ * 用一个6位数表示棋型，从高位到低位分别表示
+ * 连五，活四，眠四，活三，活二/眠三，活一/眠二, 眠一
+ */
+
+module.exports = {
+  ONE: 10,
+  TWO: 100,
+  THREE: 1000,
+  FOUR: 100000,
+  FIVE: 1000000,
+  BLOCKED_ONE: 1,
+  BLOCKED_TWO: 10,
+  BLOCKED_THREE: 100,
+  BLOCKED_FOUR: 10000
+}
+
 },{}],15:[function(require,module,exports){
-arguments[4][1][0].apply(exports,arguments)
-},{"dup":1}],16:[function(require,module,exports){
 var T = require("./score.js");
 
 /*
@@ -1485,7 +1484,7 @@ var s = function(type) {
 
 module.exports = s;
 
-},{"./score.js":15}],17:[function(require,module,exports){
+},{"./score.js":14}],16:[function(require,module,exports){
 var R = require("./role.js");
 var isFive = function(board, p, role) {
   var len = board.length;
@@ -1606,7 +1605,7 @@ var w = function(board) {
 
 module.exports = w;
 
-},{"./role.js":14}],18:[function(require,module,exports){
+},{"./role.js":13}],17:[function(require,module,exports){
 var R = require("./role.js");
 
 var Zobrist = function(size) {
@@ -1639,4 +1638,4 @@ z.init();
 
 module.exports = z;
 
-},{"./role.js":14}]},{},[4]);
+},{"./role.js":13}]},{},[3]);
