@@ -37,9 +37,26 @@ Board.prototype.start = function() {
 
   if(this.started) return;
   this.initBoard();
-  
+
   this.board[7][7] = R.com;
   this.steps.push([7, 7]);
+
+  this.draw();
+
+  this.setStatus("欢迎加入五子棋游戏");
+
+  this.started = true;
+
+  this.worker.postMessage({
+    type: "START"
+  });
+}
+
+// human first
+Board.prototype.startHum = function() {
+
+  if(this.started) return;
+  this.initBoard();
 
   this.draw();
 
@@ -72,7 +89,7 @@ Board.prototype.initBoard = function() {
 Board.prototype.draw = function() {
   var container = this.container;
   var board = this.board;
-  
+
   container.find(".chessman, .indicator").remove();
 
   for(var i=0;i<board.length;i++) {
@@ -159,6 +176,10 @@ Board.prototype.back = function(step) {
 var b = new Board($("#board"), $(".status"));
 $("#start").click(function() {
   b.start();
+});
+
+$("#start-hum").click(function() {
+  b.startHum();
 });
 
 $("#fail").click(function() {

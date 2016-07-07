@@ -46,7 +46,7 @@ Board.prototype.init = function(sizeOrBoard) {
   }
 
   this.initScore();
-  
+
 }
 
 Board.prototype.initScore = function() {
@@ -194,7 +194,7 @@ Board.prototype.gen = function() {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
-        if(hasNeighbor(board, [i, j], 2, 2)) { //必须是有邻居的才行
+        if(hasNeighbor(board, [i, j], 1, 1)) { //必须是有邻居的才行
           var scoreHum = this.humScore[i][j];
           var scoreCom = this.comScore[i][j];
 
@@ -234,7 +234,7 @@ Board.prototype.gen = function() {
 
   //如果成五，是必杀棋，直接返回
   if(fives.length) return [fives[0]];
-  
+
   //注意一个活三可以有两个位置形成活四，但是不能只考虑其中一个，要从多个中考虑更好的选择
   //所以不能碰到活四就返回第一个，应该需要考虑多个
   if(fours.length) return fours;

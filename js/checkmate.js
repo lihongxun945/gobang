@@ -14,7 +14,7 @@
 var R = require("./role.js");
 var hasNeighbor = require("./neighbor.js");
 var scorePoint = require("./evaluate-point.js");
-var S = require("./SCORE.js");
+var S = require("./score.js");
 var W = require("./win.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
@@ -79,7 +79,7 @@ var findMin = function(role, score) {
           if(s1 >= S.FIVE) {
             p.score = - s1;
             return [p];
-          } 
+          }
           if(s1 >= S.FOUR) {
             p.score = -s1;
             fours.unshift(p);
@@ -89,7 +89,7 @@ var findMin = function(role, score) {
             p.score = s2;
             fives.push(p);
             continue;
-          } 
+          }
           if(s2 >= S.FOUR) {
             p.score = s2;
             fours.push(p);
