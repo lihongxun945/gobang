@@ -11,12 +11,13 @@ var Board = function(container, status) {
   this.steps = [];  //存储
 
   this.started = false;
-
+  this.container_x = container.offset().left;
+  this.container_y = container.offset().top;
 
   var self = this;
   this.container.on("click", function(e) {
     if(self.lock || !self.started) return;
-    var y = e.offsetX, x = e.offsetY;
+    var y = e.pageX - self.container_x, x = e.pageY - self.container_y;
     x = Math.floor((x+self.offset)/self.step) - 1;
     y = Math.floor((y+self.offset)/self.step) - 1;
 
@@ -38,7 +39,7 @@ Board.prototype.start = function() {
 
   if(this.started) return;
   this.initBoard();
-  
+
   this.board[7][7] = R.com;
   this.steps.push([7, 7]);
 
@@ -73,7 +74,7 @@ Board.prototype.initBoard = function() {
 Board.prototype.draw = function() {
   var container = this.container;
   var board = this.board;
-  
+
   container.find(".chessman, .indicator").remove();
 
   for(var i=0;i<board.length;i++) {
@@ -261,7 +262,7 @@ var isFive = function(board, p, role) {
     }
     var t = board[x][y];
     if(t !== role) break;
-      
+
     count ++;
   }
 
