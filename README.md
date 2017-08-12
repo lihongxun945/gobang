@@ -2,6 +2,8 @@
 
 极大极小值算法的五子棋AI实现。 打开此页面可以直接体验 [http://gobang.light7.cn/](http://gobang.light7.cn/)
 
+如果看不懂源码，这里有算法的详细讲解：http://blog.csdn.net/lihongxun945/article/category/6089493
+
 # 安装依赖
 
 先执行 `npm install` 安装依赖。然后有如下命令可用：
