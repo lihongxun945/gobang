@@ -1,7 +1,18 @@
 (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
+module.exports = {
+  searchDeep: 6,  //搜索深度
+  deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
+  countLimit: 16, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  checkmateDeep:  6,  //算杀深度
+  log: false,
+  cache: false,  //是否使用效率不高的置换表
+}
+
+},{}],2:[function(require,module,exports){
 var S = require("./score.js");
 var R = require("./role.js");
 var W = require("./win.js");
+var config = require('./config.js'); //readonly
 
 var Board = function(container, status) {
   this.container = container;
@@ -203,7 +214,8 @@ $('#slider1').slider(function (percent) {
 })
 
 // settings
-function counter(el, MIN, MAX, cb){
+function counter(el, _default, MIN, MAX, cb){
+  el.find('input').val(_default)
   el.find('.weui-count__decrease').click(function (e) {
     var $input = $(e.currentTarget).parent().find('.weui-count__number');
     var number = parseInt($input.val() || "0") - 1
@@ -220,23 +232,23 @@ function counter(el, MIN, MAX, cb){
   })
 }
 
-counter($('#depth'), 4, 8, function (n) {
+counter($('#depth'), config.searchDeep, 4, 8, function (n) {
   b.setConfig({
     searchDeep: n
   })
 })
-counter($('#breadth'), 8, 30, function (n) {
+counter($('#breadth'), config.countLimit, 8, 30, function (n) {
   b.setConfig({
     countLimit: n
   })
 })
-counter($('#checkmate'), 0, 12, function (n) {
+counter($('#checkmate'), config.checkmateDeep, 0, 12, function (n) {
   b.setConfig({
     checkmateDeep: n
   })
 })
 
-},{"./role.js":2,"./score.js":3,"./win.js":4}],2:[function(require,module,exports){
+},{"./config.js":1,"./role.js":3,"./score.js":4,"./win.js":5}],3:[function(require,module,exports){
 module.exports = {
   com: 1,
   hum: 2,
@@ -246,7 +258,7 @@ module.exports = {
   }
 }
 
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /*
  * 棋型表示
  * 用一个6位数表示棋型，从高位到低位分别表示
@@ -265,7 +277,7 @@ module.exports = {
   BLOCKED_FOUR: 10000
 }
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 var R = require("./role.js");
 var isFive = function(board, p, role) {
   var len = board.length;
@@ -386,4 +398,4 @@ var w = function(board) {
 
 module.exports = w;
 
-},{"./role.js":2}]},{},[1]);
+},{"./role.js":3}]},{},[2]);

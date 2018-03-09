@@ -1,6 +1,7 @@
 var S = require("./score.js");
 var R = require("./role.js");
 var W = require("./win.js");
+var config = require('./config.js'); //readonly
 
 var Board = function(container, status) {
   this.container = container;
@@ -202,7 +203,8 @@ $('#slider1').slider(function (percent) {
 })
 
 // settings
-function counter(el, MIN, MAX, cb){
+function counter(el, _default, MIN, MAX, cb){
+  el.find('input').val(_default)
   el.find('.weui-count__decrease').click(function (e) {
     var $input = $(e.currentTarget).parent().find('.weui-count__number');
     var number = parseInt($input.val() || "0") - 1
@@ -219,17 +221,17 @@ function counter(el, MIN, MAX, cb){
   })
 }
 
-counter($('#depth'), 4, 8, function (n) {
+counter($('#depth'), config.searchDeep, 4, 8, function (n) {
   b.setConfig({
     searchDeep: n
   })
 })
-counter($('#breadth'), 8, 30, function (n) {
+counter($('#breadth'), config.countLimit, 8, 30, function (n) {
   b.setConfig({
     countLimit: n
   })
 })
-counter($('#checkmate'), 0, 12, function (n) {
+counter($('#checkmate'), config.checkmateDeep, 0, 12, function (n) {
   b.setConfig({
     checkmateDeep: n
   })
