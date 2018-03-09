@@ -226,7 +226,7 @@ counter($('#depth'), config.searchDeep, 4, 8, function (n) {
     searchDeep: n
   })
 })
-counter($('#breadth'), config.countLimit, 8, 30, function (n) {
+counter($('#breadth'), config.countLimit, 12, 60, function (n) {
   b.setConfig({
     countLimit: n
   })
