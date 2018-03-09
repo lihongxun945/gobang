@@ -205,6 +205,7 @@ $('#slider1').slider(function (percent) {
 // settings
 function counter(el, _default, MIN, MAX, cb){
   el.find('input').val(_default)
+  el.find('.range').val(MIN+'~'+MAX)
   el.find('.weui-count__decrease').click(function (e) {
     var $input = $(e.currentTarget).parent().find('.weui-count__number');
     var number = parseInt($input.val() || "0") - 1
