@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
 var S = require("./score.js");
 var R = require("./role.js");
 var W = require("./win.js");
@@ -175,6 +175,14 @@ Board.prototype.back = function(step) {
 }
 
 
+Board.prototype.setConfig = function(c) {
+  this.worker.postMessage({
+    type: "CONFIG",
+    config: c
+  });
+}
+
+
 var b = new Board($("#board"), $(".status"));
 $("#start").click(function() {
   b.start();
@@ -189,6 +197,44 @@ $("#fail").click(function() {
 $("#back").click(function() {
   b.back();
 });
+
+$('#slider1').slider(function (percent) {
+  console.log(percent)
+})
+
+// settings
+function counter(el, MIN, MAX, cb){
+  el.find('.weui-count__decrease').click(function (e) {
+    var $input = $(e.currentTarget).parent().find('.weui-count__number');
+    var number = parseInt($input.val() || "0") - 1
+    if (number < MIN) number = MIN;
+    $input.val(number)
+    cb(number)
+  })
+  el.find('.weui-count__increase').click(function (e) {
+    var $input = $(e.currentTarget).parent().find('.weui-count__number');
+    var number = parseInt($input.val() || "0") + 1
+    if (number > MAX) number = MAX;
+    $input.val(number)
+    cb(number)
+  })
+}
+
+counter($('#depth'), 4, 8, function (n) {
+  b.setConfig({
+    searchDeep: n
+  })
+})
+counter($('#breadth'), 8, 30, function (n) {
+  b.setConfig({
+    countLimit: n
+  })
+})
+counter($('#checkmate'), 0, 12, function (n) {
+  b.setConfig({
+    checkmateDeep: n
+  })
+})
 
 },{"./role.js":2,"./score.js":3,"./win.js":4}],2:[function(require,module,exports){
 module.exports = {

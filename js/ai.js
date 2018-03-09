@@ -15,7 +15,7 @@ AI.prototype.start = function(size) {
 
 
 //电脑下棋
-AI.prototype.begin = function() {
+AI.prototype.begin = function(first) {
   if(board.steps.length === 0) {
     this.set(7, 7, R.com);
     return [7, 7];

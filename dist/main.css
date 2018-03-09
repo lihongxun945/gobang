@@ -1,5 +1,5 @@
 html {
-  font-size: 10px;
+  font-size: 10px!important;
 }
 * {
   -webkit-touch-callout: none;
@@ -12,17 +12,17 @@ html {
 }
 @media (min-width: 370px) {
   html {
-    font-size: 11px;
+    font-size: 11px!important;
   }
 }
 @media (min-width: 400px) {
   html {
-    font-size: 12px;
+    font-size: 12px!important;
   }
 }
 @media (min-width: 500px) {
   html {
-    font-size: 14px;
+    font-size: 14px!important;
   }
 }
 h1 {
@@ -88,4 +88,7 @@ footer {
   margin: 1rem;
   text-align: center;
   color: gray;
+}
+.weui-count .weui-count__number {
+  font-size: 1.2rem;
 }

@@ -1,4 +1,4 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
 /*
  * 棋型表示
  * 用一个6位数表示棋型，从高位到低位分别表示
@@ -35,7 +35,7 @@ AI.prototype.start = function(size) {
 
 
 //电脑下棋
-AI.prototype.begin = function() {
+AI.prototype.begin = function(first) {
   if(board.steps.length === 0) {
     this.set(7, 7, R.com);
     return [7, 7];
@@ -469,6 +469,7 @@ module.exports = board;
 },{"./config.js":6,"./evaluate-point.js":8,"./role.js":11,"./score.js":12,"./zobrist.js":13}],4:[function(require,module,exports){
 var AI = require("./ai.js");
 var R = require("./role.js");
+var config = require('./config.js');
 
 var ai = new AI();
 
@@ -478,16 +479,22 @@ onmessage = function(e) {
   if(d.type == "START") {
     ai.start(15);
   } else if(d.type == "BEGIN") {
-    begin();
+    var p = ai.begin();
+    postMessage(p);
   } else if(d.type == "GO") {
     var p = ai.turn(e.data.x, e.data.y);
     postMessage(p);
   } else if(d.type == "BACK") {
     ai.back();
+  } else if(d.type == "CONFIG") {
+    var d = e.data.config
+    if (d.searchDeep) config.searchDeep = d.searchDeep
+    if (d.countLimit) config.countLimit = d.countLimit
+    if (d.checkmateDeep) config.cheekmateDeep = d.cheekmateDeep
   }
 }
 
-},{"./ai.js":2,"./role.js":11}],5:[function(require,module,exports){
+},{"./ai.js":2,"./config.js":6,"./role.js":11}],5:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的

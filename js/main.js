@@ -174,6 +174,14 @@ Board.prototype.back = function(step) {
 }
 
 
+Board.prototype.setConfig = function(c) {
+  this.worker.postMessage({
+    type: "CONFIG",
+    config: c
+  });
+}
+
+
 var b = new Board($("#board"), $(".status"));
 $("#start").click(function() {
   b.start();
@@ -188,3 +196,41 @@ $("#fail").click(function() {
 $("#back").click(function() {
   b.back();
 });
+
+$('#slider1').slider(function (percent) {
+  console.log(percent)
+})
+
+// settings
+function counter(el, MIN, MAX, cb){
+  el.find('.weui-count__decrease').click(function (e) {
+    var $input = $(e.currentTarget).parent().find('.weui-count__number');
+    var number = parseInt($input.val() || "0") - 1
+    if (number < MIN) number = MIN;
+    $input.val(number)
+    cb(number)
+  })
+  el.find('.weui-count__increase').click(function (e) {
+    var $input = $(e.currentTarget).parent().find('.weui-count__number');
+    var number = parseInt($input.val() || "0") + 1
+    if (number > MAX) number = MAX;
+    $input.val(number)
+    cb(number)
+  })
+}
+
+counter($('#depth'), 4, 8, function (n) {
+  b.setConfig({
+    searchDeep: n
+  })
+})
+counter($('#breadth'), 8, 30, function (n) {
+  b.setConfig({
+    countLimit: n
+  })
+})
+counter($('#checkmate'), 0, 12, function (n) {
+  b.setConfig({
+    checkmateDeep: n
+  })
+})
