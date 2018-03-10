@@ -746,10 +746,10 @@ module.exports = function(role, deep, onlyFour) {
 },{"./SCORE.js":1,"./board.js":3,"./config.js":6,"./debug.js":7,"./evaluate-point.js":8,"./role.js":11,"./zobrist.js":13}],6:[function(require,module,exports){
 module.exports = {
   searchDeep: 6,  //搜索深度
-  deepDecrease: .8, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
+  deepDecrease: .85, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 25, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  6,  //算杀深度
-  log: false,
+  log: true,
   cache: false,  //是否使用效率不高的置换表
 }
 
@@ -1175,24 +1175,30 @@ var fixScore = function(type) {
 module.exports = s;
 
 },{"./role.js":11,"./score.js":12}],9:[function(require,module,exports){
-var threshold = 1.1;
+var threshold = 1.5;
+
+var equal = function(a, b) {
+  return (a >= b / threshold) && (a <= b * threshold);
+}
+var greatThan = function(a, b) {
+  return a >= 0 ? (a >= (b+0.1) * threshold) : (a >= (b+0.1) / threshold); // 注意处理b为0的情况，通过加一个0.1 做简单的处理
+}
+var greatOrEqualThan = function(a, b) {
+  return equal(a, b) || greatThan(a, b);
+}
+var littleThan = function(a, b) {
+  return a >= 0 ? (a <= (b-0.1) / threshold) : (a <= (b-0.1) * threshold);
+}
+var littleOrEqualThan = function(a, b) {
+  return equal(a, b) || littleThan(a, b);
+}
 
 module.exports = {
-  greatThan: function(a, b) {
-    return a >= b * threshold;
-  },
-  greatOrEqualThan: function(a, b) {
-    return a * threshold >= b;
-  },
-  littleThan: function(a, b) {
-    return a * threshold <= b;
-  },
-  littleOrEqualThan: function(a, b) {
-    return a <= b * threshold;
-  },
-  equal: function(a, b) {
-    return (a * threshold >= b) && (a <= b * threshold);
-  }
+  equal: equal,
+  greatThan: greatThan,
+  greatOrEqualThan: greatOrEqualThan,
+  littleThan: littleThan,
+  littleOrEqualThan: littleOrEqualThan
 }
 
 },{}],10:[function(require,module,exports){
@@ -1217,7 +1223,7 @@ var total=0, //总节点数
 
 var Cache = {};
 
-var checkmateDeep = config.checkmateDeep;
+var checkmateDeep;
 
 /*
  * max min search
@@ -1232,7 +1238,7 @@ var negamax = function(deep, _checkmateDeep) {
   count = 0;
   ABcut = 0;
   PVcut = 0;
-  checkmateDeep = (_checkmateDeep == undefined ? checkmateDeep : _checkmateDeep);
+  checkmateDeep = (_checkmateDeep == undefined ? config.checkmateDeep : _checkmateDeep);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -1307,10 +1313,10 @@ var r = function(deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)) {
+  if( (deep == 2 || deep == 1 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1) && role == R.com) {
     var mate = checkmate(role, checkmateDeep);
     if(mate) {
-      var score = mate.score * Math.pow(.8, mate.length);
+      var score = mate.score * Math.pow(config.deepDecrease, mate.length);
       cache(deep, score);
       return score;
     }

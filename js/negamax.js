@@ -19,7 +19,7 @@ var total=0, //总节点数
 
 var Cache = {};
 
-var checkmateDeep = config.checkmateDeep;
+var checkmateDeep;
 
 /*
  * max min search
@@ -34,7 +34,7 @@ var negamax = function(deep, _checkmateDeep) {
   count = 0;
   ABcut = 0;
   PVcut = 0;
-  checkmateDeep = (_checkmateDeep == undefined ? checkmateDeep : _checkmateDeep);
+  checkmateDeep = (_checkmateDeep == undefined ? config.checkmateDeep : _checkmateDeep);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -109,10 +109,10 @@ var r = function(deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep == 2 || deep == 3 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)) {
+  if( (deep == 2 || deep == 1 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1) && role == R.com) {
     var mate = checkmate(role, checkmateDeep);
     if(mate) {
-      var score = mate.score * Math.pow(.8, mate.length);
+      var score = mate.score * Math.pow(config.deepDecrease, mate.length);
       cache(deep, score);
       return score;
     }
