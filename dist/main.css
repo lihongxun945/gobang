@@ -89,6 +89,19 @@ footer {
   text-align: center;
   color: gray;
 }
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  /* display: none; <- Crashes Chrome on hover */
+  -webkit-appearance: none;
+  margin: 0;
+  /* <-- Apparently some margin are still there even though it's hidden */
+}
 .weui-count .weui-count__number {
   font-size: 1.2rem;
+  width: 1.6rem;
+  text-align: center;
+}
+.version {
+  font-size: 1rem;
+  color: #aaa;
 }

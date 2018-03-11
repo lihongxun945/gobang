@@ -14,8 +14,8 @@
     <link rel="stylesheet" href="./dist/main.css">
   </head>
   <body ontouchstart>
-    <h1>五子棋</h1>
-    <p>五子连珠，劳逸结合 - 任我行</p>
+    <h1>五子棋 <span class="version">V1.0.0</span></h1>
+    <p>五子连珠，劳逸结合 - 言川</p>
 
     <div class="board-outer">
       <div class="board" id="board">
@@ -49,7 +49,7 @@
           <div class="weui-cell__ft">
             <div class="weui-count" id="depth">
               <a class="weui-count__btn weui-count__decrease"></a>
-              <input class="weui-count__number" type="number" value="6" />
+              <input class="weui-count__number" type="number" value="6"  readonly/>
               <a class="weui-count__btn weui-count__increase"></a>
             </div>
           </div>
@@ -61,7 +61,7 @@
           <div class="weui-cell__ft">
             <div class="weui-count" id="breadth">
               <a class="weui-count__btn weui-count__decrease"></a>
-              <input class="weui-count__number" type="number" value="10" />
+              <input class="weui-count__number" type="number" value="10" readonly />
               <a class="weui-count__btn weui-count__increase"></a>
             </div>
           </div>
@@ -73,7 +73,7 @@
           <div class="weui-cell__ft">
             <div class="weui-count" id="checkmate">
               <a class="weui-count__btn weui-count__decrease"></a>
-              <input class="weui-count__number" type="number" value="5" />
+              <input class="weui-count__number" type="number" value="5" readonly/>
               <a class="weui-count__btn weui-count__increase"></a>
             </div>
           </div>
