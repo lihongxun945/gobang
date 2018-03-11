@@ -21,6 +21,6 @@ onmessage = function(e) {
     var d = e.data.config
     if (d.searchDeep) config.searchDeep = d.searchDeep
     if (d.countLimit) config.countLimit = d.countLimit
-    if (d.checkmateDeep) config.cheekmateDeep = d.cheekmateDeep
+    if (d.checkmateDeep) config.checkmateDeep = d.checkmateDeep
   }
 }

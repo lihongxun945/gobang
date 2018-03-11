@@ -31,7 +31,7 @@ h1 {
   margin: 1rem;
   text-align: center;
 }
-p {
+h3 {
   font-size: 1.4rem;
   color: #999;
   text-align: center;
@@ -52,9 +52,13 @@ p {
   border-radius: .85rem;
   background: white;
   position: absolute;
+  font-size: 1.2rem;
+  text-align: center;
+  line-height: 1.7rem;
 }
 .board .chessman.black {
   background: black;
+  color: white;
 }
 .board .indicator {
   box-sizing: border-box;
@@ -64,6 +68,12 @@ p {
   margin-top: -1rem;
   border: 1px solid #EF4F4F;
   position: absolute;
+}
+.nu {
+  display: none;
+}
+.show-nu .nu {
+  display: inline;
 }
 .buttons {
   width: 30rem;

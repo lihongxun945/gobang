@@ -13,9 +13,9 @@
     <link rel="stylesheet" href="./lib/jquery-weui/css/jquery-weui.css">
     <link rel="stylesheet" href="./dist/main.css">
   </head>
-  <body ontouchstart>
+  <body ontouchstart class="show-nu">
     <h1>五子棋 <span class="version">V1.0.0</span></h1>
-    <p>五子连珠，劳逸结合 - 言川</p>
+    <h3>五子连珠，劳逸结合 - 言川</h3>
 
     <div class="board-outer">
       <div class="board" id="board">
@@ -40,6 +40,15 @@
     </div>
 
     <div class="settings">
+      <div class="weui-cells__title">显示设置</div>
+      <div class="weui-cells weui-cells_form">
+        <div class="weui-cell weui-cell_switch">
+          <div class="weui-cell__bd">显示序号</div>
+          <div class="weui-cell__ft">
+            <input class="weui-switch" type="checkbox" id="show-nu" checked>
+          </div>
+        </div>
+      </div>
       <div class="weui-cells__title">棋力设置</div>
       <div class="weui-cells">
         <div class="weui-cell">

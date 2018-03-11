@@ -94,15 +94,12 @@ Board.prototype.draw = function() {
   
   container.find(".chessman, .indicator").remove();
 
-  for(var i=0;i<board.length;i++) {
-    for(var j=0;j<board[i].length;j++) {
-      if(board[i][j] != 0) {
-        var chessman = $("<div class='chessman'></div>").appendTo(container);
-        if(board[i][j] == 1) chessman.addClass("black");
-        chessman.css("top", this.offset + i*this.step);
-        chessman.css("left", this.offset + j*this.step);
-      }
-    }
+  for(var i=0;i<this.steps.length;i++) {
+    var chessman = $("<div class='chessman'><span class='nu'>" + (i+1) + "</span></div>").appendTo(container);
+    var s = this.steps[i]
+    if(this.board[s[0]][s[1]] == 1) chessman.addClass("black");
+    chessman.css("top", this.offset + s[0]*this.step);
+    chessman.css("left", this.offset + s[1]*this.step);
   }
 
   if(this.steps.length > 0) {
@@ -208,14 +205,14 @@ function counter(el, _default, MIN, MAX, cb){
   el.parents('.weui-cell').find('.range').html(MIN+'~'+MAX)
   el.find('.weui-count__decrease').click(function (e) {
     var $input = $(e.currentTarget).parent().find('.weui-count__number');
-    var number = parseInt($input.val() || "0") - 1
+    var number = parseInt($input.val() || "0") - 2
     if (number < MIN) number = MIN;
     $input.val(number)
     cb(number)
   })
   el.find('.weui-count__increase').click(function (e) {
     var $input = $(e.currentTarget).parent().find('.weui-count__number');
-    var number = parseInt($input.val() || "0") + 1
+    var number = parseInt($input.val() || "0") + 2
     if (number > MAX) number = MAX;
     $input.val(number)
     cb(number)
@@ -232,8 +229,12 @@ counter($('#breadth'), config.countLimit, 12, 60, function (n) {
     countLimit: n
   })
 })
-counter($('#checkmate'), config.checkmateDeep, 0, 12, function (n) {
+counter($('#checkmate'), config.checkmateDeep, 0, 15, function (n) {
   b.setConfig({
     checkmateDeep: n
   })
+})
+
+$("#show-nu").change(function () {
+  $(document.body).toggleClass('show-nu')
 })

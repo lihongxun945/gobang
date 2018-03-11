@@ -2,8 +2,8 @@
 module.exports = {
   searchDeep: 6,  //搜索深度
   deepDecrease: .85, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
-  countLimit: 25, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  checkmateDeep:  6,  //算杀深度
+  countLimit: 24, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  checkmateDeep:  5,  //算杀深度
   log: true,
   cache: false,  //是否使用效率不高的置换表
 }
@@ -105,15 +105,12 @@ Board.prototype.draw = function() {
   
   container.find(".chessman, .indicator").remove();
 
-  for(var i=0;i<board.length;i++) {
-    for(var j=0;j<board[i].length;j++) {
-      if(board[i][j] != 0) {
-        var chessman = $("<div class='chessman'></div>").appendTo(container);
-        if(board[i][j] == 1) chessman.addClass("black");
-        chessman.css("top", this.offset + i*this.step);
-        chessman.css("left", this.offset + j*this.step);
-      }
-    }
+  for(var i=0;i<this.steps.length;i++) {
+    var chessman = $("<div class='chessman'><span class='nu'>" + (i+1) + "</span></div>").appendTo(container);
+    var s = this.steps[i]
+    if(this.board[s[0]][s[1]] == 1) chessman.addClass("black");
+    chessman.css("top", this.offset + s[0]*this.step);
+    chessman.css("left", this.offset + s[1]*this.step);
   }
 
   if(this.steps.length > 0) {
@@ -219,14 +216,14 @@ function counter(el, _default, MIN, MAX, cb){
   el.parents('.weui-cell').find('.range').html(MIN+'~'+MAX)
   el.find('.weui-count__decrease').click(function (e) {
     var $input = $(e.currentTarget).parent().find('.weui-count__number');
-    var number = parseInt($input.val() || "0") - 1
+    var number = parseInt($input.val() || "0") - 2
     if (number < MIN) number = MIN;
     $input.val(number)
     cb(number)
   })
   el.find('.weui-count__increase').click(function (e) {
     var $input = $(e.currentTarget).parent().find('.weui-count__number');
-    var number = parseInt($input.val() || "0") + 1
+    var number = parseInt($input.val() || "0") + 2
     if (number > MAX) number = MAX;
     $input.val(number)
     cb(number)
@@ -243,10 +240,14 @@ counter($('#breadth'), config.countLimit, 12, 60, function (n) {
     countLimit: n
   })
 })
-counter($('#checkmate'), config.checkmateDeep, 0, 12, function (n) {
+counter($('#checkmate'), config.checkmateDeep, 0, 15, function (n) {
   b.setConfig({
     checkmateDeep: n
   })
+})
+
+$("#show-nu").change(function () {
+  $(document.body).toggleClass('show-nu')
 })
 
 },{"./config.js":1,"./role.js":3,"./score.js":4,"./win.js":5}],3:[function(require,module,exports){
