@@ -242,7 +242,7 @@ Board.prototype.back = function() {
 Board.prototype.evaluate = function(role) {
 
   //这里加了缓存，但是并没有提升速度
-  if(this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
+  if(config.cache && this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
 
   this.comMaxScore = - S.FIVE;
   this.humMaxScore = - S.FIVE;
@@ -1220,19 +1220,21 @@ var fixScore = function(type) {
 module.exports = s;
 
 },{"./role.js":12,"./score.js":13}],10:[function(require,module,exports){
-var threshold = 1.5;
+var threshold = 1.2;
 
 var equal = function(a, b) {
-  return (a >= b / threshold) && (a <= b * threshold);
+  b = b || 0.01
+  return b >= 0 ? ((a >= b / threshold) && (a <= b * threshold))
+          : ((a >= b * threshold) && (a <= b / threshold))
 }
 var greatThan = function(a, b) {
-  return a >= 0 ? (a >= (b+0.1) * threshold) : (a >= (b+0.1) / threshold); // 注意处理b为0的情况，通过加一个0.1 做简单的处理
+  return b >= 0 ? (a >= (b+0.1) * threshold) : (a >= (b+0.1) / threshold); // 注意处理b为0的情况，通过加一个0.1 做简单的处理
 }
 var greatOrEqualThan = function(a, b) {
   return equal(a, b) || greatThan(a, b);
 }
 var littleThan = function(a, b) {
-  return a >= 0 ? (a <= (b-0.1) / threshold) : (a <= (b-0.1) * threshold);
+  return b >= 0 ? (a <= (b-0.1) / threshold) : (a <= (b-0.1) * threshold);
 }
 var littleOrEqualThan = function(a, b) {
   return equal(a, b) || littleThan(a, b);
@@ -1358,7 +1360,7 @@ var r = function(deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep == 2 || deep == 1 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1) && role == R.com) {
+  if( (deep == 2 || deep == 1 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)) {
     var mate = checkmate(role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(config.deepDecrease, mate.length);

@@ -162,7 +162,7 @@ Board.prototype.back = function() {
 Board.prototype.evaluate = function(role) {
 
   //这里加了缓存，但是并没有提升速度
-  if(this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
+  if(config.cache && this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
 
   this.comMaxScore = - S.FIVE;
   this.humMaxScore = - S.FIVE;
