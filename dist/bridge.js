@@ -62,12 +62,28 @@ AI.prototype.back = function() {
 }
 module.exports = AI;
 
-},{"./board.js":3,"./config.js":6,"./negamax.js":10,"./role.js":11,"./zobrist.js":13}],3:[function(require,module,exports){
+},{"./board.js":4,"./config.js":7,"./negamax.js":11,"./role.js":12,"./zobrist.js":14}],3:[function(require,module,exports){
+module.exports = {
+  create: function (w, h) {
+    var r = []
+    for(var i=0;i<w;i++) {
+      var row = new Array()
+      for(var j=0;j<h;j++) {
+        row.push(0)
+      }
+      r.push(row)
+    }
+    return r
+  }
+}
+
+},{}],4:[function(require,module,exports){
 var scorePoint = require("./evaluate-point.js");
 var zobrist = require("./zobrist.js");
 var R = require("./role.js");
 var S = require("./score.js");
 var config = require("./config.js");
+var array = require("./arrary.js");
 
 var Board = function() {
 }
@@ -93,18 +109,26 @@ Board.prototype.init = function(sizeOrBoard) {
   }
 
 
-  this.comScore = [];
-  this.humScore = [];
+  // 存储双方得分
+  this.comScore = array.create(size, size);
+  this.humScore = array.create(size, size);
 
-  for(var i=0;i<size;i++) {
-    var row1 = [], row2=[];
-    for(var j=0;j<size;j++) {
-      row1.push(0);
-      row2.push(0);
-    }
-    this.comScore.push(row1);
-    this.humScore.push(row2);
-  }
+  // scoreCache[role][dir][row][column]
+  this.scoreCache = [
+    [], // placeholder
+    [ // for role 1
+      array.create(size, size),
+      array.create(size, size),
+      array.create(size, size),
+      array.create(size, size)
+    ],
+    [ // for role 2
+      array.create(size, size),
+      array.create(size, size),
+      array.create(size, size),
+      array.create(size, size)
+    ]
+  ]
 
   this.initScore();
   
@@ -118,8 +142,8 @@ Board.prototype.initScore = function() {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.empty) {
         if(this.hasNeighbor([i, j], 2, 2)) { //必须是有邻居的才行
-          var cs = scorePoint(board, [i, j], R.com);
-          var hs = scorePoint(board, [i, j], R.hum);
+          var cs = scorePoint(this, [i, j], R.com);
+          var hs = scorePoint(this, [i, j], R.hum);
           this.comScore[i][j] = cs;
           this.humScore[i][j] = hs;
         }
@@ -129,15 +153,16 @@ Board.prototype.initScore = function() {
 }
 
 //只更新一个点附近的分数
+// 参见 evaluate point 中的代码，为了优化性能，在更新分数的时候可以指定只更新某一个方向的分数
 Board.prototype.updateScore = function(p) {
-  var radius = 8,
+  var radius = 6,
       board = this.board,
       self = this,
       len = this.board.length;
 
-  function update(x, y) {
-    var cs = scorePoint(board, [x, y], R.com);
-    var hs = scorePoint(board, [x, y], R.hum);
+  function update(x, y, dir) {
+    var cs = scorePoint(self, [x, y], R.com, dir);
+    var hs = scorePoint(self, [x, y], R.hum, dir);
     self.comScore[x][y] = cs;
     self.humScore[x][y] = hs;
     //注意下面这样写是错的！因为很可能最高分已经没了，不是总是取最高分的，这样分数会越来越高的。所以改成每次遍历计算
@@ -150,7 +175,7 @@ Board.prototype.updateScore = function(p) {
     if(y<0) continue;
     if(y>=len) break;
     if(board[x][y] !== R.empty) continue;
-    update(x, y);
+    update(x, y, 0);
   }
 
   // |
@@ -159,7 +184,7 @@ Board.prototype.updateScore = function(p) {
     if(x<0) continue;
     if(x>=len) break;
     if(board[x][y] !== R.empty) continue;
-    update(x, y);
+    update(x, y, 1);
   }
 
   // \
@@ -168,7 +193,7 @@ Board.prototype.updateScore = function(p) {
     if(x<0 || y<0) continue;
     if(x>=len || y>=len) break;
     if(board[x][y] !== R.empty) continue;
-    update(x, y);
+    update(x, y, 2);
   }
 
   // /
@@ -177,7 +202,7 @@ Board.prototype.updateScore = function(p) {
     if(x<0 || y<0) continue;
     if(x>=len || y>=len) continue;
     if(board[x][y] !== R.empty) continue;
-    update(x, y);
+    update(x, y, 3);
   }
 
 
@@ -466,7 +491,7 @@ var board = new Board();
 
 module.exports = board;
 
-},{"./config.js":6,"./evaluate-point.js":8,"./role.js":11,"./score.js":12,"./zobrist.js":13}],4:[function(require,module,exports){
+},{"./arrary.js":3,"./config.js":7,"./evaluate-point.js":9,"./role.js":12,"./score.js":13,"./zobrist.js":14}],5:[function(require,module,exports){
 var AI = require("./ai.js");
 var R = require("./role.js");
 var config = require('./config.js');
@@ -494,7 +519,7 @@ onmessage = function(e) {
   }
 }
 
-},{"./ai.js":2,"./config.js":6,"./role.js":11}],5:[function(require,module,exports){
+},{"./ai.js":2,"./config.js":7,"./role.js":12}],6:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -743,7 +768,7 @@ module.exports = function(role, deep, onlyFour) {
 
 }
 
-},{"./SCORE.js":1,"./board.js":3,"./config.js":6,"./debug.js":7,"./evaluate-point.js":8,"./role.js":11,"./zobrist.js":13}],6:[function(require,module,exports){
+},{"./SCORE.js":1,"./board.js":4,"./config.js":7,"./debug.js":8,"./evaluate-point.js":9,"./role.js":12,"./zobrist.js":14}],7:[function(require,module,exports){
 module.exports = {
   searchDeep: 6,  //搜索深度
   deepDecrease: .85, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
@@ -753,11 +778,11 @@ module.exports = {
   cache: false,  //是否使用效率不高的置换表
 }
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var debug = {};
 module.exports = debug;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /*
  * 启发式评价函数
  * 这个是专门给某一个空位打分的，不是给整个棋盘打分的
@@ -767,10 +792,13 @@ var R = require("./role.js");
 var score = require("./score.js");
 /*
  * 表示在当前位置下一个棋子后的分数
+ * 为了性能考虑，增加了一个dir参数，如果没有传入则默认计算所有四个方向，如果传入值，则只计算其中一个方向的值
  */
 
-var s = function(board, p, role) {
-  var result = 0;
+var s = function(b, p, role, dir) {
+  var board = b.board;
+  var result = 0,
+      radius = 8;
   var count = 0, block = 0,
     secondCount = 0;  //另一个方向的count
 
@@ -784,225 +812,242 @@ var s = function(board, p, role) {
   }
   
 
-  reset();
+  if (dir === undefined || dir === 0) {
+    reset();
 
-  for(var i=p[1]+1;true;i++) {
-    if(i>=len) {
-      block ++;
-      break;
-    }
-    var t = board[p[0]][i];
-    if(t === R.empty) {
-      if(empty == -1 && i<len-1 && board[p[0]][i+1] == role) {
-        empty = count;
+    // -
+
+    for(var i=p[1]+1;true;i++) {
+      if(i>=len) {
+        block ++;
+        break;
+      }
+      var t = board[p[0]][i];
+      if(t === R.empty) {
+        if(empty == -1 && i<len-1 && board[p[0]][i+1] == role) {
+          empty = count;
+          continue;
+        } else {
+          break;
+        }
+      }
+      if(t === role) {
+        count ++;
         continue;
       } else {
+        block ++;
         break;
       }
     }
-    if(t === role) {
-      count ++;
-      continue;
-    } else {
-      block ++;
-      break;
-    }
-  }
 
 
-  for(var i=p[1]-1;true;i--) {
-    if(i<0) {
-      block ++;
-      break;
-    }
-    var t = board[p[0]][i];
-    if(t === R.empty) {
-      if(empty == -1 && i>0 && board[p[0]][i-1] == role) {
-        empty = 0;  //注意这里是0，因为是从右往左走的
+    for(var i=p[1]-1;true;i--) {
+      if(i<0) {
+        block ++;
+        break;
+      }
+      var t = board[p[0]][i];
+      if(t === R.empty) {
+        if(empty == -1 && i>0 && board[p[0]][i-1] == role) {
+          empty = 0;  //注意这里是0，因为是从右往左走的
+          continue;
+        } else {
+          break;
+        }
+      }
+      if(t === role) {
+        secondCount ++;
+        empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
         continue;
       } else {
+        block ++;
         break;
       }
     }
-    if(t === role) {
-      secondCount ++;
-      empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
-      continue;
-    } else {
-      block ++;
-      break;
-    }
+
+    count+= secondCount;
+
+    b.scoreCache[role][0][p[0]][p[1]] = countToScore(count, block, empty);
   }
+  result += b.scoreCache[role][0][p[0]][p[1]]
 
-  count+= secondCount;
+  if (dir === undefined || dir === 1) {
 
+    // |
+    reset();
 
-  result += countToScore(count, block, empty);
-
-  //纵向
-  reset();
-
-  for(var i=p[0]+1;true;i++) {
-    if(i>=len) {
-      block ++;
-      break;
-    }
-    var t = board[i][p[1]];
-    if(t === R.empty) {
-      if(empty == -1 && i<len-1 && board[i+1][p[1]] == role) {
-        empty = count;
+    for(var i=p[0]+1;true;i++) {
+      if(i>=len) {
+        block ++;
+        break;
+      }
+      var t = board[i][p[1]];
+      if(t === R.empty) {
+        if(empty == -1 && i<len-1 && board[i+1][p[1]] == role) {
+          empty = count;
+          continue;
+        } else {
+          break;
+        }
+      }
+      if(t === role) {
+        count ++;
         continue;
       } else {
+        block ++;
         break;
       }
     }
-    if(t === role) {
-      count ++;
-      continue;
-    } else {
-      block ++;
-      break;
-    }
-  }
 
-  for(var i=p[0]-1;true;i--) {
-    if(i<0) {
-      block ++;
-      break;
-    }
-    var t = board[i][p[1]];
-    if(t === R.empty) {
-      if(empty == -1 && i>0 && board[i-1][p[1]] == role) {
-        empty = 0;
+    for(var i=p[0]-1;true;i--) {
+      if(i<0) {
+        block ++;
+        break;
+      }
+      var t = board[i][p[1]];
+      if(t === R.empty) {
+        if(empty == -1 && i>0 && board[i-1][p[1]] == role) {
+          empty = 0;
+          continue;
+        } else {
+          break;
+        }
+      }
+      if(t === role) {
+        secondCount++;
+        empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
         continue;
       } else {
+        block ++;
         break;
       }
     }
-    if(t === role) {
-      secondCount++;
-      empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
-      continue;
-    } else {
-      block ++;
-      break;
-    }
-  }
 
-  count+= secondCount;
-  result += countToScore(count, block, empty);
+    count += secondCount;
+
+    b.scoreCache[role][1][p[0]][p[1]] = countToScore(count, block, empty);
+  } 
+  result += b.scoreCache[role][1][p[0]][p[1]]
 
 
-  // \\
-  reset();
+  // \
+  if (dir === undefined || dir === 2) {
+    reset();
 
-  for(var i=1;true;i++) {
-    var x = p[0]+i, y = p[1]+i;
-    if(x>=len || y>=len) {
-      block ++;
-      break;
-    }
-    var t = board[x][y];
-    if(t === R.empty) {
-      if(empty == -1 && (x<len-1 && y < len-1) && board[x+1][y+1] == role) {
-        empty = count;
+    for(var i=1;true;i++) {
+      var x = p[0]+i, y = p[1]+i;
+      if(x>=len || y>=len) {
+        block ++;
+        break;
+      }
+      var t = board[x][y];
+      if(t === R.empty) {
+        if(empty == -1 && (x<len-1 && y < len-1) && board[x+1][y+1] == role) {
+          empty = count;
+          continue;
+        } else {
+          break;
+        }
+      }
+      if(t === role) {
+        count ++;
         continue;
       } else {
+        block ++;
         break;
       }
     }
-    if(t === role) {
-      count ++;
-      continue;
-    } else {
-      block ++;
-      break;
-    }
-  }
 
-  for(var i=1;true;i++) {
-    var x = p[0]-i, y = p[1]-i;
-    if(x<0||y<0) {
-      block ++;
-      break;
-    }
-    var t = board[x][y];
-    if(t === R.empty) {
-      if(empty == -1 && (x>0 && y>0) && board[x-1][y-1] == role) {
-        empty = 0;
+    for(var i=1;true;i++) {
+      var x = p[0]-i, y = p[1]-i;
+      if(x<0||y<0) {
+        block ++;
+        break;
+      }
+      var t = board[x][y];
+      if(t === R.empty) {
+        if(empty == -1 && (x>0 && y>0) && board[x-1][y-1] == role) {
+          empty = 0;
+          continue;
+        } else {
+          break;
+        }
+      }
+      if(t === role) {
+        secondCount ++;
+        empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
         continue;
       } else {
+        block ++;
         break;
       }
     }
-    if(t === role) {
-      secondCount ++;
-      empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
-      continue;
-    } else {
-      block ++;
-      break;
-    }
+
+    count+= secondCount;
+
+    b.scoreCache[role][2][p[0]][p[1]] = countToScore(count, block, empty);
   }
-
-  count+= secondCount;
-  result += countToScore(count, block, empty);
+  result += b.scoreCache[role][2][p[0]][p[1]]
 
 
-  // \/
-  reset();
+  // /
+  if (dir === undefined || dir === 3) {
+    reset();
 
-  for(var i=1; true;i++) {
-    var x = p[0]+i, y = p[1]-i;
-    if(x<0||y<0||x>=len||y>=len) {
-      block ++;
-      break;
-    }
-    var t = board[x][y];
-    if(t === R.empty) {
-      if(empty == -1 && (x<len-1 && y<len-1) && board[x+1][y-1] == role) {
-        empty = count;
+    for(var i=1; true;i++) {
+      var x = p[0]+i, y = p[1]-i;
+      if(x<0||y<0||x>=len||y>=len) {
+        block ++;
+        break;
+      }
+      var t = board[x][y];
+      if(t === R.empty) {
+        if(empty == -1 && (x<len-1 && y<len-1) && board[x+1][y-1] == role) {
+          empty = count;
+          continue;
+        } else {
+          break;
+        }
+      }
+      if(t === role) {
+        count ++;
         continue;
       } else {
+        block ++;
         break;
       }
     }
-    if(t === role) {
-      count ++;
-      continue;
-    } else {
-      block ++;
-      break;
-    }
-  }
 
-  for(var i=1;true;i++) {
-    var x = p[0]-i, y = p[1]+i;
-    if(x<0||y<0||x>=len||y>=len) {
-      block ++;
-      break;
-    }
-    var t = board[x][y];
-    if(t === R.empty) {
-      if(empty == -1 && (x>0 && y>0) && board[x-1][y+1] == role) {
-        empty = 0;
+    for(var i=1;true;i++) {
+      var x = p[0]-i, y = p[1]+i;
+      if(x<0||y<0||x>=len||y>=len) {
+        block ++;
+        break;
+      }
+      var t = board[x][y];
+      if(t === R.empty) {
+        if(empty == -1 && (x>0 && y>0) && board[x-1][y+1] == role) {
+          empty = 0;
+          continue;
+        } else {
+          break;
+        }
+      }
+      if(t === role) {
+        secondCount++;
+        empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
         continue;
       } else {
+        block ++;
         break;
       }
     }
-    if(t === role) {
-      secondCount++;
-      empty !== -1 && empty ++;  //注意这里，如果左边又多了己方棋子，那么empty的位置就变大了
-      continue;
-    } else {
-      block ++;
-      break;
-    }
-  }
 
-  count+= secondCount;
-  result += countToScore(count, block, empty);
+    count += secondCount;
+
+    b.scoreCache[role][3][p[0]][p[1]] = countToScore(count, block, empty);
+  }
+  result += b.scoreCache[role][3][p[0]][p[1]]
 
   return fixScore(result);
 }
@@ -1174,7 +1219,7 @@ var fixScore = function(type) {
 
 module.exports = s;
 
-},{"./role.js":11,"./score.js":12}],9:[function(require,module,exports){
+},{"./role.js":12,"./score.js":13}],10:[function(require,module,exports){
 var threshold = 1.5;
 
 var equal = function(a, b) {
@@ -1201,7 +1246,7 @@ module.exports = {
   littleOrEqualThan: littleOrEqualThan
 }
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var R = require("./role");
 var T = SCORE = require("./score.js");
 var math = require("./math.js");
@@ -1348,7 +1393,7 @@ var deeping = function(deep) {
 }
 module.exports = deeping;
 
-},{"./board.js":3,"./checkmate.js":5,"./config.js":6,"./debug.js":7,"./math.js":9,"./role":11,"./score.js":12}],11:[function(require,module,exports){
+},{"./board.js":4,"./checkmate.js":6,"./config.js":7,"./debug.js":8,"./math.js":10,"./role":12,"./score.js":13}],12:[function(require,module,exports){
 module.exports = {
   com: 1,
   hum: 2,
@@ -1358,9 +1403,9 @@ module.exports = {
   }
 }
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"dup":1}],13:[function(require,module,exports){
+},{"dup":1}],14:[function(require,module,exports){
 var R = require("./role.js");
 
 var Zobrist = function(size) {
@@ -1393,4 +1438,4 @@ z.init();
 
 module.exports = z;
 
-},{"./role.js":11}]},{},[4]);
+},{"./role.js":12}]},{},[5]);
