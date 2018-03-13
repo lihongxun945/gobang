@@ -561,16 +561,14 @@ var findMax = function(role, score) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
         var p = [i, j];
-        if(board.hasNeighbor(p, 2, 2)) { //必须是有邻居的才行
 
-          var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
-          p.score = s;
-          if(s >= S.FIVE) {
-            return [p];
-          }
-          if(s >= score) {
-            result.push(p);
-          }
+        var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
+        p.score = s;
+        if(s >= S.FIVE) {
+          return [p];
+        }
+        if(s >= score) {
+          result.push(p);
         }
       }
     }
@@ -592,35 +590,33 @@ var findMin = function(role, score) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
         var p = [i, j];
-        if(board.hasNeighbor(p, 2, 1)) { //必须是有邻居的才行
 
-          var s1 = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
-          var s2 = (role == R.com ? board.humScore[p[0]][p[1]] : board.comScore[p[0]][p[1]]);
-          if(s1 >= S.FIVE) {
-            p.score = - s1;
-            return [p];
-          } 
-          if(s1 >= S.FOUR) {
-            p.score = -s1;
-            fours.unshift(p);
-            continue;
-          }
-          if(s2 >= S.FIVE) {
-            p.score = s2;
-            fives.push(p);
-            continue;
-          } 
-          if(s2 >= S.FOUR) {
-            p.score = s2;
-            fours.push(p);
-            continue;
-          }
+        var s1 = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
+        var s2 = (role == R.com ? board.humScore[p[0]][p[1]] : board.comScore[p[0]][p[1]]);
+        if(s1 >= S.FIVE) {
+          p.score = - s1;
+          return [p];
+        } 
+        if(s1 >= S.FOUR) {
+          p.score = -s1;
+          fours.unshift(p);
+          continue;
+        }
+        if(s2 >= S.FIVE) {
+          p.score = s2;
+          fives.push(p);
+          continue;
+        } 
+        if(s2 >= S.FOUR) {
+          p.score = s2;
+          fours.push(p);
+          continue;
+        }
 
-          if(s1 >= score || s2 >= score) {
-            p = [i, j];
-            p.score = s1;
-            result.push(p);
-          }
+        if(s1 >= score || s2 >= score) {
+          p = [i, j];
+          p.score = s1;
+          result.push(p);
         }
       }
     }
@@ -732,8 +728,9 @@ var deeping = function(role, deep) {
     if(result) break; //找到一个就行
   }
   var time = Math.round(new Date() - start);
-  if(result) config.log && console.log("算杀成功("+time+"毫秒, "+ debugNodeCount + "个节点):" + JSON.stringify(result));
-  else {
+  if(result) {
+    //config.log && console.log("算杀成功("+time+"毫秒, "+ debugNodeCount + "个节点):" + JSON.stringify(result));
+  } else {
     //console.log("算杀失败("+time+"毫秒)");
   }
   return result;
@@ -1281,6 +1278,7 @@ var negamax = function(deep, _checkmateDeep) {
   var best = MIN;
   var points = board.gen();
   var bestPoints = [];
+  var start = new Date()
 
   count = 0;
   ABcut = 0;
@@ -1294,7 +1292,7 @@ var negamax = function(deep, _checkmateDeep) {
 
     //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
     if(p[0]<3 || p[0] > 11 || p[1] < 3 || p[1] > 11) {
-      v = .5 * v;
+      v = v < 0 ? v * 2 : v / 2;
     }
 
     //console.log(v, p);
@@ -1317,8 +1315,9 @@ var negamax = function(deep, _checkmateDeep) {
   result.score = best;
   steps ++;
   total += count;
+  var time = (new Date() - start)/1000
   config.log && console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount + ',算杀缓存命中:' + (debug.checkmate.cacheGet / debug.checkmate.cacheCount).toFixed(3) + ',' + debug.checkmate.cacheGet + '/'+debug.checkmate.cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
-  config.log && console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
+  config.log && console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 耗时:' + time.toFixed(2) + 's, 平均每一步' + Math.round(total/steps) +'个节点, NPS:' + Math.floor(total/ time) + 'n/s');
   config.log && console.log("================================");
   return result;
 }

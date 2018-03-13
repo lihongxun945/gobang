@@ -44,7 +44,7 @@ var negamax = function(deep, _checkmateDeep) {
 
     //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
     if(p[0]<3 || p[0] > 11 || p[1] < 3 || p[1] > 11) {
-      v = .5 * v;
+      v = v < 0 ? v * 2 : v / 2;
     }
 
     //console.log(v, p);
