@@ -1359,7 +1359,7 @@ var r = function(deep, alpha, beta, role) {
       return v;
     }
   }
-  if( (deep == 2 || deep == 1 ) && math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)) {
+  if(math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)) {
     var mate = checkmate(role, checkmateDeep);
     if(mate) {
       var score = mate.score * Math.pow(config.deepDecrease, mate.length);
