@@ -15,6 +15,7 @@ describe('test checkmate', function() {
     ];
     board.init(b);
     var p = c(1, 8);
+    console.log(p)
     assert.ok(p);
   });
 
@@ -32,6 +33,7 @@ describe('test checkmate', function() {
     ];
     board.init(b);
     var p = c(1, 10);
+    console.log(p)
     assert.ok(p);
   });
 
@@ -50,6 +52,7 @@ describe('test checkmate', function() {
     ];
     board.init(b);
     var p = c(1, 6);
+    console.log(p)
     assert.ok(p);
   });
 
@@ -70,12 +73,14 @@ describe('test checkmate', function() {
     ];
     board.init(b);
     var p = c(1);
+    console.log(p)
     assert.ok(p);
   });
       
 
 
   it(`it should be OK`, function() {
+    // 这种情况赢不了
     var s = new Date();
     b = [
       [ 0, 1, 1, 0, 0, 0, 0],
@@ -88,6 +93,7 @@ describe('test checkmate', function() {
     ];
     board.init(b);
     var p = c(1);
+    console.log(p)
     assert.ok(!p);
   });
 

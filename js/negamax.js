@@ -30,6 +30,7 @@ var negamax = function(deep, _checkmateDeep) {
   var best = MIN;
   var points = board.gen();
   var bestPoints = [];
+  var start = new Date()
 
   count = 0;
   ABcut = 0;
@@ -66,8 +67,9 @@ var negamax = function(deep, _checkmateDeep) {
   result.score = best;
   steps ++;
   total += count;
+  var time = (new Date() - start)/1000
   config.log && console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount + ',算杀缓存命中:' + (debug.checkmate.cacheGet / debug.checkmate.cacheCount).toFixed(3) + ',' + debug.checkmate.cacheGet + '/'+debug.checkmate.cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
-  config.log && console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 平均每一步' + Math.round(total/steps) +'个节点');
+  config.log && console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 耗时:' + time.toFixed(2) + 's, 平均每一步' + Math.round(total/steps) +'个节点, NPS:' + Math.floor(total/ time) + 'n/s');
   config.log && console.log("================================");
   return result;
 }

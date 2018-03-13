@@ -39,16 +39,14 @@ var findMax = function(role, score) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
         var p = [i, j];
-        if(board.hasNeighbor(p, 2, 2)) { //必须是有邻居的才行
 
-          var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
-          p.score = s;
-          if(s >= S.FIVE) {
-            return [p];
-          }
-          if(s >= score) {
-            result.push(p);
-          }
+        var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
+        p.score = s;
+        if(s >= S.FIVE) {
+          return [p];
+        }
+        if(s >= score) {
+          result.push(p);
         }
       }
     }
@@ -70,35 +68,33 @@ var findMin = function(role, score) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
         var p = [i, j];
-        if(board.hasNeighbor(p, 2, 1)) { //必须是有邻居的才行
 
-          var s1 = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
-          var s2 = (role == R.com ? board.humScore[p[0]][p[1]] : board.comScore[p[0]][p[1]]);
-          if(s1 >= S.FIVE) {
-            p.score = - s1;
-            return [p];
-          } 
-          if(s1 >= S.FOUR) {
-            p.score = -s1;
-            fours.unshift(p);
-            continue;
-          }
-          if(s2 >= S.FIVE) {
-            p.score = s2;
-            fives.push(p);
-            continue;
-          } 
-          if(s2 >= S.FOUR) {
-            p.score = s2;
-            fours.push(p);
-            continue;
-          }
+        var s1 = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
+        var s2 = (role == R.com ? board.humScore[p[0]][p[1]] : board.comScore[p[0]][p[1]]);
+        if(s1 >= S.FIVE) {
+          p.score = - s1;
+          return [p];
+        } 
+        if(s1 >= S.FOUR) {
+          p.score = -s1;
+          fours.unshift(p);
+          continue;
+        }
+        if(s2 >= S.FIVE) {
+          p.score = s2;
+          fives.push(p);
+          continue;
+        } 
+        if(s2 >= S.FOUR) {
+          p.score = s2;
+          fours.push(p);
+          continue;
+        }
 
-          if(s1 >= score || s2 >= score) {
-            p = [i, j];
-            p.score = s1;
-            result.push(p);
-          }
+        if(s1 >= score || s2 >= score) {
+          p = [i, j];
+          p.score = s1;
+          result.push(p);
         }
       }
     }
@@ -210,8 +206,9 @@ var deeping = function(role, deep) {
     if(result) break; //找到一个就行
   }
   var time = Math.round(new Date() - start);
-  if(result) config.log && console.log("算杀成功("+time+"毫秒, "+ debugNodeCount + "个节点):" + JSON.stringify(result));
-  else {
+  if(result) {
+    //config.log && console.log("算杀成功("+time+"毫秒, "+ debugNodeCount + "个节点):" + JSON.stringify(result));
+  } else {
     //console.log("算杀失败("+time+"毫秒)");
   }
   return result;
