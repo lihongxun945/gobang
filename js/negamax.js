@@ -87,6 +87,8 @@ var r = function(deep, alpha, beta, role) {
   }
 
   var v = board.evaluate(role);
+
+  //console.log('start: role: ' + role + ', deep:' + deep + ', evaluate: ' + v)
   count ++;
   if(deep <= 0 || math.greatOrEqualThan(v, T.FIVE)) {
     return v;
@@ -121,6 +123,7 @@ var r = function(deep, alpha, beta, role) {
   }
   cache(deep, best);
   
+  //console.log('end: role:' + role + ', deep:' + deep + ', best: ' + best)
   return best;
 }
 

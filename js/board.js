@@ -60,6 +60,7 @@ Board.prototype.initScore = function() {
 
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
+      // 空位，对双方都打分
       if(board[i][j] == R.empty) {
         if(this.hasNeighbor([i, j], 2, 2)) { //必须是有邻居的才行
           var cs = scorePoint(this, [i, j], R.com);
@@ -67,6 +68,13 @@ Board.prototype.initScore = function() {
           this.comScore[i][j] = cs;
           this.humScore[i][j] = hs;
         }
+
+      } else if (board[i][j] == R.com) { // 对电脑打分，玩家此位置分数为0
+        this.comScore[i][j] = scorePoint(this, [i, j], R.com);
+        this.humScore[i][j] = 0;
+      } else if (board[i][j] == R.hum) { // 对玩家打分，电脑位置分数为0
+        this.humScore[i][j] = scorePoint(this, [i, j], R.hum);
+        this.comScore[i][j] = 0;
       }
     }
   }
@@ -159,6 +167,7 @@ Board.prototype.back = function() {
 }
 
 //棋面估分
+//这里只算当前分，而不是在空位下一步之后的分
 Board.prototype.evaluate = function(role) {
 
   //这里加了缓存，但是并没有提升速度
@@ -172,8 +181,9 @@ Board.prototype.evaluate = function(role) {
   //遍历出最高分，开销不大
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
-      if(board[i][j] == R.empty) {
+      if(board[i][j] == R.com) {
         this.comMaxScore = Math.max(this.comScore[i][j], this.comMaxScore);
+      } else if (board[i][j] == R.hum) {
         this.humMaxScore = Math.max(this.humScore[i][j], this.humMaxScore);
       }
     }
