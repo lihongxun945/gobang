@@ -4,6 +4,7 @@ module.exports = {
   deepDecrease: .85, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 24, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度
+  random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
   cache: false,  //是否使用效率不高的置换表
 }
@@ -267,6 +268,8 @@ module.exports = {
  * 连五，活四，眠四，活三，活二/眠三，活一/眠二, 眠一
  */
 
+// 给单个棋型打分
+
 module.exports = {
   ONE: 10,
   TWO: 100,
@@ -277,6 +280,16 @@ module.exports = {
   BLOCKED_TWO: 10,
   BLOCKED_THREE: 100,
   BLOCKED_FOUR: 10000
+}
+
+// 总分数
+var score = {
+  TWO: 'TWO', // 活二
+  TWO_THREE: 'TWO_THREE', // 双三
+  BLOCK_FOUR: 'BLOCKED_FOUR', // 冲四
+  FOUR_THREE: 'FOUR_THREE', // 冲四活三
+  FOUR: 'FOUR', // 活四
+  FIVE: 'FIVE', // 连五
 }
 
 },{}],5:[function(require,module,exports){

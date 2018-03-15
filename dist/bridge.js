@@ -5,6 +5,8 @@
  * 连五，活四，眠四，活三，活二/眠三，活一/眠二, 眠一
  */
 
+// 给单个棋型打分
+
 module.exports = {
   ONE: 10,
   TWO: 100,
@@ -15,6 +17,16 @@ module.exports = {
   BLOCKED_TWO: 10,
   BLOCKED_THREE: 100,
   BLOCKED_FOUR: 10000
+}
+
+// 总分数
+var score = {
+  TWO: 'TWO', // 活二
+  TWO_THREE: 'TWO_THREE', // 双三
+  BLOCK_FOUR: 'BLOCKED_FOUR', // 冲四
+  FOUR_THREE: 'FOUR_THREE', // 冲四活三
+  FOUR: 'FOUR', // 活四
+  FIVE: 'FIVE', // 连五
 }
 
 },{}],2:[function(require,module,exports){
@@ -781,6 +793,7 @@ module.exports = {
   deepDecrease: .85, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 24, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度
+  random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
   cache: false,  //是否使用效率不高的置换表
 }
@@ -1285,10 +1298,8 @@ var checkmateDeep;
  */
 
 var negamax = function(deep, _checkmateDeep) {
-  var best = MIN;
   var points = board.gen();
-  var bestPoints = [];
-  var start = new Date()
+  var start = new Date();
 
   count = 0;
   ABcut = 0;
@@ -1298,31 +1309,24 @@ var negamax = function(deep, _checkmateDeep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board.put(p, R.com);
-    var v = - r(deep-1, -MAX, -best, R.hum);
-
-    //边缘棋子的话，要把分数打折，避免电脑总喜欢往边上走
-    if(p[0]<3 || p[0] > 11 || p[1] < 3 || p[1] > 11) {
-      v = v < 0 ? v * 2 : v / 2;
-    }
-
-    //console.log(v, p);
-    //如果跟之前的一个好，则把当前位子加入待选位子
-    if(math.equal(v, best)) {
-      bestPoints.push(p);
-    }
-    //找到一个更好的分，就把以前存的位子全部清除
-    if(math.greatThan(v, best)) {
-      best = v;
-      bestPoints = [];
-      bestPoints.push(p);
-    }
-
+    var v = r(deep-1, -MAX, -MIN, R.hum, 1);
+    console.log(v)
+    v.score *= -1
 
     board.remove(p);
+
+    p.v = v
   }
-  config.log && console.log("分数:"+best.toFixed(3)+", 待选节点:"+JSON.stringify(bestPoints));
-  var result = bestPoints[Math.floor(bestPoints.length * Math.random())];
-  result.score = best;
+  //排序
+  points.sort(function (a,b) {
+    if (math.equal(a.v.score,b.v.score)) return a.v.step - b.v.step
+    else return (b.v.score - a.v.score)
+  })
+  config.log && console.log("所有节点: " + points.map(function (p) { return p[0]+','+p[1]+','+p.v.score+'; '}));
+  var result = points[0];
+  result.score = points[0].v.score;
+  result.step = points[0].v.step;
+  config.log && console.log("分数:"+result.score.toFixed(3)+", 步数:" + result.step);
   steps ++;
   total += count;
   var time = (new Date() - start)/1000
@@ -1332,7 +1336,7 @@ var negamax = function(deep, _checkmateDeep) {
   return result;
 }
 
-var r = function(deep, alpha, beta, role) {
+var r = function(deep, alpha, beta, role, step) {
 
   if(config.cache) {
     var c = Cache[board.zobrist.code];
@@ -1344,39 +1348,48 @@ var r = function(deep, alpha, beta, role) {
     }
   }
 
-  var v = board.evaluate(role);
+  var _e = board.evaluate(role);
 
-  //console.log('start: role: ' + role + ', deep:' + deep + ', evaluate: ' + v)
   count ++;
-  if(deep <= 0 || math.greatOrEqualThan(v, T.FIVE)) {
-    return v;
+  if(deep <= 0 || math.greatOrEqualThan(_e, T.FIVE)) {
+    return {
+      score: _e,
+      step: step
+    };
   }
   
-  var best = MIN;
+  var best = {
+    score: MIN,
+    step: step
+  }
   var points = board.gen();
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board.put(p, role);
 
-    var v = - r(deep-1, -beta, -1 *( best > alpha ? best : alpha), R.reverse(role)) * config.deepDecrease;
+    var v = r(deep-1, -beta, -1 *( best.score > alpha ? best.score : alpha), R.reverse(role), step+1);
+    v.score *= -1;
     board.remove(p);
 
-    if(math.greatThan(v, best)) {
+    if(math.greatThan(v.score, best.score)) {
       best = v;
     }
-    if(math.greatOrEqualThan(v, beta)) { //AB 剪枝
+    if(math.greatOrEqualThan(v.score, beta)) { //AB 剪枝
       ABcut ++;
       cache(deep, v);
       return v;
     }
   }
-  if(math.littleThan(best, SCORE.THREE*2) && math.greatThan(best, SCORE.THREE * -1)) {
+  if(math.littleThan(best.score, SCORE.THREE*2) && math.greatThan(best.score, SCORE.THREE * -2)) {
     var mate = checkmate(role, checkmateDeep);
     if(mate) {
-      var score = mate.score * Math.pow(config.deepDecrease, mate.length);
+      var score = mate.score;
       cache(deep, score);
-      return score;
+      return {
+        score: score,
+        step: step
+      }
     }
   }
   cache(deep, best);
