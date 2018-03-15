@@ -288,7 +288,7 @@ Board.prototype.evaluate = function(role) {
 }
 
 //启发函数
-Board.prototype.gen = function() {
+Board.prototype.gen = function(limit) {
   var fives = [];
   var fours=[];
   var blockedfours = [];
@@ -368,7 +368,7 @@ Board.prototype.gen = function() {
     return result.slice(0, config.countLimit);
   }
 
-  return result;
+  return limit ? result.slice(0, limit) : result;
 }
 
 Board.prototype.hasNeighbor = function(point, distance, count) {
@@ -790,7 +790,6 @@ module.exports = function(role, deep, onlyFour) {
 },{"./SCORE.js":1,"./board.js":4,"./config.js":7,"./debug.js":8,"./evaluate-point.js":9,"./role.js":12,"./zobrist.js":14}],7:[function(require,module,exports){
 module.exports = {
   searchDeep: 6,  //搜索深度
-  deepDecrease: .85, //按搜索深度递减分数，为了让短路径的结果比深路劲的分数高
   countLimit: 24, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度
   random: false,// 在分数差不多的时候是不是随机选择一个走
@@ -1299,6 +1298,7 @@ var checkmateDeep;
 
 var negamax = function(deep, _checkmateDeep) {
   var points = board.gen();
+  var bestPoints = [];
   var start = new Date();
 
   count = 0;
@@ -1310,11 +1310,9 @@ var negamax = function(deep, _checkmateDeep) {
     var p = points[i];
     board.put(p, R.com);
     var v = r(deep-1, -MAX, -MIN, R.hum, 1);
-    console.log(v)
     v.score *= -1
-
     board.remove(p);
-
+    console.log(p, v)
     p.v = v
   }
   //排序
@@ -1322,11 +1320,13 @@ var negamax = function(deep, _checkmateDeep) {
     if (math.equal(a.v.score,b.v.score)) return a.v.step - b.v.step
     else return (b.v.score - a.v.score)
   })
-  config.log && console.log("所有节点: " + points.map(function (p) { return p[0]+','+p[1]+','+p.v.score+'; '}));
+  var best = points[0];
+  bestPoints = points.filter(function (p) { return math.greatOrEqualThan(p.v.score, best.v.score) });
   var result = points[0];
   result.score = points[0].v.score;
   result.step = points[0].v.step;
-  config.log && console.log("分数:"+result.score.toFixed(3)+", 步数:" + result.step);
+  config.log && console.log("可选节点：" + bestPoints.join(';'));
+  config.log && console.log("选择节点：" + points[0] + ", 分数:"+result.score.toFixed(3)+", 步数:" + result.step);
   steps ++;
   total += count;
   var time = (new Date() - start)/1000
@@ -1362,7 +1362,7 @@ var r = function(deep, alpha, beta, role, step) {
     score: MIN,
     step: step
   }
-  var points = board.gen();
+  var points = board.gen(deep <= 1 ? 3 : 0); // 倒数前两层，只考虑很少的情况
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -1388,7 +1388,7 @@ var r = function(deep, alpha, beta, role, step) {
       cache(deep, score);
       return {
         score: score,
-        step: step
+        step: step + mate.length
       }
     }
   }

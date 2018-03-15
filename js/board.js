@@ -196,7 +196,7 @@ Board.prototype.evaluate = function(role) {
 }
 
 //启发函数
-Board.prototype.gen = function() {
+Board.prototype.gen = function(limit) {
   var fives = [];
   var fours=[];
   var blockedfours = [];
@@ -276,7 +276,7 @@ Board.prototype.gen = function() {
     return result.slice(0, config.countLimit);
   }
 
-  return result;
+  return limit ? result.slice(0, limit) : result;
 }
 
 Board.prototype.hasNeighbor = function(point, distance, count) {
