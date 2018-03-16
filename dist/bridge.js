@@ -35,6 +35,7 @@ var R = require("./role.js");
 var zobrist = require("./zobrist.js");
 var config = require("./config.js");
 var board = require("./board.js");
+var opening = require('./opening.js');
 
 var AI = function() {
 }
@@ -52,7 +53,11 @@ AI.prototype.begin = function(first) {
     this.set(7, 7, R.com);
     return [7, 7];
   }
-  var p = m(config.searchDeep);
+  var p;
+  if (config.opening) {
+    p = opening(board)
+  }
+  p = p || m(config.searchDeep);
   board.put(p, R.com, true);
   return p;
 }
@@ -74,7 +79,7 @@ AI.prototype.back = function() {
 }
 module.exports = AI;
 
-},{"./board.js":4,"./config.js":7,"./negamax.js":11,"./role.js":12,"./zobrist.js":14}],3:[function(require,module,exports){
+},{"./board.js":4,"./config.js":7,"./negamax.js":11,"./opening.js":12,"./role.js":13,"./zobrist.js":15}],3:[function(require,module,exports){
 module.exports = {
   create: function (w, h) {
     var r = []
@@ -513,7 +518,7 @@ var board = new Board();
 
 module.exports = board;
 
-},{"./arrary.js":3,"./config.js":7,"./evaluate-point.js":9,"./role.js":12,"./score.js":13,"./zobrist.js":14}],5:[function(require,module,exports){
+},{"./arrary.js":3,"./config.js":7,"./evaluate-point.js":9,"./role.js":13,"./score.js":14,"./zobrist.js":15}],5:[function(require,module,exports){
 var AI = require("./ai.js");
 var R = require("./role.js");
 var config = require('./config.js');
@@ -541,7 +546,7 @@ onmessage = function(e) {
   }
 }
 
-},{"./ai.js":2,"./config.js":7,"./role.js":12}],6:[function(require,module,exports){
+},{"./ai.js":2,"./config.js":7,"./role.js":13}],6:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -787,8 +792,9 @@ module.exports = function(role, deep, onlyFour) {
 
 }
 
-},{"./SCORE.js":1,"./board.js":4,"./config.js":7,"./debug.js":8,"./evaluate-point.js":9,"./role.js":12,"./zobrist.js":14}],7:[function(require,module,exports){
+},{"./SCORE.js":1,"./board.js":4,"./config.js":7,"./debug.js":8,"./evaluate-point.js":9,"./role.js":13,"./zobrist.js":15}],7:[function(require,module,exports){
 module.exports = {
+  opening: true, // 使用开局库
   searchDeep: 6,  //搜索深度
   countLimit: 24, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度
@@ -1238,7 +1244,7 @@ var fixScore = function(type) {
 
 module.exports = s;
 
-},{"./role.js":12,"./score.js":13}],10:[function(require,module,exports){
+},{"./role.js":13,"./score.js":14}],10:[function(require,module,exports){
 var threshold = 1.2;
 
 var equal = function(a, b) {
@@ -1259,12 +1265,26 @@ var littleOrEqualThan = function(a, b) {
   return equal(a, b) || littleThan(a, b);
 }
 
+var containPoint = function (arrays, p) {
+  for (var i=0;i<arrays.length;i++) {
+    var a = arrays[i];
+    if (a[0] === p[0] && a[1] === p[1]) return true
+  }
+  return false
+}
+
+var pointEqual = function (a, b) {
+  return a[0] === b[0] && a[1] === b[1]
+}
+
 module.exports = {
   equal: equal,
   greatThan: greatThan,
   greatOrEqualThan: greatOrEqualThan,
   littleThan: littleThan,
-  littleOrEqualThan: littleOrEqualThan
+  littleOrEqualThan: littleOrEqualThan,
+  containPoint: containPoint,
+  pointEqual: pointEqual
 }
 
 },{}],11:[function(require,module,exports){
@@ -1418,7 +1438,61 @@ var deeping = function(deep) {
 }
 module.exports = deeping;
 
-},{"./board.js":4,"./checkmate.js":6,"./config.js":7,"./debug.js":8,"./math.js":10,"./role":12,"./score.js":13}],12:[function(require,module,exports){
+},{"./board.js":4,"./checkmate.js":6,"./config.js":7,"./debug.js":8,"./math.js":10,"./role":13,"./score.js":14}],12:[function(require,module,exports){
+/*
+ * 一个简单的开局库，用花月+浦月必胜开局
+ */
+var math = require('./math.js');
+/**
+ * -2-
+ * -1-
+ * ---
+ */
+var huayue = function (board) {
+  console.log('使用花月开局')
+  var s = board.steps
+  if (math.pointEqual(s[1], [6, 7])) {
+    if (s.length === 2) return [6, 8]
+  }
+  if (math.pointEqual(s[1], [7, 6])) {
+    if (s.length === 2) return [6, 6]
+  }
+  if (math.pointEqual(s[1], [8, 7])) {
+    if (s.length === 2) return [8, 6]
+  }
+  if (math.pointEqual(s[1], [7, 8])) {
+    if (s.length === 2) return [8, 8]
+  }
+}
+
+var puyue = function (board) {
+  console.log('使用浦月开局')
+  var s = board.steps
+  if (math.pointEqual(s[1], [6, 6])) {
+    if (s.length === 2) return [6, 8]
+  }
+  if (math.pointEqual(s[1], [8, 6])) {
+    if (s.length === 2) return [6, 6]
+  }
+  if (math.pointEqual(s[1], [8, 8])) {
+    if (s.length === 2) return [8, 6]
+  }
+  if (math.pointEqual(s[1], [6, 8])) {
+    if (s.length === 2) return [8, 8]
+  }
+}
+
+var match = function (board) {
+  var s = board.steps;
+  if (s.length > 2) return false
+  if (math.containPoint([[6,7],[7,6],[8,7],[7,8]], s[1])) return huayue(board)
+  else if (math.containPoint([[6,6],[8,8],[8,6],[6,8]], s[1])) return puyue(board)
+  return false
+}
+
+module.exports = match
+
+},{"./math.js":10}],13:[function(require,module,exports){
 module.exports = {
   com: 1,
   hum: 2,
@@ -1428,9 +1502,9 @@ module.exports = {
   }
 }
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
-},{"dup":1}],14:[function(require,module,exports){
+},{"dup":1}],15:[function(require,module,exports){
 var R = require("./role.js");
 
 var Zobrist = function(size) {
@@ -1463,4 +1537,4 @@ z.init();
 
 module.exports = z;
 
-},{"./role.js":12}]},{},[5]);
+},{"./role.js":13}]},{},[5]);

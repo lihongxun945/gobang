@@ -1,4 +1,5 @@
 module.exports = {
+  opening: true, // 使用开局库
   searchDeep: 6,  //搜索深度
   countLimit: 24, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度

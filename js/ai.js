@@ -3,6 +3,7 @@ var R = require("./role.js");
 var zobrist = require("./zobrist.js");
 var config = require("./config.js");
 var board = require("./board.js");
+var opening = require('./opening.js');
 
 var AI = function() {
 }
@@ -20,7 +21,11 @@ AI.prototype.begin = function(first) {
     this.set(7, 7, R.com);
     return [7, 7];
   }
-  var p = m(config.searchDeep);
+  var p;
+  if (config.opening) {
+    p = opening(board)
+  }
+  p = p || m(config.searchDeep);
   board.put(p, R.com, true);
   return p;
 }

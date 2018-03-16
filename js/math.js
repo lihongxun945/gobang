@@ -18,10 +18,24 @@ var littleOrEqualThan = function(a, b) {
   return equal(a, b) || littleThan(a, b);
 }
 
+var containPoint = function (arrays, p) {
+  for (var i=0;i<arrays.length;i++) {
+    var a = arrays[i];
+    if (a[0] === p[0] && a[1] === p[1]) return true
+  }
+  return false
+}
+
+var pointEqual = function (a, b) {
+  return a[0] === b[0] && a[1] === b[1]
+}
+
 module.exports = {
   equal: equal,
   greatThan: greatThan,
   greatOrEqualThan: greatOrEqualThan,
   littleThan: littleThan,
-  littleOrEqualThan: littleOrEqualThan
+  littleOrEqualThan: littleOrEqualThan,
+  containPoint: containPoint,
+  pointEqual: pointEqual
 }
