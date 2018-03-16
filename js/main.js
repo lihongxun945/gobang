@@ -60,11 +60,13 @@ Board.prototype.start = function() {
           self.worker.postMessage({
             type: "BEGIN"
           });
+          $(document.body).removeClass('reverse-color')
         }
       },
       {
         text: "玩家先手",
         onClick: function(){
+          $(document.body).addClass('reverse-color')
         }
       }
     ]

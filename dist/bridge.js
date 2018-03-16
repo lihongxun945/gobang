@@ -1279,9 +1279,8 @@ var board = require("./board.js");
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
 
-var total=0, //总节点数
-    steps=0,  //总步数
-    count,  //每次思考的节点数
+var steps=0,  //总步数
+    count=0,  //每次思考的节点数
     PVcut,
     ABcut,  //AB剪枝次数
     cacheCount=0, //zobrist缓存节点数
@@ -1328,10 +1327,9 @@ var negamax = function(deep, _checkmateDeep) {
   config.log && console.log("可选节点：" + bestPoints.join(';'));
   config.log && console.log("选择节点：" + points[0] + ", 分数:"+result.score.toFixed(3)+", 步数:" + result.step);
   steps ++;
-  total += count;
   var time = (new Date() - start)/1000
   config.log && console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount + ',算杀缓存命中:' + (debug.checkmate.cacheGet / debug.checkmate.cacheCount).toFixed(3) + ',' + debug.checkmate.cacheGet + '/'+debug.checkmate.cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
-  config.log && console.log('当前统计：总共'+ steps + '步, ' + total + '个节点, 耗时:' + time.toFixed(2) + 's, 平均每一步' + Math.round(total/steps) +'个节点, NPS:' + Math.floor(total/ time) + 'n/s');
+  config.log && console.log('当前统计：总共'+ steps + '步, ' + count + '个节点, 耗时:' + time.toFixed(2) + 's, 平均每一步' + Math.round(count/steps) +'个节点, NPS:' + Math.floor(count/ time) + 'N/S');
   config.log && console.log("================================");
   return result;
 }

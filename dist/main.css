@@ -69,6 +69,14 @@ h3 {
   border: 1px solid #EF4F4F;
   position: absolute;
 }
+.reverse-color .board .chessman {
+  background-color: black;
+  color: white;
+}
+.reverse-color .board .chessman.black {
+  background-color: white;
+  color: black;
+}
 .nu {
   display: none;
 }
