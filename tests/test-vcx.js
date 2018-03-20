@@ -1,10 +1,11 @@
-var c = require("../js/checkmate.js");
+var c = require("../js/vcx.js");
 var assert = require('assert');
 var board = require("../js/board.js");
 
 describe('test checkmate', function() {
 
   it(`it should be OK`, function() {
+    // 一步取胜 [1,5]
     b = [
       [0, 0, 0, 0, 0, 0],
       [2, 1, 1, 1, 1, 0],
@@ -14,13 +15,13 @@ describe('test checkmate', function() {
       [0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    var p = c(1, 8);
+    var p = c.vcf(1, 8);
     console.log(p)
     assert.ok(p);
   });
 
   it(`it should be OK`, function() {
-    //冲四形成双三
+    // 冲四，活三，胜
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0],
@@ -32,13 +33,17 @@ describe('test checkmate', function() {
       [0, 0, 0, 0, 0, 0, 0, 0]
     ];
     board.init(b);
-    var p = c(1, 10);
+    var p = c.vct(1, 10);
     console.log(p)
     assert.ok(p);
+    //vcf 就不行
+    p = c.vcf(1, 10);
+    console.log(p)
+    assert.ok(!p);
   });
 
   it(`it should be OK`, function() {
-    //两次冲四形成双三
+    //vcf
     b = [
       [ 0, 0, 2, 2, 1, 0, 0, 0, 0],
       [ 0, 2, 1, 1, 2, 0, 0, 0, 0],
@@ -51,7 +56,7 @@ describe('test checkmate', function() {
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    var p = c(1, 6);
+    var p = c.vct(1, 6);
     console.log(p)
     assert.ok(p);
   });
@@ -72,7 +77,7 @@ describe('test checkmate', function() {
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    var p = c(1);
+    var p = c.vct(1);
     console.log(p)
     assert.ok(p);
   });
@@ -92,7 +97,7 @@ describe('test checkmate', function() {
       [ 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    var p = c(1);
+    var p = c.vct(1);
     console.log(p)
     assert.ok(!p);
   });

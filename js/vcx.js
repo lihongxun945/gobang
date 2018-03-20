@@ -3,6 +3,8 @@
  * 算杀的原理和极大极小值搜索是一样的
  * 不过算杀只考虑冲四活三这类对方必须防守的棋
  * 因此算杀的复杂度虽然是 M^N ，但是底数M特别小，可以算到16步以上的杀棋。
+ * VCT 连续活三胜
+ * VCF 连续冲四胜利
  */
 
 /*
@@ -214,31 +216,50 @@ var deeping = function(role, deep) {
   return result;
 }
 
-module.exports = function(role, deep, onlyFour) {
+var vcx = function(role, deep, onlyFour) {
 
   deep = deep || config.checkmateDeep;
   if(deep <= 0) return false;
 
-  //先计算冲四赢的
-  MAX_SCORE = S.FOUR;
-  MIN_SCORE = S.FIVE;
+  if (onlyFour) {
+    //计算冲四赢的
+    MAX_SCORE = S.BLOCKED_FOUR;
+    MIN_SCORE = S.FIVE;
 
-  var result = deeping(role, deep);
-  if(result) {
-    result.score = S.FOUR;
+    var result = deeping(role, deep);
+    if(result) {
+      result.score = S.FOUR;
+      return result;
+    }
+    return false
+  } else {
+    //计算通过 活三 赢的；
+    MAX_SCORE = S.THREE;
+    MIN_SCORE = S.BLOCKED_FOUR;
+    result = deeping(role, deep);
+    if(result) {
+      result.score = S.THREE*2; //虽然不如活四分数高，但是还是比活三分数要高的
+    }
+
     return result;
   }
 
-  if(onlyFour) return false;  //只计算冲四
-
-  //再计算通过 活三 赢的；
-  MAX_SCORE = S.THREE;
-  MIN_SCORE = S.FOUR;
-  result = deeping(role, deep);
-  if(result) {
-    result.score = S.THREE*2; //虽然不如活四分数高，但是还是比活三分数要高的
-  }
-
-  return result;
+  return false;
 
 }
+
+// 连续冲四
+var vcf = function (role, deep) {
+  return vcx(role, deep, true)
+}
+
+// 连续活三
+var vct = function (role, deep) {
+  return vcx(role, deep, false)
+}
+
+module.exports = {
+  vct: vct,
+  vcf: vcf
+}
+

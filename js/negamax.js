@@ -1,7 +1,7 @@
 var R = require("./role");
 var T = SCORE = require("./score.js");
 var math = require("./math.js");
-var checkmate = require("./checkmate.js");
+var vcx = require("./vcx.js");
 var config = require("./config.js");
 var debug = require("./debug.js");
 var board = require("./board.js");
@@ -109,8 +109,23 @@ var r = function(deep, alpha, beta, role, step) {
       return v;
     }
   }
+  // vcf
+  // 自己没有形成活四，对面也没有高于冲四的棋型，那么先尝试VCF
+  if(math.littleThan(best.score, SCORE.FOUR) && math.greatThan(best.score, SCORE.BLOCKED_FOUR * -2)) {
+    var mate = vcx.vcf(role, checkmateDeep);
+    if(mate) {
+      var score = mate.score;
+      cache(deep, score);
+      return {
+        score: score,
+        step: step + mate.length
+      }
+    }
+  }
+  // vct
+  // 自己没有形成活三，对面也没有高于活三的棋型，那么尝试VCT
   if(math.littleThan(best.score, SCORE.THREE*2) && math.greatThan(best.score, SCORE.THREE * -2)) {
-    var mate = checkmate(role, checkmateDeep);
+    var mate = vcx.vct(role, checkmateDeep);
     if(mate) {
       var score = mate.score;
       cache(deep, score);
