@@ -18,14 +18,7 @@ Board.prototype.init = function(sizeOrBoard) {
     size = this.board.length;
   } else {
     size = sizeOrBoard;
-    this.board = [];
-    for(var i=0;i<size;i++) {
-      var row = [];
-      for(var j=0;j<size;j++) {
-        row.push(0);
-      }
-      this.board.push(row);
-    }
+    this.board = array.create(size, size);
   }
 
 
@@ -197,13 +190,15 @@ Board.prototype.evaluate = function(role) {
 
 //启发函数
 Board.prototype.gen = function(limit) {
-  var fives = [];
-  var fours=[];
-  var blockedfours = [];
-  var twothrees=[];
-  var threes = [];
-  var twos = [];
-  var neighbors = [];
+  var fives = [],
+      comFours=[],
+      humFours=[],
+      blockedfours = [],
+      comTwoThrees=[],
+      humTwoThrees=[],
+      threes = [],
+      twos = [],
+      neighbors = [];
 
   var board = this.board;
 
@@ -222,18 +217,18 @@ Board.prototype.gen = function(limit) {
             //别急着返回，因为遍历还没完成，说不定电脑自己能成五。
             fives.push([i, j]);
           } else if(scoreCom >= S.FOUR) {
-            fours.unshift([i,j]);
+            comFours.push([i,j]);
           } else if(scoreHum >= S.FOUR) {
-            fours.push([i,j]);
+            humFours.push([i,j]);
           } else if(scoreCom >= S.BLOCKED_FOUR) {
             blockedfours.unshift([i,j]);
           } else if(scoreHum >= S.BLOCKED_FOUR) {
             blockedfours.push([i,j]);
           } else if(scoreCom >= 2*S.THREE) {
             //能成双三也行
-            twothrees.unshift([i,j]);
+            comTwoThrees.push([i,j]);
           } else if(scoreHum >= 2*S.THREE) {
-            twothrees.push([i,j]);
+            humTwoThrees.push([i,j]);
           } else if(scoreCom >= S.THREE) {
             threes.unshift([i, j]);
           } else if(scoreHum >= S.THREE) {
@@ -255,21 +250,23 @@ Board.prototype.gen = function(limit) {
   
   //注意一个活三可以有两个位置形成活四，但是不能只考虑其中一个，要从多个中考虑更好的选择
   //所以不能碰到活四就返回第一个，应该需要考虑多个
-  if(fours.length) return fours;
+  if(comFours.length) return comFours;
+  if(humFours.length) return humFours;
 
   //冲四活三
   if(blockedfours.length) return [blockedfours[0]];
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
-  if(twothrees.length) {
-    return twothrees.concat(threes);
-  }
+  //忘了上面这句注释是为什么?
+  if(comTwoThrees.length) return comTwoThrees;
+  if(humTwoThrees.length) return humTwoThrees;
 
-  var result = threes.concat(
-      twos.concat(
-        neighbors
-      )
-    );
+  // 这一步比较激进，因为形成活三并不一定是一步好棋
+  if(threes.length) return threes;
+
+  var result = twos.concat(
+    neighbors
+  );
 
   //这种分数低的，就不用全部计算了
   if(result.length>config.countLimit) {
