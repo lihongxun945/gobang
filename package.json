@@ -21,7 +21,7 @@
     "test-zobrist": "mocha tests/test-zobrist.js",
     "test-win": "mocha tests/test-win.js"
   },
-  "author": "Hongxun Lee <lihongxun945@gmail.com> (http://light7.org/)",
+  "author": "Hongxun Li <lihongxun945@gmail.com> (http://light7.org/)",
   "homepage": "http://gobang.light7.cn/",
   "license": "MIT",
   "devDependencies": {

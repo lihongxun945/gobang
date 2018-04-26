@@ -218,7 +218,7 @@ var deeping = function(role, deep) {
 
 var vcx = function(role, deep, onlyFour) {
 
-  deep = deep || config.checkmateDeep;
+  deep = deep === undefined ? config.checkmateDeep : deep;
   if(deep <= 0) return false;
 
   if (onlyFour) {

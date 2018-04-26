@@ -90,7 +90,7 @@ var r = function(deep, alpha, beta, role, step) {
     score: MIN,
     step: step
   }
-  var points = board.gen(deep <= 1 ? 1 : 0); // 倒数前两层，只考虑很少的情况
+  var points = board.gen(true);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];

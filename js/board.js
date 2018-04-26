@@ -11,7 +11,9 @@ var Board = function() {
 Board.prototype.init = function(sizeOrBoard) {
   this.evaluateCache = {};
   this.steps = [];
+  this.allSteps = [];
   this.zobrist = zobrist;
+  this._last = [false, false]; // 记录最后一步
   var size;
   if(sizeOrBoard.length) {
     this.board = sizeOrBoard;
@@ -93,9 +95,6 @@ Board.prototype.updateScore = function(p) {
     var hs = scorePoint(self, [x, y], R.hum, dir);
     self.comScore[x][y] = cs;
     self.humScore[x][y] = hs;
-    //注意下面这样写是错的！因为很可能最高分已经没了，不是总是取最高分的，这样分数会越来越高的。所以改成每次遍历计算
-    /*self.comMaxScore = Math.max(cs, self.comMaxScore);
-    self.humMaxScore = Math.max(hs, self.humMaxScore);*/
   }
   // -
   for(var i=-radius;i<radius;i++) {
@@ -134,7 +133,6 @@ Board.prototype.updateScore = function(p) {
   }
 
 
-  //通过遍历来计算最高分
 }
 
 //下子
@@ -143,6 +141,15 @@ Board.prototype.put = function(p, role, record) {
   this.zobrist.go(p[0], p[1], role);
   this.updateScore(p);
   if(record) this.steps.push(p);
+  this.allSteps.push(p);
+}
+// 最后一次下子位置
+Board.prototype.last = function(role) {
+  for(var i=this.allSteps.length-1;i>=0;i--) {
+    var p = this.allSteps[i];
+    if(this.board[p[0]][p[1]] === role) return p;
+  }
+  return false;
 }
 
 //移除棋子
@@ -151,6 +158,7 @@ Board.prototype.remove = function(p) {
   this.zobrist.go(p[0], p[1], r);
   this.board[p[0]][p[1]] = R.empty;
   this.updateScore(p);
+  this.allSteps.pop();
 }
 
 //悔棋
@@ -196,7 +204,16 @@ Board.prototype.evaluate = function(role) {
 }
 
 //启发函数
-Board.prototype.gen = function(limit) {
+/*
+ * 变量starBread的用途是用来进行米子计算
+ * 所谓米子计算，只是，如果第一步尝试了一个位置A，那么接下来尝试的位置有两种情况：
+ * 1: 大于等于活三的位置
+ * 2: 在A的米子位置上
+ * 注意只有对小于活三的棋才进行starSpread优化
+ */
+
+
+Board.prototype.gen = function(starSpread) {
   var fives = [];
   var fours=[];
   var blockedfours = [];
@@ -239,11 +256,14 @@ Board.prototype.gen = function(limit) {
           } else if(scoreHum >= S.THREE) {
             threes.push([i, j]);
           } else if(scoreCom >= S.TWO) {
-            twos.unshift([i, j]);
+            if (!starSpread) twos.unshift([i, j]);
+            else if (starSpread && this.isStarSpread([i, j], this.last(R.com))) twos.unshift([i, j]);
           } else if(scoreHum >= S.TWO) {
-            twos.push([i, j]);
+            if (!starSpread) twos.unshift([i, j]);
+            else if (starSpread && this.isStarSpread([i, j], this.last(R.hum))) twos.unshift([i, j]);
           } else {
-            neighbors.push([i, j]);
+            if (!starSpread) neighbors.push([i, j]);
+            else if (starSpread && this.isStarSpread([i, j], this.last(R.hum))) neighbors.push([i, j]);
           }
         }
       }
@@ -276,7 +296,7 @@ Board.prototype.gen = function(limit) {
     return result.slice(0, config.countLimit);
   }
 
-  return limit ? result.slice(0, limit) : result;
+  return result;
 }
 
 Board.prototype.hasNeighbor = function(point, distance, count) {
@@ -414,6 +434,93 @@ Board.prototype.win = function() {
       }
     }
   }
+  return false;
+}
+
+// a点是否在b点的starSpread路线上
+Board.prototype.isStarSpread = function (a, b) {
+  if (!b) return true
+
+  if (! ((a[0] === b[0] || a[1] === b[1] || (Math.abs(a[0]-b[0]) === Math.abs(a[1] - b[1]))) && Math.abs(a[0]-b[0]) <= 3 && Math.abs(a[1]-b[1]) <= 3)) return false;
+  // 同一行
+  if (a[0] === b[0]) {
+    // a 在左边
+    if (a[1] < b[1]) {
+      var empty=0;
+      for(var i=a[1]+1;i<b[1];i++) {
+        if (this.board[a[0]][i] === R.reverse(this.board[b[0]][b[1]])) return false;
+        if (this.board[a[0]][i] === 0) empty++;
+      }
+      return empty <= 1;
+    }
+    // a 在右边
+    if (a[1] > b[1]) {
+      var empty=0;
+      for(var i=a[1]-1;i>b[1];i--) {
+        if (this.board[a[0]][i] === R.reverse(this.board[b[0]][b[1]])) return false;
+        if (this.board[a[0]][i] === 0) empty++;
+      }
+      return empty <= 1;
+    }
+  }
+  // 同一列
+  if (a[1] === b[1]) {
+    // a 在上边
+    if (a[0] < b[0]) {
+      var empty=0;
+      for(var i=a[0]+1;i<b[0];i++) {
+        if (this.board[i][a[1]] === R.reverse(this.board[b[0]][b[1]])) return false;
+        if (this.board[i][a[1]] === 0) empty++;
+      }
+      return empty <= 1;
+    }
+    // a 在下边
+    if (a[0] > b[0]) {
+      var empty=0;
+      for(var i=a[0]-1;i<b[0];i--) {
+        if (this.board[i][a[1]] === R.reverse(this.board[b[0]][b[1]])) return false;
+        if (this.board[i][a[1]] === 0) empty++;
+      }
+      return empty <= 1;
+    }
+  }
+  // a 在左上
+  if (a[0] < b[0] && a[1] < b[1]) {
+    var empty=0;
+    for(var i=1;a[0]+i<b[0];i++) {
+      if (this.board[a[0]+i][a[1]+i] === R.reverse(this.board[b[0]][b[1]])) return false;
+      if (this.board[a[0]+i][a[1]+i] === 0) empty++;
+    }
+    return empty <= 1;
+  }
+  // a 在右下
+  if (a[0] > b[0] && a[1] > b[1]) {
+    var empty=0;
+    for(var i=1;a[0]-i>b[0];i++) {
+      if (this.board[a[0]-i][a[1]-i] === R.reverse(this.board[b[0]][b[1]])) return false;
+      if (this.board[a[0]-i][a[1]-i] === 0) empty++;
+    }
+    return empty <= 1;
+  }
+  // a 在左下
+  if (a[0] > b[0] && a[1] < b[1]) {
+    var empty=0;
+    for(var i=1;a[0]-i>b[0];i++) {
+      if (this.board[a[0]-i][a[1]+i] === R.reverse(this.board[b[0]][b[1]])) return false;
+      if (this.board[a[0]-i][a[1]+i] === 0) empty++;
+    }
+    return empty <= 1;
+  }
+  // a 在右上
+  if (a[0] < b[0] && a[1] > b[1]) {
+    var empty=0;
+    for(var i=1;a[0]+i>b[0];i++) {
+      if (this.board[a[0]+i][a[1]-i] === R.reverse(this.board[b[0]][b[1]])) return false;
+      if (this.board[a[0]+i][a[1]-i] === 0) empty++;
+    }
+    return empty <= 1;
+  }
+
   return false;
 }
 
