@@ -226,6 +226,7 @@ Board.prototype.gen = function(starSpread) {
 
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
+      var p = [i, j];
       if(board[i][j] == R.empty) {
         var neighbor = [2,2];
         if(this.steps.length < 6) neighbor = [1, 1];
@@ -234,36 +235,36 @@ Board.prototype.gen = function(starSpread) {
           var scoreCom = this.comScore[i][j];
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
-            return [[i, j]];
+            return [p];
           } else if(scoreHum >= S.FIVE) {//再看玩家能不能连成5
             //别急着返回，因为遍历还没完成，说不定电脑自己能成五。
-            fives.push([i, j]);
+            fives.push(p);
           } else if(scoreCom >= S.FOUR) {
-            fours.unshift([i,j]);
+            fours.unshift(p);
           } else if(scoreHum >= S.FOUR) {
-            fours.push([i,j]);
+            fours.push(p);
           } else if(scoreCom >= S.BLOCKED_FOUR) {
-            blockedfours.unshift([i,j]);
+            blockedfours.unshift(p);
           } else if(scoreHum >= S.BLOCKED_FOUR) {
-            blockedfours.push([i,j]);
+            blockedfours.push(p);
           } else if(scoreCom >= 2*S.THREE) {
             //能成双三也行
-            twothrees.unshift([i,j]);
+            twothrees.unshift(p);
           } else if(scoreHum >= 2*S.THREE) {
             twothrees.push([i,j]);
           } else if(scoreCom >= S.THREE) {
-            threes.unshift([i, j]);
+            threes.unshift(p);
           } else if(scoreHum >= S.THREE) {
-            threes.push([i, j]);
+            threes.push(p);
           } else if(scoreCom >= S.TWO) {
-            if (!starSpread) twos.unshift([i, j]);
-            else if (starSpread && this.isStarSpread([i, j], this.last(R.com))) twos.unshift([i, j]);
+            if (!starSpread) twos.unshift(p);
+            else if (starSpread && this.isStarSpread(p, this.last(R.com))) twos.unshift(p);
           } else if(scoreHum >= S.TWO) {
-            if (!starSpread) twos.unshift([i, j]);
-            else if (starSpread && this.isStarSpread([i, j], this.last(R.hum))) twos.unshift([i, j]);
+            if (!starSpread) twos.unshift(p);
+            else if (starSpread && this.isStarSpread(p, this.last(R.hum))) twos.unshift(p);
           } else {
-            if (!starSpread) neighbors.push([i, j]);
-            else if (starSpread && this.isStarSpread([i, j], this.last(R.hum))) neighbors.push([i, j]);
+            if (!starSpread) neighbors.push(p);
+            else if (starSpread && this.isStarSpread(p, this.last(R.hum))) neighbors.push(p);
           }
         }
       }
@@ -284,6 +285,8 @@ Board.prototype.gen = function(starSpread) {
   if(twothrees.length) {
     return twothrees.concat(threes);
   }
+
+  twos.sort(function(a, b) { return b-a });
 
   var result = threes.concat(
       twos.concat(
