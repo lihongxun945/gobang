@@ -415,7 +415,7 @@ Board.prototype.gen = function(starSpread) {
 
   twos.sort(function(a, b) { return b.score - a.score });
 
-  result = result.concat(twos).concat(neighbors);
+  result = result.concat(twos.length ? twos : neighbors);
 
   //这种分数低的，就不用全部计算了
   if(result.length>config.countLimit) {
@@ -670,7 +670,6 @@ onmessage = function(e) {
     postMessage(p);
   } else if(d.type == "GO") {
     var p = ai.turn(e.data.x, e.data.y);
-    console.log(p)
     postMessage(p);
   } else if(d.type == "BACK") {
     ai.back();
@@ -686,7 +685,7 @@ onmessage = function(e) {
 module.exports = {
   opening: true, // 使用开局库
   searchDeep: 6,  //搜索深度
-  countLimit: 20, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  countLimit: 16, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
@@ -1260,7 +1259,7 @@ var r = function(deep, alpha, beta, role, step) {
     score: MIN,
     step: step
   }
-  var points = board.gen(true);
+  var points = board.gen();
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
