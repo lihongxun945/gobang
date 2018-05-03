@@ -251,10 +251,10 @@ Board.prototype.updateScore = function(p) {
 }
 
 //下子
-Board.prototype.put = function(p, role) {
+Board.prototype.put = function(p, role, record) {
   this.board[p[0]][p[1]] = role;
   this.zobrist.go(p[0], p[1], role);
-  this.steps.push(p);
+  if (record) this.steps.push(p);
   this.updateScore(p);
   this.allSteps.push(p);
 }
