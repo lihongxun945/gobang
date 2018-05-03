@@ -260,9 +260,9 @@ Board.prototype.gen = function(starSpread) {
           if (maxScore >= S.THREE) {
             p.level = 1
           } else if (maxScore >= S.TWO) {
-            p.level = 2
-          } else {
             p.level = 3
+          } else {
+            p.level = 5
           }
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
