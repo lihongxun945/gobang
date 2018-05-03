@@ -1,12 +1,14 @@
-var c = require("../js/negamax.js");
-var board = require("../js/board.js");
+var c = require("../../js/negamax.js");
+var board = require("../../js/board.js");
 var assert = require('assert');
+var vcx = require('../../js/vcx.js');
 
-describe('test time', function() {
+describe('test maxmin', function() {
 
 
   it(`it should be OK`, function() {
-    var b = [
+    // 此时应该防守右下角，双冲四形成活三
+    b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -24,7 +26,11 @@ describe('test time', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    var p = c(6, 0);
+    var p = c(6);
+    assert.ok(p);
+    // 应该能算出vcf杀棋
+    p = vcx.vcf(2, 8);
+    console.log(p);
     assert.ok(p);
   });
 

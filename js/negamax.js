@@ -39,9 +39,7 @@ var negamax = function(deep, _checkmateDeep) {
     var p = points[i];
     board.put(p, R.com);
     // 越靠后的点，搜索深度约低，因为出现好棋的可能性比较小
-    var _deep = deep-1; // 前6个
-    if (i > 5) _deep = deep - 3; // 7~*
-    var v = r(_deep, -MAX, -MIN, R.hum, 1);
+    var v = r(deep-(p.level||1), -MAX, -MIN, R.hum, 1);
     v.score *= -1
     board.remove(p);
     console.log(p, v)
@@ -106,7 +104,7 @@ var r = function(deep, alpha, beta, role, step) {
     var p = points[i];
     board.put(p, role);
 
-    var v = r(deep-1, -beta, -1 *( best.score > alpha ? best.score : alpha), R.reverse(role), step+1);
+    var v = r(deep-(p.level||1), -beta, -1 *( best.score > alpha ? best.score : alpha), R.reverse(role), step+1);
     v.score *= -1;
     board.remove(p);
 
