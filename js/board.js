@@ -314,7 +314,7 @@ Board.prototype.gen = function(starSpread) {
     return result;
   }
 
-  twos.sort(function(a, b) { return b-a });
+  // twos.sort(function(a, b) { return b-a });
 
   result = result.concat(twos).concat(neighbors);
 
@@ -322,6 +322,8 @@ Board.prototype.gen = function(starSpread) {
   if(result.length>config.countLimit) {
     return result.slice(0, config.countLimit);
   }
+
+  console.log(result)
 
   return result;
 }
