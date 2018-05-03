@@ -678,6 +678,7 @@ onmessage = function(e) {
     if (d.searchDeep) config.searchDeep = d.searchDeep
     if (d.countLimit) config.countLimit = d.countLimit
     if (d.checkmateDeep) config.checkmateDeep = d.checkmateDeep
+    if (d.timeLimit) config.timeLimit = d.timeLimit
   }
 }
 
@@ -686,6 +687,7 @@ module.exports = {
   opening: true, // 使用开局库
   searchDeep: 6,  //搜索深度
   countLimit: 16, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  timeLimit: 10, // 时间限制，秒
   checkmateDeep:  5,  //算杀深度
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
@@ -1179,6 +1181,7 @@ var steps=0,  //总步数
 var Cache = {};
 
 var checkmateDeep;
+var startTime; // 开始时间，用来计算每一步的时间
 
 /*
  * max min search
@@ -1205,6 +1208,11 @@ var negamax = function(deep, _checkmateDeep) {
     board.remove(p);
     console.log(p, v)
     p.v = v
+    if ((+ new Date()) - start > config.timeLimit * 1000) {
+      console.log('timeout...');
+      points = points.slice(0, i+1);
+      break; // 超时，退出循环
+    }
   }
   //排序
   points.sort(function (a,b) {
@@ -1320,6 +1328,7 @@ var cache = function(deep, score) {
 }
 
 var deeping = function(deep) {
+  start = (+ new Date())
   deep = deep === undefined ? config.searchDeep : deep;
   //迭代加深
   //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准

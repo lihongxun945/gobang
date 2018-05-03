@@ -221,6 +221,12 @@ function counter(el, _default, MIN, MAX, cb){
   })
 }
 
+counter($('#time'), config.timeLimit, 1, 30, function (n) {
+  b.setConfig({
+    timeLimit: n
+  })
+})
+
 counter($('#depth'), config.searchDeep, 4, 8, function (n) {
   b.setConfig({
     searchDeep: n

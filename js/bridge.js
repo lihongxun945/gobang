@@ -21,5 +21,6 @@ onmessage = function(e) {
     if (d.searchDeep) config.searchDeep = d.searchDeep
     if (d.countLimit) config.countLimit = d.countLimit
     if (d.checkmateDeep) config.checkmateDeep = d.checkmateDeep
+    if (d.timeLimit) config.timeLimit = d.timeLimit
   }
 }
