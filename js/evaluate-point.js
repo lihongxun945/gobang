@@ -264,7 +264,7 @@ var s = function(b, p, role, dir) {
   }
   result += b.scoreCache[role][3][p[0]][p[1]]
 
-  return fixScore(result);
+  return result;
 }
 
 
@@ -412,24 +412,5 @@ var countToScore = function(count, block, empty) {
 
   return 0;
 }
-
-//冲四的分其实肯定比活三高，但是如果这样的话容易形成盲目冲四的问题，所以如果发现电脑有无意义的冲四，则将分数降低到和活三一样
-//而对于冲四活三这种杀棋，则将分数提高。
-var fixScore = function(type) {
-  if(type < score.FOUR && type >= score.BLOCKED_FOUR) {
-
-    if(type >= score.BLOCKED_FOUR && type < (score.BLOCKED_FOUR + score.THREE)) {
-      //单独冲四，意义不大
-      return score.THREE;
-    } else if(type >= score.BLOCKED_FOUR + score.THREE && type < score.BLOCKED_FOUR * 2) {
-      return score.FOUR;  //冲四活三，比双三分高，相当于自己形成活四
-    } else {
-      //双冲四 比活四分数也高
-      return score.FOUR * 2;
-    }
-  }
-  return type;
-}
-
 
 module.exports = s;
