@@ -5,7 +5,7 @@ var assert = require('assert');
 describe('test maxmin', function() {
 
 
-  it(`it should be OK`, function() {
+  it(`opening`, function() {
     // 开具
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -26,7 +26,7 @@ describe('test maxmin', function() {
     assert.ok(p); //6层是 [3,3], [2,4], [8,8] 
   });
 
-  it(`it should be OK`, function() {
+  it(`vcx`, function() {
     // 算杀
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -48,7 +48,7 @@ describe('test maxmin', function() {
     //[4, 2], [3,3],[5,5],[2,4],[1,5],[3,4]
   });
 
-  it(`it should be OK`, function() {
+  it(`defend`, function() {
     //  测试防守，应该防守 [5, 6]
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -68,7 +68,7 @@ describe('test maxmin', function() {
     console.log("######", p);
     assert.ok(p);
   });
-  it(`it should be OK`, function() {
+  it(`attack`, function() {
     //  测试进攻，进攻 [5,6]
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
