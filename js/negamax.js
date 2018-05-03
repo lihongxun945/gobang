@@ -99,7 +99,7 @@ var r = function(deep, alpha, beta, role, step) {
     score: MIN,
     step: step
   }
-  var points = board.gen(true);
+  var points = board.gen();
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];

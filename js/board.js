@@ -318,7 +318,7 @@ Board.prototype.gen = function(starSpread) {
 
   twos.sort(function(a, b) { return b.score - a.score });
 
-  result = result.concat(twos).concat(neighbors);
+  result = result.concat(twos.length ? twos : neighbors);
 
   //这种分数低的，就不用全部计算了
   if(result.length>config.countLimit) {
