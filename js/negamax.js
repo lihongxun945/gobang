@@ -20,6 +20,7 @@ var Cache = {};
 
 var checkmateDeep;
 var startTime; // 开始时间，用来计算每一步的时间
+var allBestPoints; // 记录迭代过程中得到的全部最好点
 
 /*
  * max min search
@@ -36,6 +37,11 @@ var negamax = function(deep, _checkmateDeep) {
   PVcut = 0;
   checkmateDeep = (_checkmateDeep == undefined ? config.checkmateDeep : _checkmateDeep);
 
+  if (points[0].level > 1) {
+    // 最大值就是能成活二的，这时0.x秒就搜索完了，增加深度以充分利用时间
+    deep += 4
+  }
+
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board.put(p, R.com);
@@ -46,6 +52,10 @@ var negamax = function(deep, _checkmateDeep) {
     board.remove(p);
     console.log(p, v)
     p.v = v
+    // 如果在更浅层的搜索中得到了一个最好值，那么这次搜索到的时候要更新它的结果，因为搜的越深结果约准
+    // TODO
+
+    // 超时判定
     if ((+ new Date()) - start > config.timeLimit * 1000) {
       console.log('timeout...');
       points = points.slice(0, i+1);
@@ -167,6 +177,7 @@ var cache = function(deep, score) {
 
 var deeping = function(deep) {
   start = (+ new Date())
+  allBestPoints = [];
   deep = deep === undefined ? config.searchDeep : deep;
   //迭代加深
   //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
@@ -174,7 +185,14 @@ var deeping = function(deep) {
   for(var i=2;i<=deep; i+=2) {
     result = negamax(i);
     if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
+    if(i>2) allBestPoints.push(result); // 深度只有2的不考虑，太不准了
   }
-  return result;
+  allBestPoints.sort(function (a, b) {
+    // 如果分数差不多，相信步数长的那个
+    if (math.equal(a.score, b.score)) return b.step > a.step;
+    else return b.score > a.score
+  })
+  console.log(allBestPoints);
+  return allBestPoints[0];
 }
 module.exports = deeping;

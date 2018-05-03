@@ -1,4 +1,4 @@
-var threshold = 1.2;
+var threshold = 1.3;
 
 var equal = function(a, b) {
   b = b || 0.01
