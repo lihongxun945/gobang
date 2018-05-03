@@ -102,6 +102,24 @@ var S = require("./score.js");
 var config = require("./config.js");
 var array = require("./arrary.js");
 
+//冲四的分其实肯定比活三高，但是如果这样的话容易形成盲目冲四的问题，所以如果发现电脑有无意义的冲四，则将分数降低到和活三一样
+//而对于冲四活三这种杀棋，则将分数提高。
+var fixScore = function(type) {
+  if(type < S.FOUR && type >= S.BLOCKED_FOUR) {
+
+    if(type >= S.BLOCKED_FOUR && type < (S.BLOCKED_FOUR + S.THREE)) {
+      //单独冲四，意义不大
+      return S.THREE;
+    } else if(type >= S.BLOCKED_FOUR + S.THREE && type < S.BLOCKED_FOUR * 2) {
+      return S.FOUR;  //冲四活三，比双三分高，相当于自己形成活四
+    } else {
+      //双冲四 比活四分数也高
+      return S.FOUR * 2;
+    }
+  }
+  return type;
+}
+
 var Board = function() {
 }
 
@@ -233,11 +251,10 @@ Board.prototype.updateScore = function(p) {
 }
 
 //下子
-Board.prototype.put = function(p, role, record) {
+Board.prototype.put = function(p, role) {
   this.board[p[0]][p[1]] = role;
   this.zobrist.go(p[0], p[1], role);
   this.updateScore(p);
-  if(record) this.steps.push(p);
   this.allSteps.push(p);
 }
 // 最后一次下子位置
@@ -293,6 +310,8 @@ Board.prototype.evaluate = function(role) {
       }
     }
   }
+  this.comMaxScore = fixScore(this.comMaxScore);
+  this.humMaxScore = fixScore(this.humMaxScore);
   var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
   this.evaluateCache[this.zobrist.code] = result;
 
@@ -330,6 +349,17 @@ Board.prototype.gen = function(starSpread) {
         if(this.hasNeighbor([i, j], neighbor[0], neighbor[1])) { //必须是有邻居的才行
           var scoreHum = this.humScore[i][j];
           var scoreCom = this.comScore[i][j];
+          var maxScore = Math.max(scoreCom, scoreHum);
+          p.score = maxScore
+
+          // 结果分级
+          if (maxScore >= S.THREE) {
+            p.level = 1
+          } else if (maxScore >= S.TWO) {
+            p.level = 2
+          } else {
+            p.level = 3
+          }
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             return [p];
@@ -375,21 +405,16 @@ Board.prototype.gen = function(starSpread) {
   //所以不能碰到活四就返回第一个，应该需要考虑多个
   if(fours.length) return fours;
 
-  //冲四活三
-  if(blockedfours.length) return [blockedfours[0]];
+  var result = blockedfours.concat(twothrees).concat(threes);
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
   if(twothrees.length) {
-    return twothrees.concat(threes);
+    return result;
   }
 
-  twos.sort(function(a, b) { return b-a });
+  twos.sort(function(a, b) { return b.score - a.score });
 
-  var result = threes.concat(
-      twos.concat(
-        neighbors
-      )
-    );
+  result = result.concat(twos).concat(neighbors);
 
   //这种分数低的，就不用全部计算了
   if(result.length>config.countLimit) {
@@ -660,7 +685,7 @@ onmessage = function(e) {
 module.exports = {
   opening: true, // 使用开局库
   searchDeep: 6,  //搜索深度
-  countLimit: 18, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  countLimit: 20, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
   checkmateDeep:  5,  //算杀深度
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
@@ -938,7 +963,7 @@ var s = function(b, p, role, dir) {
   }
   result += b.scoreCache[role][3][p[0]][p[1]]
 
-  return fixScore(result);
+  return result;
 }
 
 
@@ -1087,25 +1112,6 @@ var countToScore = function(count, block, empty) {
   return 0;
 }
 
-//冲四的分其实肯定比活三高，但是如果这样的话容易形成盲目冲四的问题，所以如果发现电脑有无意义的冲四，则将分数降低到和活三一样
-//而对于冲四活三这种杀棋，则将分数提高。
-var fixScore = function(type) {
-  if(type < score.FOUR && type >= score.BLOCKED_FOUR) {
-
-    if(type >= score.BLOCKED_FOUR && type < (score.BLOCKED_FOUR + score.THREE)) {
-      //单独冲四，意义不大
-      return score.THREE;
-    } else if(type >= score.BLOCKED_FOUR + score.THREE && type < score.BLOCKED_FOUR * 2) {
-      return score.FOUR;  //冲四活三，比双三分高，相当于自己形成活四
-    } else {
-      //双冲四 比活四分数也高
-      return score.FOUR * 2;
-    }
-  }
-  return type;
-}
-
-
 module.exports = s;
 
 },{"./role.js":12,"./score.js":13}],9:[function(require,module,exports){
@@ -1193,9 +1199,8 @@ var negamax = function(deep, _checkmateDeep) {
     var p = points[i];
     board.put(p, R.com);
     // 越靠后的点，搜索深度约低，因为出现好棋的可能性比较小
-    var _deep = deep-1; // 前6个
-    if (i > 5) _deep = deep - 3; // 7~*
-    var v = r(_deep, -MAX, -MIN, R.hum, 1);
+    // TODO: 有的时候 p.level 会变成未定义，不知道是什么原因
+    var v = r(deep-(p.level||1), -MAX, -MIN, R.hum, 1);
     v.score *= -1
     board.remove(p);
     console.log(p, v)
@@ -1203,11 +1208,18 @@ var negamax = function(deep, _checkmateDeep) {
   }
   //排序
   points.sort(function (a,b) {
-    if (math.equal(a.v.score,b.v.score)) return a.v.step - b.v.step
+    if (math.equal(a.v.score,b.v.score)) {
+      // 大于零是优势，尽快获胜，因此取步数短的
+      // 小于0是劣势，尽量拖延，因此取步数长的
+      if (a.v.score >= 0) return a.v.step - b.v.step
+      else return b.v.step - a.v.step
+    }
     else return (b.v.score - a.v.score)
   })
   var best = points[0];
-  bestPoints = points.filter(function (p) { return math.greatOrEqualThan(p.v.score, best.v.score) });
+  bestPoints = points.filter(function (p) {
+    return math.greatOrEqualThan(p.v.score, best.v.score) && p.v.step === best.v.step
+  });
   var result = points[0];
   result.score = points[0].v.score;
   result.step = points[0].v.step;
@@ -1253,7 +1265,7 @@ var r = function(deep, alpha, beta, role, step) {
     var p = points[i];
     board.put(p, role);
 
-    var v = r(deep-1, -beta, -1 *( best.score > alpha ? best.score : alpha), R.reverse(role), step+1);
+    var v = r(deep-(p.level||1), -beta, -1 *( best.score > alpha ? best.score : alpha), R.reverse(role), step+1);
     v.score *= -1;
     board.remove(p);
 
@@ -1404,7 +1416,6 @@ arguments[4][1][0].apply(exports,arguments)
  */
 
 var R = require("./role.js");
-var scorePoint = require("./evaluate-point.js");
 var S = require("./SCORE.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
@@ -1628,7 +1639,7 @@ var vcx = function(role, deep, onlyFour) {
     MIN_SCORE = S.BLOCKED_FOUR;
     result = deeping(role, deep);
     if(result) {
-      result.score = S.THREE*2; //虽然不如活四分数高，但是还是比活三分数要高的
+      result.score = S.THREE*2; //连续冲三赢，就等于是双三
     }
 
     return result;
@@ -1654,7 +1665,7 @@ module.exports = {
 }
 
 
-},{"./SCORE.js":1,"./board.js":4,"./config.js":6,"./debug.js":7,"./evaluate-point.js":8,"./role.js":12,"./zobrist.js":15}],15:[function(require,module,exports){
+},{"./SCORE.js":1,"./board.js":4,"./config.js":6,"./debug.js":7,"./role.js":12,"./zobrist.js":15}],15:[function(require,module,exports){
 var R = require("./role.js");
 
 var Zobrist = function(size) {
