@@ -254,6 +254,7 @@ Board.prototype.updateScore = function(p) {
 Board.prototype.put = function(p, role) {
   this.board[p[0]][p[1]] = role;
   this.zobrist.go(p[0], p[1], role);
+  this.steps.push(p);
   this.updateScore(p);
   this.allSteps.push(p);
 }
@@ -660,7 +661,6 @@ var config = require('./config.js');
 
 var ai = new AI();
 
-
 onmessage = function(e) {
   var d = e.data;
   if(d.type == "START") {
@@ -670,6 +670,7 @@ onmessage = function(e) {
     postMessage(p);
   } else if(d.type == "GO") {
     var p = ai.turn(e.data.x, e.data.y);
+    console.log(p)
     postMessage(p);
   } else if(d.type == "BACK") {
     ai.back();

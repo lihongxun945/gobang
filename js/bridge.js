@@ -4,7 +4,6 @@ var config = require('./config.js');
 
 var ai = new AI();
 
-
 onmessage = function(e) {
   var d = e.data;
   if(d.type == "START") {
@@ -14,6 +13,7 @@ onmessage = function(e) {
     postMessage(p);
   } else if(d.type == "GO") {
     var p = ai.turn(e.data.x, e.data.y);
+    console.log(p)
     postMessage(p);
   } else if(d.type == "BACK") {
     ai.back();
