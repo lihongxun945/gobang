@@ -253,6 +253,7 @@ Board.prototype.gen = function(starSpread) {
           var scoreHum = this.humScore[i][j];
           var scoreCom = this.comScore[i][j];
           var maxScore = Math.max(scoreCom, scoreHum);
+          p.score = maxScore
 
           // 结果分级
           if (maxScore >= S.THREE) {
@@ -314,7 +315,7 @@ Board.prototype.gen = function(starSpread) {
     return result;
   }
 
-  // twos.sort(function(a, b) { return b-a });
+  twos.sort(function(a, b) { return b.score - a.score });
 
   result = result.concat(twos).concat(neighbors);
 
@@ -322,8 +323,6 @@ Board.prototype.gen = function(starSpread) {
   if(result.length>config.countLimit) {
     return result.slice(0, config.countLimit);
   }
-
-  console.log(result)
 
   return result;
 }
