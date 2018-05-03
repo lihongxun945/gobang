@@ -14,7 +14,6 @@
  */
 
 var R = require("./role.js");
-var scorePoint = require("./evaluate-point.js");
 var S = require("./SCORE.js");
 var config = require("./config.js");
 var zobrist = require("./zobrist.js");
@@ -238,7 +237,7 @@ var vcx = function(role, deep, onlyFour) {
     MIN_SCORE = S.BLOCKED_FOUR;
     result = deeping(role, deep);
     if(result) {
-      result.score = S.THREE*2; //虽然不如活四分数高，但是还是比活三分数要高的
+      result.score = S.THREE*2; //连续冲三赢，就等于是双三
     }
 
     return result;

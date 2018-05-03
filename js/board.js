@@ -136,11 +136,10 @@ Board.prototype.updateScore = function(p) {
 }
 
 //下子
-Board.prototype.put = function(p, role, record) {
+Board.prototype.put = function(p, role) {
   this.board[p[0]][p[1]] = role;
   this.zobrist.go(p[0], p[1], role);
   this.updateScore(p);
-  if(record) this.steps.push(p);
   this.allSteps.push(p);
 }
 // 最后一次下子位置

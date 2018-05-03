@@ -49,11 +49,18 @@ var negamax = function(deep, _checkmateDeep) {
   }
   //排序
   points.sort(function (a,b) {
-    if (math.equal(a.v.score,b.v.score)) return a.v.step - b.v.step
+    if (math.equal(a.v.score,b.v.score)) {
+      // 大于零是优势，尽快获胜，因此取步数短的
+      // 小于0是劣势，尽量拖延，因此取步数长的
+      if (a.v.score >= 0) return a.v.step - b.v.step
+      else return b.v.step - a.v.step
+    }
     else return (b.v.score - a.v.score)
   })
   var best = points[0];
-  bestPoints = points.filter(function (p) { return math.greatOrEqualThan(p.v.score, best.v.score) });
+  bestPoints = points.filter(function (p) {
+    return math.greatOrEqualThan(p.v.score, best.v.score) && p.v.step === best.v.step
+  });
   var result = points[0];
   result.score = points[0].v.score;
   result.step = points[0].v.step;
