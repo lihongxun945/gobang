@@ -20,7 +20,10 @@ var zobrist = require("./zobrist.js");
 var debug = require("./debug.js");
 var board = require("./board.js");
 
-var Cache = {};
+var Cache = {
+  vct: {},
+  vcf: {}
+}
 
 var debugNodeCount = 0;
 
@@ -28,8 +31,10 @@ var MAX_SCORE = S.THREE;
 var MIN_SCORE = S.FOUR;
 
 var debugCheckmate = debug.checkmate = {
-  cacheCount: 0,
-  cacheGet: 0
+  cacheCount: 0, // cache 总数
+
+  totalCount: 0, // 算杀总数
+  cacheHit: 0, // 缓存命中
 }
 
 
@@ -113,16 +118,6 @@ var max = function(role, deep) {
   debugNodeCount ++;
   if(deep <= 0) return false;
 
-  if(config.cache) {
-    var c = Cache[zobrist.code];
-    if(c) {
-      if(c.deep >= deep || c.result !== false) {
-        debugCheckmate.cacheGet ++;
-        return c.result;
-      }
-    }
-  }
-
   var points = findMax(role, MAX_SCORE);
   if(points.length && points[0].score >= S.FOUR) return [points[0]]; //为了减少一层搜索，活四就行了。
   if(points.length == 0) return false;
@@ -134,15 +129,12 @@ var max = function(role, deep) {
     if(m) {
       if(m.length) {
         m.unshift(p); //注意 unshift 方法返回的是新数组长度，而不是新数组本身
-        cache(deep, m);
         return m;
       } else {
-        cache(deep, [p]);
         return [p];
       }
     }
   }
-  cache(deep, false);
   return false;
 }
 
@@ -154,15 +146,6 @@ var min = function(role, deep) {
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
-  if(config.cache) {
-    var c = Cache[zobrist.code];
-    if(c){
-      if(c.deep >= deep || c.result !== false) {
-        debugCheckmate.cacheGet ++;
-        return c.result;
-      }
-    }
-  }
   var points = findMin(R.reverse(role), MIN_SCORE);
   if(points.length == 0) return false;
   if(points.length && -1 * points[0].score  >= S.FOUR) return false; //为了减少一层搜索，活四就行了。
@@ -177,25 +160,29 @@ var min = function(role, deep) {
     if(m) {
       m.unshift(p);
       cands.push(m);
-      cache(deep, m);
       continue;
     } else {
-      cache(deep, false);
       return false; //只要有一种能防守住
     }
   }
   var result = cands[Math.floor(cands.length*Math.random())];  //无法防守住
-  cache(deep, result);
   return result;
 }
 
-var cache = function(deep, result) {
-  if(!config.cache) return;
-  Cache[zobrist.code] = {
-    deep: deep,
-    result: result
-  }
+var cache = function(result, vcf) {
+  if(!config.vcxCache) return;
+  if (vcf) Cache.vcf[zobrist.code] = result
+  else Cache.vct[zobrist.code] = result
   debugCheckmate.cacheCount ++;
+}
+var getCache = function(vcf) {
+  if(!config.vcxCache) return;
+  debugCheckmate.totalCount ++;
+  var result;
+  if (vcf) result = Cache.vcf[zobrist.code]
+  else result = Cache.vct[zobrist.code]
+  if (result) debugCheckmate.cacheHit ++;
+  return result;
 }
 
 //迭代加深
@@ -249,12 +236,20 @@ var vcx = function(role, deep, onlyFour) {
 
 // 连续冲四
 var vcf = function (role, deep) {
-  return vcx(role, deep, true)
+  var c = getCache(true);
+  if (c) return c;
+  var result = vcx(role, deep, true);
+  cache(result, true);
+  return result;
 }
 
 // 连续活三
 var vct = function (role, deep) {
-  return vcx(role, deep, false)
+  var c = getCache();
+  if (c) return c;
+  var result = vcx(role, deep, false);
+  cache(result);
+  return result;
 }
 
 module.exports = {

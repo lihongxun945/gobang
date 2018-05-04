@@ -725,6 +725,7 @@ module.exports = {
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
   cache: false,  //是否使用效率不高的置换表
+  vcxCache: true  // 在vcx中使用置换表
 }
 
 },{}],7:[function(require,module,exports){
@@ -1390,7 +1391,10 @@ var deeping = function(deep) {
   config.log && console.log("可选节点：" + bestPoints.join(';'));
   config.log && console.log("选择节点：" + candidates[0] + ", 分数:"+result.score.toFixed(3)+", 步数:" + result.step);
   var time = (new Date() - start)/1000
-  config.log && console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount + ',算杀缓存命中:' + (debug.checkmate.cacheGet / debug.checkmate.cacheCount).toFixed(3) + ',' + debug.checkmate.cacheGet + '/'+debug.checkmate.cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  config.log && console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut);
+  config.log && console.log(',缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount)
+  config.log && console.log('算杀缓存:' + '总数 ' + debug.checkmate.cacheCount + ', 命中:' + (debug.checkmate.cacheHit / debug.checkmate.totalCount * 100).toFixed(3) + '% ,' + debug.checkmate.cacheHit + '/'+debug.checkmate.totalCount);
+  //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   config.log && console.log('当前统计：' + count + '个节点, 耗时:' + time.toFixed(2) + 's, NPS:' + Math.floor(count/ time) + 'N/S');
   config.log && console.log("================================");
   return result;
@@ -1487,7 +1491,10 @@ var zobrist = require("./zobrist.js");
 var debug = require("./debug.js");
 var board = require("./board.js");
 
-var Cache = {};
+var Cache = {
+  vct: {},
+  vcf: {}
+}
 
 var debugNodeCount = 0;
 
@@ -1495,8 +1502,10 @@ var MAX_SCORE = S.THREE;
 var MIN_SCORE = S.FOUR;
 
 var debugCheckmate = debug.checkmate = {
-  cacheCount: 0,
-  cacheGet: 0
+  cacheCount: 0, // cache 总数
+
+  totalCount: 0, // 算杀总数
+  cacheHit: 0, // 缓存命中
 }
 
 
@@ -1580,16 +1589,6 @@ var max = function(role, deep) {
   debugNodeCount ++;
   if(deep <= 0) return false;
 
-  if(config.cache) {
-    var c = Cache[zobrist.code];
-    if(c) {
-      if(c.deep >= deep || c.result !== false) {
-        debugCheckmate.cacheGet ++;
-        return c.result;
-      }
-    }
-  }
-
   var points = findMax(role, MAX_SCORE);
   if(points.length && points[0].score >= S.FOUR) return [points[0]]; //为了减少一层搜索，活四就行了。
   if(points.length == 0) return false;
@@ -1601,15 +1600,12 @@ var max = function(role, deep) {
     if(m) {
       if(m.length) {
         m.unshift(p); //注意 unshift 方法返回的是新数组长度，而不是新数组本身
-        cache(deep, m);
         return m;
       } else {
-        cache(deep, [p]);
         return [p];
       }
     }
   }
-  cache(deep, false);
   return false;
 }
 
@@ -1621,15 +1617,6 @@ var min = function(role, deep) {
   if(w == role) return true;
   if(w == R.reverse(role)) return false;
   if(deep <= 0) return false;
-  if(config.cache) {
-    var c = Cache[zobrist.code];
-    if(c){
-      if(c.deep >= deep || c.result !== false) {
-        debugCheckmate.cacheGet ++;
-        return c.result;
-      }
-    }
-  }
   var points = findMin(R.reverse(role), MIN_SCORE);
   if(points.length == 0) return false;
   if(points.length && -1 * points[0].score  >= S.FOUR) return false; //为了减少一层搜索，活四就行了。
@@ -1644,25 +1631,29 @@ var min = function(role, deep) {
     if(m) {
       m.unshift(p);
       cands.push(m);
-      cache(deep, m);
       continue;
     } else {
-      cache(deep, false);
       return false; //只要有一种能防守住
     }
   }
   var result = cands[Math.floor(cands.length*Math.random())];  //无法防守住
-  cache(deep, result);
   return result;
 }
 
-var cache = function(deep, result) {
-  if(!config.cache) return;
-  Cache[zobrist.code] = {
-    deep: deep,
-    result: result
-  }
+var cache = function(result, vcf) {
+  if(!config.vcxCache) return;
+  if (vcf) Cache.vcf[zobrist.code] = result
+  else Cache.vct[zobrist.code] = result
   debugCheckmate.cacheCount ++;
+}
+var getCache = function(vcf) {
+  if(!config.vcxCache) return;
+  debugCheckmate.totalCount ++;
+  var result;
+  if (vcf) result = Cache.vcf[zobrist.code]
+  else result = Cache.vct[zobrist.code]
+  if (result) debugCheckmate.cacheHit ++;
+  return result;
 }
 
 //迭代加深
@@ -1716,12 +1707,20 @@ var vcx = function(role, deep, onlyFour) {
 
 // 连续冲四
 var vcf = function (role, deep) {
-  return vcx(role, deep, true)
+  var c = getCache(true);
+  if (c) return c;
+  var result = vcx(role, deep, true);
+  cache(result, true);
+  return result;
 }
 
 // 连续活三
 var vct = function (role, deep) {
-  return vcx(role, deep, false)
+  var c = getCache();
+  if (c) return c;
+  var result = vcx(role, deep, false);
+  cache(result);
+  return result;
 }
 
 module.exports = {
