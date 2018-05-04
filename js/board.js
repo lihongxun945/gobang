@@ -217,7 +217,7 @@ Board.prototype.evaluate = function(role) {
   this.comMaxScore = fixScore(this.comMaxScore);
   this.humMaxScore = fixScore(this.humMaxScore);
   var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
-  this.evaluateCache[this.zobrist.code] = result;
+  if (config.cache) this.evaluateCache[this.zobrist.code] = result;
 
   return result;
 
@@ -232,14 +232,24 @@ Board.prototype.evaluate = function(role) {
  * 注意只有对小于活三的棋才进行starSpread优化
  */
 
+/*
+ * gen 函数的排序是非常重要的，因为好的排序能极大提升AB剪枝的效率。
+ * 而对结果的排序，是要根据role来的
+ */
 
-Board.prototype.gen = function(starSpread) {
+
+Board.prototype.gen = function(role, starSpread) {
   var fives = [];
-  var fours=[];
-  var blockedfours = [];
-  var twothrees=[];
-  var threes = [];
-  var twos = [];
+  var comfours=[];
+  var humfours=[];
+  var comblockedfours = [];
+  var humblockedfours = [];
+  var comtwothrees=[];
+  var humtwothrees=[];
+  var comthrees = [];
+  var humthrees = [];
+  var comtwos = [];
+  var humtwos = [];
   var neighbors = [];
 
   var board = this.board;
@@ -260,39 +270,39 @@ Board.prototype.gen = function(starSpread) {
           if (maxScore >= S.THREE) {
             p.level = 1
           } else if (maxScore >= S.TWO) {
-            p.level = 3
+            p.level = 2
           } else {
-            p.level = 5
+            p.level = 3
           }
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
-            return [p];
+            fives.push(p);
           } else if(scoreHum >= S.FIVE) {//再看玩家能不能连成5
             //别急着返回，因为遍历还没完成，说不定电脑自己能成五。
             fives.push(p);
           } else if(scoreCom >= S.FOUR) {
-            fours.unshift(p);
+            comfours.push(p);
           } else if(scoreHum >= S.FOUR) {
-            fours.push(p);
+            humfours.push(p);
           } else if(scoreCom >= S.BLOCKED_FOUR) {
-            blockedfours.unshift(p);
+            comblockedfours.push(p);
           } else if(scoreHum >= S.BLOCKED_FOUR) {
-            blockedfours.push(p);
+            humblockedfours.push(p);
           } else if(scoreCom >= 2*S.THREE) {
             //能成双三也行
-            twothrees.unshift(p);
+            comtwothrees.push(p);
           } else if(scoreHum >= 2*S.THREE) {
-            twothrees.push([i,j]);
+            humtwothrees.push(p);
           } else if(scoreCom >= S.THREE) {
-            threes.unshift(p);
+            comthrees.push(p);
           } else if(scoreHum >= S.THREE) {
-            threes.push(p);
+            humthrees.push(p);
           } else if(scoreCom >= S.TWO) {
-            if (!starSpread) twos.unshift(p);
-            else if (starSpread && this.isStarSpread(p, this.last(R.com))) twos.unshift(p);
+            if (!starSpread) comtwos.unshift(p);
+            else if (starSpread && this.isStarSpread(p, this.last(R.com))) comtwos.unshift(p);
           } else if(scoreHum >= S.TWO) {
-            if (!starSpread) twos.unshift(p);
-            else if (starSpread && this.isStarSpread(p, this.last(R.hum))) twos.unshift(p);
+            if (!starSpread) humtwos.unshift(p);
+            else if (starSpread && this.isStarSpread(p, this.last(R.hum))) humtwos.unshift(p);
           } else {
             if (!starSpread) neighbors.push(p);
             else if (starSpread && this.isStarSpread(p, this.last(R.hum))) neighbors.push(p);
@@ -303,21 +313,44 @@ Board.prototype.gen = function(starSpread) {
   }
 
   //如果成五，是必杀棋，直接返回
-  if(fives.length) return [fives[0]];
+  if(fives.length) return fives;
   
   //注意一个活三可以有两个位置形成活四，但是不能只考虑其中一个，要从多个中考虑更好的选择
   //所以不能碰到活四就返回第一个，应该需要考虑多个
-  if(fours.length) return fours;
+  //注意结果顺序，根据当前角色来
+  if(comfours.length || humfours.length) return role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
 
-  var result = blockedfours.concat(twothrees).concat(threes);
+  var result;
+  if (role === R.com) {
+    result = comblockedfours
+      .concat(humblockedfours)
+      .concat(comtwothrees)
+      .concat(humtwothrees)
+      .concat(comthrees)
+      .concat(humthrees)
+  }
+  if (role === R.hum) {
+    result = humblockedfours
+      .concat(comblockedfours)
+      .concat(humtwothrees)
+      .concat(comtwothrees)
+      .concat(humthrees)
+      .concat(comthrees)
+  }
+
+  result.sort(function(a, b) { return b.score - a.score })
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
-  if(twothrees.length) {
+  if(comtwothrees.length || humtwothrees.length) {
     return result;
   }
 
-  twos.sort(function(a, b) { return b.score - a.score });
+  var twos;
+  if (role === R.com) twos = comtwos.concat(humtwos);
+  else twos = humtwos.concat(comtwos);
 
+  twos.sort(function(a, b) { return b.score - a.score });
+;
   result = result.concat(twos.length ? twos : neighbors);
 
   //这种分数低的，就不用全部计算了

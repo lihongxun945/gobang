@@ -314,7 +314,7 @@ Board.prototype.evaluate = function(role) {
   this.comMaxScore = fixScore(this.comMaxScore);
   this.humMaxScore = fixScore(this.humMaxScore);
   var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
-  this.evaluateCache[this.zobrist.code] = result;
+  if (config.cache) this.evaluateCache[this.zobrist.code] = result;
 
   return result;
 
@@ -329,14 +329,24 @@ Board.prototype.evaluate = function(role) {
  * 注意只有对小于活三的棋才进行starSpread优化
  */
 
+/*
+ * gen 函数的排序是非常重要的，因为好的排序能极大提升AB剪枝的效率。
+ * 而对结果的排序，是要根据role来的
+ */
 
-Board.prototype.gen = function(starSpread) {
+
+Board.prototype.gen = function(role, starSpread) {
   var fives = [];
-  var fours=[];
-  var blockedfours = [];
-  var twothrees=[];
-  var threes = [];
-  var twos = [];
+  var comfours=[];
+  var humfours=[];
+  var comblockedfours = [];
+  var humblockedfours = [];
+  var comtwothrees=[];
+  var humtwothrees=[];
+  var comthrees = [];
+  var humthrees = [];
+  var comtwos = [];
+  var humtwos = [];
   var neighbors = [];
 
   var board = this.board;
@@ -357,39 +367,39 @@ Board.prototype.gen = function(starSpread) {
           if (maxScore >= S.THREE) {
             p.level = 1
           } else if (maxScore >= S.TWO) {
-            p.level = 3
+            p.level = 2
           } else {
-            p.level = 5
+            p.level = 3
           }
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
-            return [p];
+            fives.push(p);
           } else if(scoreHum >= S.FIVE) {//再看玩家能不能连成5
             //别急着返回，因为遍历还没完成，说不定电脑自己能成五。
             fives.push(p);
           } else if(scoreCom >= S.FOUR) {
-            fours.unshift(p);
+            comfours.push(p);
           } else if(scoreHum >= S.FOUR) {
-            fours.push(p);
+            humfours.push(p);
           } else if(scoreCom >= S.BLOCKED_FOUR) {
-            blockedfours.unshift(p);
+            comblockedfours.push(p);
           } else if(scoreHum >= S.BLOCKED_FOUR) {
-            blockedfours.push(p);
+            humblockedfours.push(p);
           } else if(scoreCom >= 2*S.THREE) {
             //能成双三也行
-            twothrees.unshift(p);
+            comtwothrees.push(p);
           } else if(scoreHum >= 2*S.THREE) {
-            twothrees.push([i,j]);
+            humtwothrees.push(p);
           } else if(scoreCom >= S.THREE) {
-            threes.unshift(p);
+            comthrees.push(p);
           } else if(scoreHum >= S.THREE) {
-            threes.push(p);
+            humthrees.push(p);
           } else if(scoreCom >= S.TWO) {
-            if (!starSpread) twos.unshift(p);
-            else if (starSpread && this.isStarSpread(p, this.last(R.com))) twos.unshift(p);
+            if (!starSpread) comtwos.unshift(p);
+            else if (starSpread && this.isStarSpread(p, this.last(R.com))) comtwos.unshift(p);
           } else if(scoreHum >= S.TWO) {
-            if (!starSpread) twos.unshift(p);
-            else if (starSpread && this.isStarSpread(p, this.last(R.hum))) twos.unshift(p);
+            if (!starSpread) humtwos.unshift(p);
+            else if (starSpread && this.isStarSpread(p, this.last(R.hum))) humtwos.unshift(p);
           } else {
             if (!starSpread) neighbors.push(p);
             else if (starSpread && this.isStarSpread(p, this.last(R.hum))) neighbors.push(p);
@@ -400,21 +410,44 @@ Board.prototype.gen = function(starSpread) {
   }
 
   //如果成五，是必杀棋，直接返回
-  if(fives.length) return [fives[0]];
+  if(fives.length) return fives;
   
   //注意一个活三可以有两个位置形成活四，但是不能只考虑其中一个，要从多个中考虑更好的选择
   //所以不能碰到活四就返回第一个，应该需要考虑多个
-  if(fours.length) return fours;
+  //注意结果顺序，根据当前角色来
+  if(comfours.length || humfours.length) return role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
 
-  var result = blockedfours.concat(twothrees).concat(threes);
+  var result;
+  if (role === R.com) {
+    result = comblockedfours
+      .concat(humblockedfours)
+      .concat(comtwothrees)
+      .concat(humtwothrees)
+      .concat(comthrees)
+      .concat(humthrees)
+  }
+  if (role === R.hum) {
+    result = humblockedfours
+      .concat(comblockedfours)
+      .concat(humtwothrees)
+      .concat(comtwothrees)
+      .concat(humthrees)
+      .concat(comthrees)
+  }
+
+  result.sort(function(a, b) { return b.score - a.score })
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
-  if(twothrees.length) {
+  if(comtwothrees.length || humtwothrees.length) {
     return result;
   }
 
-  twos.sort(function(a, b) { return b.score - a.score });
+  var twos;
+  if (role === R.com) twos = comtwos.concat(humtwos);
+  else twos = humtwos.concat(comtwos);
 
+  twos.sort(function(a, b) { return b.score - a.score });
+;
   result = result.concat(twos.length ? twos : neighbors);
 
   //这种分数低的，就不用全部计算了
@@ -1117,7 +1150,7 @@ var countToScore = function(count, block, empty) {
 module.exports = s;
 
 },{"./role.js":12,"./score.js":13}],9:[function(require,module,exports){
-var threshold = 1.3;
+var threshold = 1.1;
 
 var equal = function(a, b) {
   b = b || 0.01
@@ -1160,6 +1193,11 @@ module.exports = {
 }
 
 },{}],10:[function(require,module,exports){
+/*
+ * 思路：
+ * 每次开始迭代前，先生成一组候选列表，然后在迭代加深的过程中不断更新这个列表中的分数
+ * 这样迭代的深度越大，则分数越精确，并且，任何时候达到时间限制而中断迭代的时候，能保证这个列表中的分数都是可靠的
+ */
 var R = require("./role");
 var T = SCORE = require("./score.js");
 var math = require("./math.js");
@@ -1171,12 +1209,13 @@ var board = require("./board.js");
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
 
-var steps=0,  //总步数
-    count=0,  //每次思考的节点数
+var count=0,  //每次思考的节点数
     PVcut,
     ABcut,  //AB剪枝次数
     cacheCount=0, //zobrist缓存节点数
     cacheGet=0; //zobrist缓存命中数量
+
+var candidates; 
 
 var Cache = {};
 
@@ -1190,29 +1229,25 @@ var allBestPoints; // 记录迭代过程中得到的全部最好点
  */
 
 var negamax = function(deep, _checkmateDeep) {
-  var points = board.gen();
-  var bestPoints = [];
-  var start = new Date();
 
   count = 0;
   ABcut = 0;
   PVcut = 0;
   checkmateDeep = (_checkmateDeep == undefined ? config.checkmateDeep : _checkmateDeep);
 
-  if (points[0].level > 1) {
+  if (candidates[0].level > 1) {
     // 最大值就是能成活二的，这时0.x秒就搜索完了，增加深度以充分利用时间
     deep += 4
   }
 
-  for(var i=0;i<points.length;i++) {
-    var p = points[i];
+  for(var i=0;i<candidates.length;i++) {
+    var p = candidates[i];
     board.put(p, R.com);
     // 越靠后的点，搜索深度约低，因为出现好棋的可能性比较小
     // TODO: 有的时候 p.level 会变成未定义，不知道是什么原因
     var v = r(deep-(p.level||1), -MAX, -MIN, R.hum, 1);
     v.score *= -1
     board.remove(p);
-    console.log(p, v)
     p.v = v
     // 如果在更浅层的搜索中得到了一个最好值，那么这次搜索到的时候要更新它的结果，因为搜的越深结果约准
     // TODO
@@ -1220,35 +1255,13 @@ var negamax = function(deep, _checkmateDeep) {
     // 超时判定
     if ((+ new Date()) - start > config.timeLimit * 1000) {
       console.log('timeout...');
-      points = points.slice(0, i+1);
       break; // 超时，退出循环
     }
   }
-  //排序
-  points.sort(function (a,b) {
-    if (math.equal(a.v.score,b.v.score)) {
-      // 大于零是优势，尽快获胜，因此取步数短的
-      // 小于0是劣势，尽量拖延，因此取步数长的
-      if (a.v.score >= 0) return a.v.step - b.v.step
-      else return b.v.step - a.v.step
-    }
-    else return (b.v.score - a.v.score)
-  })
-  var best = points[0];
-  bestPoints = points.filter(function (p) {
-    return math.greatOrEqualThan(p.v.score, best.v.score) && p.v.step === best.v.step
-  });
-  var result = points[0];
-  result.score = points[0].v.score;
-  result.step = points[0].v.step;
-  config.log && console.log("可选节点：" + bestPoints.join(';'));
-  config.log && console.log("选择节点：" + points[0] + ", 分数:"+result.score.toFixed(3)+", 步数:" + result.step);
-  steps ++;
-  var time = (new Date() - start)/1000
-  config.log && console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount + ',算杀缓存命中:' + (debug.checkmate.cacheGet / debug.checkmate.cacheCount).toFixed(3) + ',' + debug.checkmate.cacheGet + '/'+debug.checkmate.cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
-  config.log && console.log('当前统计：总共'+ steps + '步, ' + count + '个节点, 耗时:' + time.toFixed(2) + 's, 平均每一步' + Math.round(count/steps) +'个节点, NPS:' + Math.floor(count/ time) + 'N/S');
-  config.log && console.log("================================");
-  return result;
+
+  console.log('迭代完成,deep=' + deep)
+  console.log(candidates)
+
 }
 
 var r = function(deep, alpha, beta, role, step) {
@@ -1277,7 +1290,7 @@ var r = function(deep, alpha, beta, role, step) {
     score: MIN,
     step: step
   }
-  var points = board.gen();
+  var points = board.gen(role);
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -1338,24 +1351,49 @@ var cache = function(deep, score) {
 }
 
 var deeping = function(deep) {
+  candidates = board.gen(R.com);
   start = (+ new Date())
-  allBestPoints = [];
   deep = deep === undefined ? config.searchDeep : deep;
   //迭代加深
   //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
   var result;
   for(var i=2;i<=deep; i+=2) {
-    result = negamax(i);
-    if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
-    if(i>2) allBestPoints.push(result); // 深度只有2的不考虑，太不准了
+    negamax(i);
+
+    // 立即检查是否存在马上就能赢的棋
+    // if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
   }
-  allBestPoints.sort(function (a, b) {
-    // 如果分数差不多，相信步数长的那个
-    if (math.equal(a.score, b.score)) return b.step > a.step;
-    else return b.score > a.score
+
+  //排序
+  candidates.sort(function (a,b) {
+    if (math.equal(a.v.score,b.v.score)) {
+      // 大于零是优势，尽快获胜，因此取步数短的
+      // 小于0是劣势，尽量拖延，因此取步数长的
+      if (a.v.score >= 0) {
+        if (a.v.step !== b.v.step) return a.v.step - b.v.step
+        else return b.score - a.score // 否则 选取当前分最高的（直接评分)
+      }
+      else {
+        if (a.v.step !== b.v.step) return b.v.step - a.v.step
+        else return b.score - a.score // 否则 选取当前分最高的（直接评分)
+      }
+    }
+    else return (b.v.score - a.v.score)
   })
-  console.log(allBestPoints);
-  return allBestPoints[0];
+  var best = candidates[0];
+  bestPoints = candidates.filter(function (p) {
+    return math.greatOrEqualThan(p.v.score, best.v.score) && p.v.step === best.v.step
+  });
+  var result = candidates[0];
+  result.score = candidates[0].v.score;
+  result.step = candidates[0].v.step;
+  config.log && console.log("可选节点：" + bestPoints.join(';'));
+  config.log && console.log("选择节点：" + candidates[0] + ", 分数:"+result.score.toFixed(3)+", 步数:" + result.step);
+  var time = (new Date() - start)/1000
+  config.log && console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut + ', 缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount + ',算杀缓存命中:' + (debug.checkmate.cacheGet / debug.checkmate.cacheCount).toFixed(3) + ',' + debug.checkmate.cacheGet + '/'+debug.checkmate.cacheCount); //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
+  config.log && console.log('当前统计：' + count + '个节点, 耗时:' + time.toFixed(2) + 's, NPS:' + Math.floor(count/ time) + 'N/S');
+  config.log && console.log("================================");
+  return result;
 }
 module.exports = deeping;
 
