@@ -39,6 +39,7 @@ var negamax = function(deep, _vcxDeep) {
   ABcut = 0;
   PVcut = 0;
   vcxDeep = (_vcxDeep == undefined ? config.vcxDeep : _vcxDeep);
+  bestScore = MIN; // 最优候选人分数，主要用来进行AB剪枝用
 
   if (candidates[0].level > 1) {
     // 最大值就是能成活二的，这时0.x秒就搜索完了，增加深度以充分利用时间
@@ -49,8 +50,9 @@ var negamax = function(deep, _vcxDeep) {
     var p = candidates[i];
     board.put(p, R.com);
     // 越靠后的点，搜索深度约低，因为出现好棋的可能性比较小
-    var v = r(deep-(p.level||1), -MAX, -MIN, R.hum, 1);
+    var v = r(deep-(p.level||1), -MAX, -bestScore, R.hum, 1);
     v.score *= -1
+    bestScore = Math.max(bestScore, v.score)
     board.remove(p);
     p.v = v
 
@@ -68,6 +70,7 @@ var negamax = function(deep, _vcxDeep) {
 
 var r = function(deep, alpha, beta, role, step) {
 
+  // TODO: 这个缓存会导致电脑算出错误的棋
   if(config.cache) {
     var c = Cache[board.zobrist.code];
     if(c) {
@@ -105,8 +108,12 @@ var r = function(deep, alpha, beta, role, step) {
     if(math.greatThan(v.score, best.score)) {
       best = v;
     }
-    if(math.greatOrEqualThan(v.score, beta)) { //AB 剪枝
+    //AB 剪枝
+    // 这里不要直接返回原来的值，因为这样上一层会以为就是这个分，实际上这个节点直接剪掉就好了，根本不用考虑，也就是直接给一个很大的值让他被减掉
+    // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
+    if(math.greatOrEqualThan(v.score, beta)) {
       ABcut ++;
+      v.score = MAX-1; // 用一个特殊的值来标记下，这样看到 -9999999 就知道是被剪枝了。
       cache(deep, v);
       return v;
     }
@@ -155,6 +162,7 @@ var cache = function(deep, score) {
 var deeping = function(deep) {
   candidates = board.gen(R.com);
   start = (+ new Date())
+  bestScore = MIN;
   deep = deep === undefined ? config.searchDeep : deep;
   //迭代加深
   //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
