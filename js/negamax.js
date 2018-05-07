@@ -71,7 +71,7 @@ var negamax = function(deep, _checkmateDeep) {
 
 var r = function(deep, alpha, beta, role, step) {
 
-  if(config.cache) {
+  if(config.searchCache) {
     var c = Cache[board.zobrist.code];
     if(c) {
       if(c.deep >= deep) {
@@ -119,12 +119,12 @@ var r = function(deep, alpha, beta, role, step) {
   if(math.littleThan(best.score, SCORE.FOUR) && math.greatThan(best.score, SCORE.BLOCKED_FOUR * -2)) {
     var mate = vcx.vcf(role, checkmateDeep);
     if(mate) {
-      var score = mate.score;
-      cache(deep, score);
-      return {
-        score: score,
+      var _r = {
+        score: mate.score,
         step: step + mate.length
       }
+      cache(deep, _r);
+      return _r;
     }
   }
   // vct
@@ -132,12 +132,12 @@ var r = function(deep, alpha, beta, role, step) {
   if(math.littleThan(best.score, SCORE.THREE*2) && math.greatThan(best.score, SCORE.THREE * -2)) {
     var mate = vcx.vct(role, checkmateDeep);
     if(mate) {
-      var score = mate.score;
-      cache(deep, score);
-      return {
-        score: score,
+      var _r = {
+        score: mate.score,
         step: step + mate.length
       }
+      cache(deep, _r);
+      return _r;
     }
   }
   cache(deep, best);
@@ -147,7 +147,7 @@ var r = function(deep, alpha, beta, role, step) {
 }
 
 var cache = function(deep, score) {
-  if(!config.cache) return;
+  if(!config.searchCache) return;
   Cache[board.zobrist.code] = {
     deep: deep,
     score: score
@@ -196,7 +196,7 @@ var deeping = function(deep) {
   config.log && console.log("选择节点：" + candidates[0] + ", 分数:"+result.score.toFixed(3)+", 步数:" + result.step);
   var time = (new Date() - start)/1000
   config.log && console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut);
-  config.log && console.log(',缓存命中:' + (cacheGet / cacheCount).toFixed(3) + ',' + cacheGet + '/' + cacheCount)
+  config.log && console.log('搜索缓存:' + '总数 ' + cacheCount + ', 命中率 ' + (cacheGet / cacheCount * 100).toFixed(3) + '%, ' + cacheGet + '/' + cacheCount)
   config.log && console.log('算杀缓存:' + '总数 ' + debug.checkmate.cacheCount + ', 命中:' + (debug.checkmate.cacheHit / debug.checkmate.totalCount * 100).toFixed(3) + '% ,' + debug.checkmate.cacheHit + '/'+debug.checkmate.totalCount);
   //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   config.log && console.log('当前统计：' + count + '个节点, 耗时:' + time.toFixed(2) + 's, NPS:' + Math.floor(count/ time) + 'N/S');

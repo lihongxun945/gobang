@@ -6,6 +6,6 @@ module.exports = {
   checkmateDeep:  5,  //算杀深度
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
-  cache: false,  //是否使用效率不高的置换表
+  searchCache: true,  //在极小化极大值搜索中使用置换表
   vcxCache: true  // 在vcx中使用置换表
 }
