@@ -43,7 +43,7 @@ var negamax = function(deep, _vcxDeep) {
 
   if (candidates[0].level > 1) {
     // 最大值就是能成活二的，这时0.x秒就搜索完了，增加深度以充分利用时间
-    deep += 4
+    deep += 2
   }
 
   for(var i=0;i<candidates.length;i++) {
