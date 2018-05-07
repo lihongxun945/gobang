@@ -49,13 +49,10 @@ var negamax = function(deep, _checkmateDeep) {
     var p = candidates[i];
     board.put(p, R.com);
     // 越靠后的点，搜索深度约低，因为出现好棋的可能性比较小
-    // TODO: 有的时候 p.level 会变成未定义，不知道是什么原因
     var v = r(deep-(p.level||1), -MAX, -MIN, R.hum, 1);
     v.score *= -1
     board.remove(p);
     p.v = v
-    // 如果在更浅层的搜索中得到了一个最好值，那么这次搜索到的时候要更新它的结果，因为搜的越深结果约准
-    // TODO
 
     // 超时判定
     if ((+ new Date()) - start > config.timeLimit * 1000) {
