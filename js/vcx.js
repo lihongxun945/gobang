@@ -170,13 +170,13 @@ var min = function(role, deep) {
 }
 
 var cache = function(result, vcf) {
-  if(!config.vcxCache) return;
+  if(!config.cache) return;
   if (vcf) Cache.vcf[zobrist.code] = result
   else Cache.vct[zobrist.code] = result
   debugCheckmate.cacheCount ++;
 }
 var getCache = function(vcf) {
-  if(!config.vcxCache) return;
+  if(!config.cache) return;
   debugCheckmate.totalCount ++;
   var result;
   if (vcf) result = Cache.vcf[zobrist.code]

@@ -24,7 +24,7 @@ var candidates;
 
 var Cache = {};
 
-var checkmateDeep;
+var vcxDeep;
 var startTime; // 开始时间，用来计算每一步的时间
 var allBestPoints; // 记录迭代过程中得到的全部最好点
 
@@ -33,12 +33,12 @@ var allBestPoints; // 记录迭代过程中得到的全部最好点
  * white is max, black is min
  */
 
-var negamax = function(deep, _checkmateDeep) {
+var negamax = function(deep, _vcxDeep) {
 
   count = 0;
   ABcut = 0;
   PVcut = 0;
-  checkmateDeep = (_checkmateDeep == undefined ? config.checkmateDeep : _checkmateDeep);
+  vcxDeep = (_vcxDeep == undefined ? config.vcxDeep : _vcxDeep);
 
   if (candidates[0].level > 1) {
     // 最大值就是能成活二的，这时0.x秒就搜索完了，增加深度以充分利用时间
@@ -68,7 +68,7 @@ var negamax = function(deep, _checkmateDeep) {
 
 var r = function(deep, alpha, beta, role, step) {
 
-  if(config.searchCache) {
+  if(config.cache) {
     var c = Cache[board.zobrist.code];
     if(c) {
       if(c.deep >= deep) {
@@ -114,7 +114,7 @@ var r = function(deep, alpha, beta, role, step) {
   // vcf
   // 自己没有形成活四，对面也没有高于冲四的棋型，那么先尝试VCF
   if(math.littleThan(best.score, SCORE.FOUR) && math.greatThan(best.score, SCORE.BLOCKED_FOUR * -2)) {
-    var mate = vcx.vcf(role, checkmateDeep);
+    var mate = vcx.vcf(role, vcxDeep);
     if(mate) {
       var _r = {
         score: mate.score,
@@ -127,7 +127,7 @@ var r = function(deep, alpha, beta, role, step) {
   // vct
   // 自己没有形成活三，对面也没有高于活三的棋型，那么尝试VCT
   if(math.littleThan(best.score, SCORE.THREE*2) && math.greatThan(best.score, SCORE.THREE * -2)) {
-    var mate = vcx.vct(role, checkmateDeep);
+    var mate = vcx.vct(role, vcxDeep);
     if(mate) {
       var _r = {
         score: mate.score,
@@ -144,7 +144,7 @@ var r = function(deep, alpha, beta, role, step) {
 }
 
 var cache = function(deep, score) {
-  if(!config.searchCache) return;
+  if(!config.cache) return;
   Cache[board.zobrist.code] = {
     deep: deep,
     score: score
