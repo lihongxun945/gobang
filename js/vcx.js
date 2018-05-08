@@ -239,7 +239,6 @@ var vcx = function(role, deep, onlyFour) {
     MAX_SCORE = S.BLOCKED_FOUR;
     MIN_SCORE = S.FIVE;
 
-  console.log('dasdad')
     var result = deeping(role, deep);
     if(result) {
       result.score = S.FOUR;

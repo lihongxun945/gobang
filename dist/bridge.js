@@ -1361,14 +1361,12 @@ var deeping = function(deep) {
   start = (+ new Date())
   bestScore = MIN;
   deep = deep === undefined ? config.searchDeep : deep;
-  //迭代加深
-  //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
+
   var result;
+
+  //迭代加深
   for(var i=2;i<=deep; i+=2) {
     negamax(i);
-
-    // 立即检查是否存在马上就能赢的棋
-    // if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
   }
 
   //排序
@@ -1525,6 +1523,7 @@ var findMax = function(role, score) {
         var p = [i, j];
 
         // 注意，防一手对面冲四
+        // 所以不管谁能连成五，先防一下。
         if (Math.max(board.comScore[p[0]][p[1]], board.humScore[p[0]][p[1]]) >= S.FIVE) {
           return [p];
         }
@@ -1715,7 +1714,6 @@ var vcx = function(role, deep, onlyFour) {
     MAX_SCORE = S.BLOCKED_FOUR;
     MIN_SCORE = S.FIVE;
 
-  console.log('dasdad')
     var result = deeping(role, deep);
     if(result) {
       result.score = S.FOUR;

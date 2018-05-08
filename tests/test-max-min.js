@@ -21,12 +21,12 @@ describe('test maxmin', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    var p = c(4, 0);
+    var p = c();
     console.log("######", p);
     assert.ok(p); //6层是 [3,3], [2,4], [8,8] 
   });
 
-  it(`vcx`, function() {
+  it(`白方能守住`, function() {
     // 算杀
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -42,10 +42,9 @@ describe('test maxmin', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    var p = c(4, 0);
+    var p = c();
     console.log("######", p);
     assert.ok(p);
-    //[4, 2], [3,3],[5,5],[2,4],[1,5],[3,4]
   });
 
   it(`defend`, function() {

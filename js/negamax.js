@@ -165,14 +165,12 @@ var deeping = function(deep) {
   start = (+ new Date())
   bestScore = MIN;
   deep = deep === undefined ? config.searchDeep : deep;
-  //迭代加深
-  //注意这里不要比较分数的大小，因为深度越低算出来的分数越不靠谱，所以不能比较大小，而是是最高层的搜索分数为准
+
   var result;
+
+  //迭代加深
   for(var i=2;i<=deep; i+=2) {
     negamax(i);
-
-    // 立即检查是否存在马上就能赢的棋
-    // if(math.greatOrEqualThan(result.score, SCORE.FOUR)) return result;
   }
 
   //排序
