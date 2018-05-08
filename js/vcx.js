@@ -48,6 +48,7 @@ var findMax = function(role, score) {
         var p = [i, j];
 
         // 注意，防一手对面冲四
+        // 所以不管谁能连成五，先防一下。
         if (Math.max(board.comScore[p[0]][p[1]], board.humScore[p[0]][p[1]]) >= S.FIVE) {
           return [p];
         }
