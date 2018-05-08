@@ -39,12 +39,18 @@ var debugCheckmate = debug.checkmate = {
 
 
 //找到所有比目标分数大的位置
+//注意，不止要找自己的，还要找对面的，
 var findMax = function(role, score) {
   var result = [];
   for(var i=0;i<board.board.length;i++) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
         var p = [i, j];
+
+        // 注意，防一手对面冲四
+        if (Math.max(board.comScore[p[0]][p[1]], board.humScore[p[0]][p[1]]) >= S.FIVE) {
+          return [p];
+        }
 
         var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
         p.score = s;
@@ -65,11 +71,13 @@ var findMax = function(role, score) {
 }
 
 
+// MIN层
 //找到所有比目标分数大的位置
 var findMin = function(role, score) {
   var result = [];
   var fives = [];
   var fours = [];
+  var blockedfours = [];
   for(var i=0;i<board.board.length;i++) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
@@ -81,19 +89,32 @@ var findMin = function(role, score) {
           p.score = - s1;
           return [p];
         } 
-        if(s1 >= S.FOUR) {
-          p.score = -s1;
-          fours.unshift(p);
-          continue;
-        }
+        
         if(s2 >= S.FIVE) {
           p.score = s2;
           fives.push(p);
           continue;
         } 
+
+        if(s1 >= S.FOUR) {
+          p.score = -s1;
+          fours.unshift(p);
+          continue;
+        }
         if(s2 >= S.FOUR) {
           p.score = s2;
           fours.push(p);
+          continue;
+        }
+
+        if(s1 >= S.BLOCKED_FOUR) {
+          p.score = -s1;
+          blockedfours.unshift(p);
+          continue;
+        }
+        if(s2 >= S.BLOCKED_FOUR) {
+          p.score = s2;
+          blockedfours.push(p);
           continue;
         }
 
@@ -105,9 +126,14 @@ var findMin = function(role, score) {
       }
     }
   }
-  if(fives.length) return [fives[0]];
-  if(fours.length) return [fours[0]];
+  if(fives.length) return fives;
+
+  // 注意冲四，因为虽然冲四的分比活四低，但是他的防守优先级是和活四一样高的，否则会忽略冲四导致获胜的走法
+  if(fours.length) return fours.concat(blockedfours);
+  
   //注意对结果进行排序
+  //因为fours可能不存在，这时候不要忽略了 blockedfours
+  result = blockedfours.concat(result);
   result.sort(function(a, b) {
     return Math.abs(b.score) - Math.abs(a.score);
   });
@@ -204,7 +230,7 @@ var deeping = function(role, deep) {
 
 var vcx = function(role, deep, onlyFour) {
 
-  deep = deep === undefined ? config.checkmateDeep : deep;
+  deep = deep === undefined ? config.vcxDeep : deep;
   if(deep <= 0) return false;
 
   if (onlyFour) {
@@ -212,6 +238,7 @@ var vcx = function(role, deep, onlyFour) {
     MAX_SCORE = S.BLOCKED_FOUR;
     MIN_SCORE = S.FIVE;
 
+  console.log('dasdad')
     var result = deeping(role, deep);
     if(result) {
       result.score = S.FOUR;

@@ -118,9 +118,10 @@ var r = function(deep, alpha, beta, role, step) {
       return v;
     }
   }
+  // 经过测试，把算杀放在对子节点的搜索之后，比放在前面速度更快一些。
   // vcf
-  // 自己没有形成活四，对面也没有高于冲四的棋型，那么先尝试VCF
-  if(math.littleThan(best.score, SCORE.FOUR) && math.greatThan(best.score, SCORE.BLOCKED_FOUR * -2)) {
+  // 自己没有形成活四，对面也没有形成活四，那么先尝试VCF
+  if(math.littleThan(best.score, SCORE.FOUR) && math.greatThan(best.score, SCORE.FOUR * -1)) {
     var mate = vcx.vcf(role, vcxDeep);
     if(mate) {
       var _r = {
