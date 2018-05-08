@@ -40,9 +40,10 @@ var Board = function(container, status) {
   this.worker = new Worker("./dist/bridge.js?r="+(+new Date()));
 
   this.worker.onmessage = function(e) {
-    self._set(e.data[0], e.data[1], R.com);
+    var d = e.data;
+    self._set(d[0], d[1], R.com);
     self.lock = false;
-    self.setStatus("电脑下子("+e.data[0]+","+e.data[1]+"), 用时"+((new Date() - self.time)/1000)+"秒");
+    self.setStatus("电脑下子("+d[0]+","+d[1]+"), 用时"+((new Date() - self.time)/1000)+"秒, 评分 " + d.score);
   }
   this.setStatus("请点击开始按钮");
 

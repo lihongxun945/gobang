@@ -130,3 +130,7 @@ input::-webkit-inner-spin-button {
   font-size: 1rem;
   color: #aaa;
 }
+.notice {
+  padding: 0;
+  margin: 10px 15px;
+}
