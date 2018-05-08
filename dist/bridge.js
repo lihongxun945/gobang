@@ -710,7 +710,7 @@ onmessage = function(e) {
     var d = e.data.config
     if (d.searchDeep) config.searchDeep = d.searchDeep
     if (d.countLimit) config.countLimit = d.countLimit
-    if (d.checkmateDeep) config.checkmateDeep = d.checkmateDeep
+    if (d.vcxDeep) config.vcxDeep = d.vcxDeep
     if (d.timeLimit) config.timeLimit = d.timeLimit
   }
 }

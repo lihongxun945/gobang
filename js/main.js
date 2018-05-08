@@ -222,7 +222,7 @@ function counter(el, _default, MIN, MAX, cb){
   })
 }
 
-counter($('#time'), config.timeLimit, 1, 30, function (n) {
+counter($('#time'), config.timeLimit, 1, 60, function (n) {
   b.setConfig({
     timeLimit: n
   })
@@ -238,9 +238,9 @@ counter($('#breadth'), config.countLimit, 12, 60, function (n) {
     countLimit: n
   })
 })
-counter($('#checkmate'), config.checkmateDeep, 0, 15, function (n) {
+counter($('#vcx'), config.vcxDeep, 0, 12, function (n) {
   b.setConfig({
-    checkmateDeep: n
+    vcxDeep: n
   })
 })
 
