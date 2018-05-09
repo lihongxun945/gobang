@@ -211,12 +211,12 @@ Board.prototype.updateScore = function(p) {
     self.comScore[x][y] = cs;
     self.humScore[x][y] = hs;
   }
+  // 无论是不是空位 都需要更新
   // -
   for(var i=-radius;i<radius;i++) {
     var x = p[0], y = p[1]+i;
     if(y<0) continue;
     if(y>=len) break;
-    if(board[x][y] !== R.empty) continue;
     update(x, y, 0);
   }
 
@@ -225,7 +225,6 @@ Board.prototype.updateScore = function(p) {
     var x = p[0]+i, y = p[1];
     if(x<0) continue;
     if(x>=len) break;
-    if(board[x][y] !== R.empty) continue;
     update(x, y, 1);
   }
 
@@ -234,7 +233,6 @@ Board.prototype.updateScore = function(p) {
     var x = p[0]+i, y = p[1]+i;
     if(x<0 || y<0) continue;
     if(x>=len || y>=len) break;
-    if(board[x][y] !== R.empty) continue;
     update(x, y, 2);
   }
 
@@ -243,7 +241,6 @@ Board.prototype.updateScore = function(p) {
     var x = p[0]+i, y = p[1]-i;
     if(x<0 || y<0) continue;
     if(x>=len || y>=len) continue;
-    if(board[x][y] !== R.empty) continue;
     update(x, y, 3);
   }
 
@@ -296,8 +293,9 @@ Board.prototype.evaluate = function(role) {
   //这里加了缓存，但是并没有提升速度
   if(config.cache && this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
 
-  this.comMaxScore = - S.FIVE;
-  this.humMaxScore = - S.FIVE;
+  // 这里都是用正整数初始化的，所以初始值是0
+  this.comMaxScore = 0;
+  this.humMaxScore = 0;
 
   var board = this.board;
 
@@ -412,12 +410,16 @@ Board.prototype.gen = function(role, starSpread) {
   //如果成五，是必杀棋，直接返回
   if(fives.length) return fives;
   
+  
+  var fours = role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
+  var blockedfours = role === R.com ? comblockedfours.concat(humblockedfours) : humblockedfours.concat(comblockedfours);
   //注意一个活三可以有两个位置形成活四，但是不能只考虑其中一个，要从多个中考虑更好的选择
   //所以不能碰到活四就返回第一个，应该需要考虑多个
   //注意结果顺序，根据当前角色来
-  if(comfours.length || humfours.length) return role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
+  // 注意一定要把 blockedfours 也算进去!!因为冲四也是和活四一样的优先级，别人能活四赢，我先手冲四也能赢
+  if (fours.length) return fours.concat(blockedfours);
 
-  var result;
+  var result = [];
   if (role === R.com) {
     result = comblockedfours
       .concat(humblockedfours)
@@ -1310,6 +1312,7 @@ var r = function(deep, alpha, beta, role, step) {
     if(math.greatOrEqualThan(v.score, beta)) {
       ABcut ++;
       v.score = MAX-1; // 用一个特殊的值来标记下，这样看到 -9999999 就知道是被剪枝了。
+      v.abcut = true; // 剪枝标记
       cache(deep, v);
       return v;
     }
@@ -1367,9 +1370,26 @@ var deeping = function(deep) {
   //迭代加深
   for(var i=2;i<=deep; i+=2) {
     negamax(i);
+    // 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
+    // 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
+    /*
+    var hasFailure = false
+    while(candidates.length > 1 && hasFailure) {
+      for (var i=0;i<candidates.length && candidates.length > 1;i++) {
+        var c = candidates[i]
+        if (!c.abcut) { // 被剪枝的不是真实分数，别删了
+          if (math.littleThan(c.v.score, - S.THREE * 2)) { // 对面双三，必败
+            candidates.splice(i, 1);
+            i--;
+            console.log("###################################")
+          }
+        }
+      }
+    }*/
   }
 
-  //排序
+  // 排序
+  // 经过测试，这个如果放在上面的for循环中（就是每次迭代都排序），反而由于迭代深度太浅，排序不好反而会降低搜索速度。
   candidates.sort(function (a,b) {
     if (math.equal(a.v.score,b.v.score)) {
       // 大于零是优势，尽快获胜，因此取步数短的
@@ -1385,6 +1405,7 @@ var deeping = function(deep) {
     }
     else return (b.v.score - a.v.score)
   })
+
   var best = candidates[0];
   bestPoints = candidates.filter(function (p) {
     return math.greatOrEqualThan(p.v.score, best.v.score) && p.v.step === best.v.step
@@ -1516,7 +1537,8 @@ var debugCheckmate = debug.checkmate = {
 //找到所有比目标分数大的位置
 //注意，不止要找自己的，还要找对面的，
 var findMax = function(role, score) {
-  var result = [];
+  var result = [],
+      fives = [];
   for(var i=0;i<board.board.length;i++) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
@@ -1525,20 +1547,20 @@ var findMax = function(role, score) {
         // 注意，防一手对面冲四
         // 所以不管谁能连成五，先防一下。
         if (Math.max(board.comScore[p[0]][p[1]], board.humScore[p[0]][p[1]]) >= S.FIVE) {
-          return [p];
+          fives.push(p);
         }
 
         var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
         p.score = s;
-        if(s >= S.FIVE) {
-          return [p];
-        }
         if(s >= score) {
           result.push(p);
         }
       }
     }
   }
+  // 能连五，则直接返回
+  // 但是注意不要碰到连五就返回，而是把所有连五的点都考虑一遍，不然可能出现自己能连却防守别人的问题
+  if (fives.length) return fives;
   //注意对结果进行排序
   result.sort(function(a, b) {
     return b.score - a.score;
@@ -1549,6 +1571,7 @@ var findMax = function(role, score) {
 
 // MIN层
 //找到所有比目标分数大的位置
+//这是MIN层，所以己方分数要变成负数
 var findMin = function(role, score) {
   var result = [];
   var fives = [];
