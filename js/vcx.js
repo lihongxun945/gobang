@@ -50,14 +50,21 @@ var findMax = function(role, score) {
 
         // 注意，防一手对面冲四
         // 所以不管谁能连成五，先防一下。
-        if (Math.max(board.comScore[p[0]][p[1]], board.humScore[p[0]][p[1]]) >= S.FIVE) {
+        if (board.humScore[p[0]][p[1]] >= S.FIVE) {
+          p.score = S.FIVE
+          if (role === R.com) p.score *= -1
           fives.push(p);
-        }
+        } else if (board.comScore[p[0]][p[1]] >= S.FIVE) {
+          p.score = S.FIVE
+          if (role === R.hum) p.score *= -1
+          fives.push(p);
+        } else {
 
-        var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
-        p.score = s;
-        if(s >= score) {
-          result.push(p);
+          var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
+          p.score = s;
+          if(s >= score) {
+            result.push(p);
+          }
         }
       }
     }

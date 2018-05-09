@@ -114,7 +114,7 @@ var r = function(deep, alpha, beta, role, step) {
     if(math.greatOrEqualThan(v.score, beta)) {
       ABcut ++;
       v.score = MAX-1; // 用一个特殊的值来标记下，这样看到 -9999999 就知道是被剪枝了。
-      v.abcut = true; // 剪枝标记
+      // v.abcut = true; // 剪枝标记
       cache(deep, v);
       return v;
     }
