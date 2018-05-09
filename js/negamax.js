@@ -74,9 +74,15 @@ var r = function(deep, alpha, beta, role, step) {
   if(config.cache) {
     var c = Cache[board.zobrist.code];
     if(c) {
-      if(c.deep >= deep) {
+      if(c.deep >= deep) { // 如果缓存中的结果搜索深度不比当前小，则结果完全可用
         cacheGet ++;
         return c.score;
+      } else {
+        // 如果缓存的结果中搜索深度比当前小，那么任何一方出现双三及以上结果的情况下可用
+        if (math.greatOrEqualThan(c.score, SCORE.THREE * 2) || math.littleOrEqualThan(c.score, SCORE.THREE * -2)) {
+          cacheGet ++;
+          return c.score;
+        }
       }
     }
   }
