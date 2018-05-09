@@ -128,6 +128,7 @@ Board.prototype.init = function(sizeOrBoard) {
   this.steps = [];
   this.allSteps = [];
   this.zobrist = zobrist;
+  zobrist.init(); // 注意重新初始化
   this._last = [false, false]; // 记录最后一步
   var size;
   if(sizeOrBoard.length) {
@@ -727,7 +728,7 @@ module.exports = {
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
   // TODO: 目前开启缓存后，搜索会出现一些未知的bug
-  cache: false // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
+  cache: true // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
 }
 
 },{}],7:[function(require,module,exports){
@@ -1268,13 +1269,19 @@ var negamax = function(deep, _vcxDeep) {
 
 var r = function(deep, alpha, beta, role, step) {
 
-  // TODO: 这个缓存会导致电脑算出错误的棋
   if(config.cache) {
     var c = Cache[board.zobrist.code];
     if(c) {
-      if(c.deep >= deep) {
+      if(c.deep >= deep) { // 如果缓存中的结果搜索深度不比当前小，则结果完全可用
         cacheGet ++;
         return c.score;
+      } else {
+        // 如果缓存的结果中搜索深度比当前小，那么任何一方出现双三及以上结果的情况下可用
+        // TODO: 只有这一个缓存策略是会导致开启缓存后会和以前的结果有一点点区别的，其他几种都是透明的缓存策略
+        if (math.greatOrEqualThan(c.score, SCORE.THREE * 2) || math.littleOrEqualThan(c.score, SCORE.THREE * -2)) {
+          cacheGet ++;
+          return c.score;
+        }
       }
     }
   }
@@ -1311,8 +1318,8 @@ var r = function(deep, alpha, beta, role, step) {
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
     if(math.greatOrEqualThan(v.score, beta)) {
       ABcut ++;
-      v.score = MAX-1; // 用一个特殊的值来标记下，这样看到 -9999999 就知道是被剪枝了。
-      v.abcut = true; // 剪枝标记
+      v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
+      v.abcut = 1; // 剪枝标记
       cache(deep, v);
       return v;
     }
@@ -1352,6 +1359,7 @@ var r = function(deep, alpha, beta, role, step) {
 
 var cache = function(deep, score) {
   if(!config.cache) return;
+  if (score.abcut) return; // 被剪枝的暂时不缓存
   Cache[board.zobrist.code] = {
     deep: deep,
     score: score
@@ -1546,14 +1554,21 @@ var findMax = function(role, score) {
 
         // 注意，防一手对面冲四
         // 所以不管谁能连成五，先防一下。
-        if (Math.max(board.comScore[p[0]][p[1]], board.humScore[p[0]][p[1]]) >= S.FIVE) {
+        if (board.humScore[p[0]][p[1]] >= S.FIVE) {
+          p.score = S.FIVE
+          if (role === R.com) p.score *= -1
           fives.push(p);
-        }
+        } else if (board.comScore[p[0]][p[1]] >= S.FIVE) {
+          p.score = S.FIVE
+          if (role === R.hum) p.score *= -1
+          fives.push(p);
+        } else {
 
-        var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
-        p.score = s;
-        if(s >= score) {
-          result.push(p);
+          var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
+          p.score = s;
+          if(s >= score) {
+            result.push(p);
+          }
         }
       }
     }
