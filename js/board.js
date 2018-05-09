@@ -31,6 +31,7 @@ Board.prototype.init = function(sizeOrBoard) {
   this.steps = [];
   this.allSteps = [];
   this.zobrist = zobrist;
+  zobrist.init(); // 注意重新初始化
   this._last = [false, false]; // 记录最后一步
   var size;
   if(sizeOrBoard.length) {

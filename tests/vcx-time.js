@@ -23,7 +23,7 @@ describe('test checkmate', function() {
     var p;
     while (count--) p = c.vct(1, 10);
     console.log(p)
-    console.log(`用时${+new Date - start}S`);
+    console.log(`用时${+new Date - start}ms`);
     assert.ok(p);
   });
 
@@ -51,7 +51,7 @@ describe('test checkmate', function() {
     //应该不能算出vct杀棋
     var p = c.vct(1, 10);
     console.log(p);
-    console.log(`用时${+new Date - start}S`);
+    console.log(`用时${+new Date - start}ms`);
     assert.ok(!p);
   });
 
