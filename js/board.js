@@ -114,12 +114,12 @@ Board.prototype.updateScore = function(p) {
     self.comScore[x][y] = cs;
     self.humScore[x][y] = hs;
   }
+  // 无论是不是空位 都需要更新
   // -
   for(var i=-radius;i<radius;i++) {
     var x = p[0], y = p[1]+i;
     if(y<0) continue;
     if(y>=len) break;
-    if(board[x][y] !== R.empty) continue;
     update(x, y, 0);
   }
 
@@ -128,7 +128,6 @@ Board.prototype.updateScore = function(p) {
     var x = p[0]+i, y = p[1];
     if(x<0) continue;
     if(x>=len) break;
-    if(board[x][y] !== R.empty) continue;
     update(x, y, 1);
   }
 
@@ -137,7 +136,6 @@ Board.prototype.updateScore = function(p) {
     var x = p[0]+i, y = p[1]+i;
     if(x<0 || y<0) continue;
     if(x>=len || y>=len) break;
-    if(board[x][y] !== R.empty) continue;
     update(x, y, 2);
   }
 
@@ -146,7 +144,6 @@ Board.prototype.updateScore = function(p) {
     var x = p[0]+i, y = p[1]-i;
     if(x<0 || y<0) continue;
     if(x>=len || y>=len) continue;
-    if(board[x][y] !== R.empty) continue;
     update(x, y, 3);
   }
 
@@ -199,8 +196,9 @@ Board.prototype.evaluate = function(role) {
   //这里加了缓存，但是并没有提升速度
   if(config.cache && this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
 
-  this.comMaxScore = - S.FIVE;
-  this.humMaxScore = - S.FIVE;
+  // 这里都是用正整数初始化的，所以初始值是0
+  this.comMaxScore = 0;
+  this.humMaxScore = 0;
 
   var board = this.board;
 
@@ -315,12 +313,16 @@ Board.prototype.gen = function(role, starSpread) {
   //如果成五，是必杀棋，直接返回
   if(fives.length) return fives;
   
+  
+  var fours = role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
+  var blockedfours = role === R.com ? comblockedfours.concat(humblockedfours) : humblockedfours.concat(comblockedfours);
   //注意一个活三可以有两个位置形成活四，但是不能只考虑其中一个，要从多个中考虑更好的选择
   //所以不能碰到活四就返回第一个，应该需要考虑多个
   //注意结果顺序，根据当前角色来
-  if(comfours.length || humfours.length) return role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
+  // 注意一定要把 blockedfours 也算进去!!因为冲四也是和活四一样的优先级，别人能活四赢，我先手冲四也能赢
+  if (fours.length) return fours.concat(blockedfours);
 
-  var result;
+  var result = [];
   if (role === R.com) {
     result = comblockedfours
       .concat(humblockedfours)

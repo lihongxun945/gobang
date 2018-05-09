@@ -15,11 +15,10 @@ describe('test gen', function() {
       [0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    assert.ok(board.gen(b).length);
+    assert.ok(board.gen(1).length);
   });
 
-  it(`test 冲四活三`, function() {
-    //冲四活三比双三优先级高
+  it(`自己的活四比对面的冲四优先级高`, function() {
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 2, 0, 0, 0, 0, 0, 0],
@@ -33,10 +32,9 @@ describe('test gen', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     ];
     board.init(b);
-    //结果排在第一的应该是 [3, 3]
-    var r = board.gen(b);
+    //结果排在第一的应该是 [6, 2]
+    var r = board.gen(1);
     console.log(r);
-    assert.equal(r[0][0], 3);
-    assert.equal(r[0][1], 3);
+    assert.equal(r[0][0], 6);
   });
 });

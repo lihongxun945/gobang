@@ -41,7 +41,8 @@ var debugCheckmate = debug.checkmate = {
 //找到所有比目标分数大的位置
 //注意，不止要找自己的，还要找对面的，
 var findMax = function(role, score) {
-  var result = [];
+  var result = [],
+      fives = [];
   for(var i=0;i<board.board.length;i++) {
     for(var j=0;j<board.board[i].length;j++) {
       if(board.board[i][j] == R.empty) {
@@ -50,20 +51,20 @@ var findMax = function(role, score) {
         // 注意，防一手对面冲四
         // 所以不管谁能连成五，先防一下。
         if (Math.max(board.comScore[p[0]][p[1]], board.humScore[p[0]][p[1]]) >= S.FIVE) {
-          return [p];
+          fives.push(p);
         }
 
         var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
         p.score = s;
-        if(s >= S.FIVE) {
-          return [p];
-        }
         if(s >= score) {
           result.push(p);
         }
       }
     }
   }
+  // 能连五，则直接返回
+  // 但是注意不要碰到连五就返回，而是把所有连五的点都考虑一遍，不然可能出现自己能连却防守别人的问题
+  if (fives.length) return fives;
   //注意对结果进行排序
   result.sort(function(a, b) {
     return b.score - a.score;
@@ -74,6 +75,7 @@ var findMax = function(role, score) {
 
 // MIN层
 //找到所有比目标分数大的位置
+//这是MIN层，所以己方分数要变成负数
 var findMin = function(role, score) {
   var result = [];
   var fives = [];

@@ -1,6 +1,7 @@
 var e = require("../js/evaluate-point.js");
 var S = require("../js/score.js");
 var assert = require('assert');
+var board = require('../js/board.js');
 
 var b;
 
@@ -15,7 +16,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [3, 3], 1), S.TWO + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [3, 3], 1), S.TWO + 3*S.ONE);
   });
 
   it(`test TWO`, function() {
@@ -28,7 +30,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [3, 3], 1), S.THREE + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [3, 3], 1), S.THREE + 3*S.ONE);
     b = [
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
@@ -38,7 +41,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 1, 0],
       [0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [3, 3], 1), S.THREE + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [3, 3], 1), S.THREE + 3*S.ONE);
     b = [
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
@@ -48,7 +52,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [3, 3], 1), S.THREE + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [3, 3], 1), S.THREE + 3*S.ONE);
   });
 
 
@@ -62,7 +67,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [3, 3], 1), S.FOUR + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [3, 3], 1), S.FOUR + 3*S.ONE);
 
     b = [
       [0, 0, 0, 0, 0, 0, 0],
@@ -73,7 +79,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [3, 3], 1), S.FOUR + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [3, 3], 1), S.FOUR + 3*S.ONE);
 
 
     b = [
@@ -85,7 +92,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [1, 1], 1), S.FOUR + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [1, 1], 1), S.FOUR + 3*S.ONE);
 
     b = [
       [0, 0, 0, 0, 0, 0, 0],
@@ -96,8 +104,9 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [3, 5], 1), S.FOUR + 3*S.ONE);
-    assert.equal(e(b, [3, 1], 1), S.FOUR + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [3, 5], 1), S.FOUR + 3*S.ONE);
+    assert.equal(e(board, [3, 1], 1), S.FOUR + 3*S.ONE);
 
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0],
@@ -109,7 +118,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [3, 3], 1), S.FOUR + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [3, 3], 1), S.FOUR + 3*S.ONE);
 
   });
 
@@ -124,7 +134,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 1, 0],
       [0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [3, 3], 1), S.FIVE + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [3, 3], 1), S.FIVE + 3*S.ONE);
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 1, 0, 0, 0, 0, 0],
@@ -137,7 +148,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [4, 3], 1), S.FIVE + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [4, 3], 1), S.FIVE + 3*S.ONE);
 
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -151,7 +163,8 @@ describe('test evalute point', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [4, 4], 1), S.FIVE + 3*S.ONE);
+    board.init(b);
+    assert.equal(e(board, [4, 4], 1), S.FIVE + 3*S.ONE);
   });
 
 
@@ -165,6 +178,7 @@ describe('test evalute point', function() {
       [0, 1, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0],
     ];
-    assert.equal(e(b, [3, 3], 1), S.FOUR);
+    board.init(b);
+    assert.equal(e(board, [3, 3], 1), S.BLOCKED_FOUR + S.THREE + S.ONE*2);
   });
 });
