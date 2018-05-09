@@ -27,7 +27,7 @@ describe('test corner', function() {
     board.init(b);
     p = vcx.vct(1, 8);
     console.log(p);
-    assert.ok(p);
+    assert.ok(!p);
   });
 
 });

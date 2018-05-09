@@ -70,7 +70,6 @@ var negamax = function(deep, _vcxDeep) {
 
 var r = function(deep, alpha, beta, role, step) {
 
-  // TODO: 这个缓存会导致电脑算出错误的棋
   if(config.cache) {
     var c = Cache[board.zobrist.code];
     if(c) {
@@ -79,6 +78,7 @@ var r = function(deep, alpha, beta, role, step) {
         return c.score;
       } else {
         // 如果缓存的结果中搜索深度比当前小，那么任何一方出现双三及以上结果的情况下可用
+        // TODO: 只有这一个缓存策略是会导致开启缓存后会和以前的结果有一点点区别的，其他几种都是透明的缓存策略
         if (math.greatOrEqualThan(c.score, SCORE.THREE * 2) || math.littleOrEqualThan(c.score, SCORE.THREE * -2)) {
           cacheGet ++;
           return c.score;
