@@ -114,6 +114,7 @@ var r = function(deep, alpha, beta, role, step) {
     if(math.greatOrEqualThan(v.score, beta)) {
       ABcut ++;
       v.score = MAX-1; // 用一个特殊的值来标记下，这样看到 -9999999 就知道是被剪枝了。
+      v.abcut = true; // 剪枝标记
       cache(deep, v);
       return v;
     }
@@ -171,9 +172,26 @@ var deeping = function(deep) {
   //迭代加深
   for(var i=2;i<=deep; i+=2) {
     negamax(i);
+    // 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
+    // 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
+    /*
+    var hasFailure = false
+    while(candidates.length > 1 && hasFailure) {
+      for (var i=0;i<candidates.length && candidates.length > 1;i++) {
+        var c = candidates[i]
+        if (!c.abcut) { // 被剪枝的不是真实分数，别删了
+          if (math.littleThan(c.v.score, - S.THREE * 2)) { // 对面双三，必败
+            candidates.splice(i, 1);
+            i--;
+            console.log("###################################")
+          }
+        }
+      }
+    }*/
   }
 
-  //排序
+  // 排序
+  // 经过测试，这个如果放在上面的for循环中（就是每次迭代都排序），反而由于迭代深度太浅，排序不好反而会降低搜索速度。
   candidates.sort(function (a,b) {
     if (math.equal(a.v.score,b.v.score)) {
       // 大于零是优势，尽快获胜，因此取步数短的
@@ -189,6 +207,7 @@ var deeping = function(deep) {
     }
     else return (b.v.score - a.v.score)
   })
+
   var best = candidates[0];
   bestPoints = candidates.filter(function (p) {
     return math.greatOrEqualThan(p.v.score, best.v.score) && p.v.step === best.v.step
