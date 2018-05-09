@@ -113,8 +113,8 @@ var r = function(deep, alpha, beta, role, step) {
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
     if(math.greatOrEqualThan(v.score, beta)) {
       ABcut ++;
-      v.score = MAX-1; // 用一个特殊的值来标记下，这样看到 -9999999 就知道是被剪枝了。
-      // v.abcut = true; // 剪枝标记
+      v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
+      v.abcut = 1; // 剪枝标记
       cache(deep, v);
       return v;
     }
@@ -154,6 +154,7 @@ var r = function(deep, alpha, beta, role, step) {
 
 var cache = function(deep, score) {
   if(!config.cache) return;
+  if (score.abcut) return; // 被剪枝的暂时不缓存
   Cache[board.zobrist.code] = {
     deep: deep,
     score: score

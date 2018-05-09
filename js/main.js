@@ -29,7 +29,7 @@ var Board = function(container, status) {
     var d = e.data;
     self._set(d[0], d[1], R.com);
     self.lock = false;
-    self.setStatus("电脑下子("+d[0]+","+d[1]+"), 用时"+((new Date() - self.time)/1000)+"秒, 评分 " + d.score);
+    self.setStatus("电脑用时"+((new Date() - self.time)/1000)+"秒, 评分 " + d.score + ', 步数 ' + d.step);
   }
   this.setStatus("请点击开始按钮");
 
