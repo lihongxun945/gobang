@@ -1,3 +1,4 @@
+var S = require('./score.js');
 var threshold = 1.1;
 
 var equal = function(a, b) {
@@ -30,6 +31,18 @@ var pointEqual = function (a, b) {
   return a[0] === b[0] && a[1] === b[1]
 }
 
+var round = function (score) {
+  var neg = score < 0 ? -1 : 1;
+  var abs = Math.abs(score);
+  if (abs <= S.ONE / 2) return 0;
+  if (abs <= S.TWO / 2 && abs > S.ONE / 2) return neg * S.ONE;
+  if (abs <= S.THREE / 2 && abs > S.TWO / 2) return neg * S.TWO;
+  if (abs <= S.THREE * 1.5 && abs > S.THREE / 2) return neg * S.THREE;
+  if (abs <= S.FOUR / 2 && abs > S.THREE * 1.5) return neg * S.THREE*2;
+  if (abs <= S.FIVE / 2 && abs > S.FOUR / 2) return neg * S.FOUR;
+  return score;
+}
+
 module.exports = {
   equal: equal,
   greatThan: greatThan,
@@ -37,5 +50,6 @@ module.exports = {
   littleThan: littleThan,
   littleOrEqualThan: littleOrEqualThan,
   containPoint: containPoint,
-  pointEqual: pointEqual
+  pointEqual: pointEqual,
+  round: round
 }

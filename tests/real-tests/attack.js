@@ -5,6 +5,7 @@ var vcx = require('../../js/vcx.js');
 
 describe('test maxmin', function() {
 
+  // 这个速度很慢的，可以用来测试速度
   it(`进攻 [2, 7] 无法获胜，白方可以通过连续三次冲四挡住双三攻击，[3, 9], [6, 9], [4, 9]`, function() {
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -25,7 +26,7 @@ describe('test maxmin', function() {
     ];
     var p
     board.init(b);
-    p = c(4);
+    p = c(6);
     assert.ok(p[0] !== 2 || p[1] !== 7);
     //应该不能算出vct杀棋
     p = vcx.vct(1, 10);

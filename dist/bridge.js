@@ -1154,6 +1154,7 @@ var countToScore = function(count, block, empty) {
 module.exports = s;
 
 },{"./role.js":12,"./score.js":13}],9:[function(require,module,exports){
+var S = require('./score.js');
 var threshold = 1.1;
 
 var equal = function(a, b) {
@@ -1186,6 +1187,18 @@ var pointEqual = function (a, b) {
   return a[0] === b[0] && a[1] === b[1]
 }
 
+var round = function (score) {
+  var neg = score < 0 ? -1 : 1;
+  var abs = Math.abs(score);
+  if (abs <= S.ONE / 2) return 0;
+  if (abs <= S.TWO / 2 && abs > S.ONE / 2) return neg * S.ONE;
+  if (abs <= S.THREE / 2 && abs > S.TWO / 2) return neg * S.TWO;
+  if (abs <= S.THREE * 1.5 && abs > S.THREE / 2) return neg * S.THREE;
+  if (abs <= S.FOUR / 2 && abs > S.THREE * 1.5) return neg * S.THREE*2;
+  if (abs <= S.FIVE / 2 && abs > S.FOUR / 2) return neg * S.FOUR;
+  return score;
+}
+
 module.exports = {
   equal: equal,
   greatThan: greatThan,
@@ -1193,10 +1206,11 @@ module.exports = {
   littleThan: littleThan,
   littleOrEqualThan: littleOrEqualThan,
   containPoint: containPoint,
-  pointEqual: pointEqual
+  pointEqual: pointEqual,
+  round: round
 }
 
-},{}],10:[function(require,module,exports){
+},{"./score.js":13}],10:[function(require,module,exports){
 /*
  * 思路：
  * 每次开始迭代前，先生成一组候选列表，然后在迭代加深的过程中不断更新这个列表中的分数
@@ -1212,6 +1226,8 @@ var board = require("./board.js");
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
+
+var bestScore;
 
 var count=0,  //每次思考的节点数
     PVcut,
@@ -1238,7 +1254,6 @@ var negamax = function(deep, _vcxDeep) {
   ABcut = 0;
   PVcut = 0;
   vcxDeep = (_vcxDeep == undefined ? config.vcxDeep : _vcxDeep);
-  bestScore = MIN; // 最优候选人分数，主要用来进行AB剪枝用
 
   if (candidates[0].level > 1) {
     // 最大值就是能成活二的，这时0.x秒就搜索完了，增加深度以充分利用时间
@@ -1286,7 +1301,7 @@ var r = function(deep, alpha, beta, role, step) {
     }
   }
 
-  var _e = board.evaluate(role);
+  var _e = math.round(board.evaluate(role));
 
   count ++;
   if(deep <= 0 || math.greatOrEqualThan(_e, T.FIVE)) {
@@ -1316,9 +1331,9 @@ var r = function(deep, alpha, beta, role, step) {
     //AB 剪枝
     // 这里不要直接返回原来的值，因为这样上一层会以为就是这个分，实际上这个节点直接剪掉就好了，根本不用考虑，也就是直接给一个很大的值让他被减掉
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
-    if(math.greatOrEqualThan(v.score, beta)) {
+    if(v.score >= beta) {
       ABcut ++;
-      v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
+      if (v.score > beta && v.score > T.THREE) v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
       v.abcut = 1; // 剪枝标记
       cache(deep, v);
       return v;
@@ -1380,20 +1395,12 @@ var deeping = function(deep) {
     negamax(i);
     // 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
     // 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
-    /*
-    var hasFailure = false
-    while(candidates.length > 1 && hasFailure) {
-      for (var i=0;i<candidates.length && candidates.length > 1;i++) {
-        var c = candidates[i]
-        if (!c.abcut) { // 被剪枝的不是真实分数，别删了
-          if (math.littleThan(c.v.score, - S.THREE * 2)) { // 对面双三，必败
-            candidates.splice(i, 1);
-            i--;
-            console.log("###################################")
-          }
-        }
-      }
-    }*/
+    var newCandidates = candidates.filter(function (d) {
+      return math.round(d.v.score) > SCORE.THREE * -2;
+    })
+    candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
+
+    if (bestScore < T.THREE * 2) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
   }
 
   // 排序

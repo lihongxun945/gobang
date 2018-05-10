@@ -6,7 +6,7 @@ describe('test maxmin', function() {
 
 
   it(`opening`, function() {
-    // 开具
+    // 开局
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
