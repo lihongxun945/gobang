@@ -314,13 +314,19 @@ Board.prototype.gen = function(role, starSpread) {
   //如果成五，是必杀棋，直接返回
   if(fives.length) return fives;
   
+  // 自己能活四，则直接活四，不考虑冲四
+  if (role === R.com && comfours.length) return comfours;
+  if (role === R.hum && humfours.length) return humfours;
+
+  // 对面有活四和冲四，自己连冲四都没有，则只考虑对面的活四，不考虑对面的冲四
+  
+  if (role === R.com && !comfours.length && !comblockedfours.length && humfours.length) return humfours;
+  if (role === R.hum && !humfours.length && !humblockedfours.length && comfours.length) return comfours;
+
+  // 对面有活四自己有冲四，则都考虑下
   
   var fours = role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
   var blockedfours = role === R.com ? comblockedfours.concat(humblockedfours) : humblockedfours.concat(comblockedfours);
-  //注意一个活三可以有两个位置形成活四，但是不能只考虑其中一个，要从多个中考虑更好的选择
-  //所以不能碰到活四就返回第一个，应该需要考虑多个
-  //注意结果顺序，根据当前角色来
-  // 注意一定要把 blockedfours 也算进去!!因为冲四也是和活四一样的优先级，别人能活四赢，我先手冲四也能赢
   if (fours.length) return fours.concat(blockedfours);
 
   var result = [];
