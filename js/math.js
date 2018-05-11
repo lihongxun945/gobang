@@ -40,7 +40,7 @@ var round = function (score) {
   if (abs <= S.THREE * 1.5 && abs > S.THREE / 2) return neg * S.THREE;
   if (abs <= S.FOUR / 2 && abs > S.THREE * 1.5) return neg * S.THREE*2;
   if (abs <= S.FIVE / 2 && abs > S.FOUR / 2) return neg * S.FOUR;
-  return score;
+  return neg * S.FIVE;
 }
 
 module.exports = {

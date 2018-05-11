@@ -88,7 +88,7 @@ var r = function(deep, alpha, beta, role, step) {
     }
   }
 
-  var _e = math.round(board.evaluate(role));
+  var _e = board.evaluate(role);
 
   count ++;
   if(deep <= 0 || math.greatOrEqualThan(_e, T.FIVE)) {
@@ -108,9 +108,10 @@ var r = function(deep, alpha, beta, role, step) {
     var p = points[i];
     board.put(p, role);
 
-    var v = r(deep-(p.level||1), -beta, -1 *( best.score > alpha ? best.score : alpha), R.reverse(role), step+1);
+    var v = r(deep-(p.level||1), -beta, -alpha, R.reverse(role), step+1);
     v.score *= -1;
     board.remove(p);
+    alpha = Math.max(best.score, alpha);
 
     if(math.greatThan(v.score, best.score)) {
       best = v;
@@ -118,9 +119,11 @@ var r = function(deep, alpha, beta, role, step) {
     //AB 剪枝
     // 这里不要直接返回原来的值，因为这样上一层会以为就是这个分，实际上这个节点直接剪掉就好了，根本不用考虑，也就是直接给一个很大的值让他被减掉
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
-    if(v.score >= beta) {
+    // 其实被注释的这行会有更稳定的剪枝表现，但是这样会导致速度很慢
+    // if(math.greatOrEqualThan(v.score, beta) && v.score >= T.THREE) {
+    if(math.greatOrEqualThan(v.score, beta)) {
       ABcut ++;
-      if (v.score > beta && v.score > T.THREE) v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
+      if (math.greatThan(v.score, beta) && v.score >= T.THREE * 2) v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
       v.abcut = 1; // 剪枝标记
       cache(deep, v);
       return v;
@@ -134,7 +137,8 @@ var r = function(deep, alpha, beta, role, step) {
     if(mate) {
       var _r = {
         score: mate.score,
-        step: step + mate.length
+        step: step + mate.length,
+        vcf: mate.length // 一个标记为，表示这个值是由vcx算出的
       }
       cache(deep, _r);
       return _r;
@@ -147,7 +151,8 @@ var r = function(deep, alpha, beta, role, step) {
     if(mate) {
       var _r = {
         score: mate.score,
-        step: step + mate.length
+        step: step + mate.length,
+        vct: mate.length // 一个标记为，表示这个值是由vcx算出的
       }
       cache(deep, _r);
       return _r;
