@@ -102,6 +102,7 @@ describe('test maxmin', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
+    console.log(board.gen())
     var p = c();
     console.log("######", p);
     assert.ok(p.score < 2000);
