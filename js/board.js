@@ -260,8 +260,8 @@ Board.prototype.gen = function(role, starSpread) {
         var neighbor = [2,2];
         if(this.steps.length < 6) neighbor = [1, 1];
         if(this.hasNeighbor([i, j], neighbor[0], neighbor[1])) { //必须是有邻居的才行
-          var scoreHum = this.humScore[i][j];
-          var scoreCom = this.comScore[i][j];
+          var scoreHum = p.scoreHum = this.humScore[i][j];
+          var scoreCom = p.scoreCom = this.comScore[i][j];
           var maxScore = Math.max(scoreCom, scoreHum);
           p.score = maxScore
 

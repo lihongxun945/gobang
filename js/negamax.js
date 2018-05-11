@@ -65,7 +65,9 @@ var negamax = function(deep, _vcxDeep) {
   }
 
   console.log('迭代完成,deep=' + deep)
-  console.log(candidates)
+  console.log(candidates.map(function (d) {
+    return '['+d[0]+','+d[1]+']' + ',score:' + d.v.score + ',step:' + d.v.step + (d.v.vct ? (',vct:' + d.v.vct) : '') + (d.v.vcf ? (',vcf:' + d.v.vcf) : '')
+  }))
 
 }
 
@@ -108,7 +110,13 @@ var r = function(deep, alpha, beta, role, step) {
     var p = points[i];
     board.put(p, role);
 
-    var v = r(deep-(p.level||1), -beta, -alpha, R.reverse(role), step+1);
+    var _deep = deep-(p.level||1);
+
+    // 冲四延伸
+    if ( (role == R.com && p.scoreHum >= SCORE.FIVE) ||
+      (role == R.hum && p.scoreCom >= SCORE.FIVE)) _deep = deep
+
+    var v = r(_deep, -beta, -alpha, R.reverse(role), step+1);
     v.score *= -1;
     board.remove(p);
     alpha = Math.max(best.score, alpha);
@@ -195,31 +203,39 @@ var deeping = function(deep) {
     if (bestScore < T.THREE * 2) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
   }
 
+  // 美化一下
+  candidates = candidates.map(function (d) {
+    var r = [d[0], d[1]]
+    r.score = d.v.score
+    r.step = d.v.step
+    if (d.v.vct) r.vct = d.v.vct
+    if (d.v.vcf) r.vcf = d.v.vcf
+    return r;
+  })
+
   // 排序
   // 经过测试，这个如果放在上面的for循环中（就是每次迭代都排序），反而由于迭代深度太浅，排序不好反而会降低搜索速度。
   candidates.sort(function (a,b) {
-    if (math.equal(a.v.score,b.v.score)) {
+    if (math.equal(a.score,b.score)) {
       // 大于零是优势，尽快获胜，因此取步数短的
       // 小于0是劣势，尽量拖延，因此取步数长的
-      if (a.v.score >= 0) {
-        if (a.v.step !== b.v.step) return a.v.step - b.v.step
+      if (a.score >= 0) {
+        if (a.step !== b.step) return a.step - b.step
         else return b.score - a.score // 否则 选取当前分最高的（直接评分)
       }
       else {
-        if (a.v.step !== b.v.step) return b.v.step - a.v.step
+        if (a.step !== b.step) return b.step - a.step
         else return b.score - a.score // 否则 选取当前分最高的（直接评分)
       }
     }
-    else return (b.v.score - a.v.score)
+    else return (b.score - a.score)
   })
 
   var best = candidates[0];
   bestPoints = candidates.filter(function (p) {
-    return math.greatOrEqualThan(p.v.score, best.v.score) && p.v.step === best.v.step
+    return math.greatOrEqualThan(p.score, best.score) && p.step === best.step
   });
   var result = candidates[0];
-  result.score = candidates[0].v.score;
-  result.step = candidates[0].v.step;
   config.log && console.log("可选节点：" + bestPoints.join(';'));
   config.log && console.log("选择节点：" + candidates[0] + ", 分数:"+result.score.toFixed(3)+", 步数:" + result.step);
   var time = (new Date() - start)/1000
