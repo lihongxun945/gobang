@@ -50,8 +50,9 @@ var negamax = function(deep, _vcxDeep) {
   for(var i=0;i<candidates.length;i++) {
     var p = candidates[i];
     board.put(p, R.com);
+    var steps = [p];
     // 越靠后的点，搜索深度约低，因为出现好棋的可能性比较小
-    var v = r(deep-(p.level||1), -MAX, -bestScore, R.hum, 1);
+    var v = r(deep-(p.level||1), -MAX, -bestScore, R.hum, 1, steps.slice(0));
     v.score *= -1
     bestScore = Math.max(bestScore, v.score)
     board.remove(p);
@@ -66,12 +67,17 @@ var negamax = function(deep, _vcxDeep) {
 
   console.log('迭代完成,deep=' + deep)
   console.log(candidates.map(function (d) {
-    return '['+d[0]+','+d[1]+']' + ',score:' + d.v.score + ',step:' + d.v.step + (d.v.vct ? (',vct:' + d.v.vct) : '') + (d.v.vcf ? (',vcf:' + d.v.vcf) : '')
+    return '['+d[0]+','+d[1]+']'
+      + ',score:' + d.v.score
+      + ',step:' + d.v.step
+      + ',steps:' + d.v.steps.join(';')
+      + (d.v.vct ? (',vct:' + d.v.vct.join(';')) : '')
+      + (d.v.vcf ? (',vcf:' + d.v.vcf.join(';')) : '')
   }))
 
 }
 
-var r = function(deep, alpha, beta, role, step) {
+var r = function(deep, alpha, beta, role, step, steps) {
 
   if(config.cache) {
     var c = Cache[board.zobrist.code];
@@ -96,13 +102,15 @@ var r = function(deep, alpha, beta, role, step) {
   if(deep <= 0 || math.greatOrEqualThan(_e, T.FIVE)) {
     return {
       score: _e,
-      step: step
+      step: step,
+      steps: steps
     };
   }
   
   var best = {
     score: MIN,
-    step: step
+    step: step,
+    steps: steps
   }
   var points = board.gen(role);
 
@@ -116,7 +124,9 @@ var r = function(deep, alpha, beta, role, step) {
     if ( (role == R.com && p.scoreHum >= SCORE.FIVE) ||
       (role == R.hum && p.scoreCom >= SCORE.FIVE)) _deep = deep
 
-    var v = r(_deep, -beta, -alpha, R.reverse(role), step+1);
+    var _steps = steps.slice(0);
+    _steps.push(p);
+    var v = r(_deep, -beta, -alpha, R.reverse(role), step+1, _steps);
     v.score *= -1;
     board.remove(p);
     alpha = Math.max(best.score, alpha);
@@ -127,9 +137,8 @@ var r = function(deep, alpha, beta, role, step) {
     //AB 剪枝
     // 这里不要直接返回原来的值，因为这样上一层会以为就是这个分，实际上这个节点直接剪掉就好了，根本不用考虑，也就是直接给一个很大的值让他被减掉
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
-    // 其实被注释的这行会有更稳定的剪枝表现，但是这样会导致速度很慢
-    // if(math.greatOrEqualThan(v.score, beta) && v.score >= T.THREE) {
-    if(math.greatOrEqualThan(v.score, beta)) {
+    // 一定要注意，这里必须是 greatThan 即 明显大于，而不是 greatOrEqualThan 不然会出现很多差不多的有用分支被剪掉，会出现致命错误
+    if(math.greatThan(v.score, beta)) {
       ABcut ++;
       if (math.greatThan(v.score, beta) && v.score >= T.THREE * 2) v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
       v.abcut = 1; // 剪枝标记
@@ -146,7 +155,8 @@ var r = function(deep, alpha, beta, role, step) {
       var _r = {
         score: mate.score,
         step: step + mate.length,
-        vcf: mate.length // 一个标记为，表示这个值是由vcx算出的
+        steps: steps,
+        vcf: mate // 一个标记为，表示这个值是由vcx算出的
       }
       cache(deep, _r);
       return _r;
@@ -160,7 +170,8 @@ var r = function(deep, alpha, beta, role, step) {
       var _r = {
         score: mate.score,
         step: step + mate.length,
-        vct: mate.length // 一个标记为，表示这个值是由vcx算出的
+        steps: steps,
+        vct: mate // 一个标记为，表示这个值是由vcx算出的
       }
       cache(deep, _r);
       return _r;
