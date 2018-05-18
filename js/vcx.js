@@ -37,6 +37,13 @@ var debugCheckmate = debug.checkmate = {
   cacheHit: 0, // 缓存命中
 }
 
+var lastMaxPoint, lastMinPoint;
+
+var logSteps = function () {
+  return;
+  console.log(board.allSteps.map((d) => '['+d[0]+','+d[1]+']').join(','))
+}
+
 
 //找到所有比目标分数大的位置
 //注意，不止要找自己的，还要找对面的，
@@ -60,10 +67,12 @@ var findMax = function(role, score) {
           fives.push(p);
         } else {
 
-          var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
-          p.score = s;
-          if(s >= score) {
-            result.push(p);
+          if ( (!lastMaxPoint || (i === lastMaxPoint[0] || j === lastMaxPoint[1] || (Math.abs(i-lastMaxPoint[0]) === Math.abs(j-lastMaxPoint[1]))))) {
+            var s = (role == R.com ? board.comScore[p[0]][p[1]] : board.humScore[p[0]][p[1]]);
+            p.score = s;
+            if(s >= score) {
+              result.push(p);
+            }
           }
         }
       }
@@ -150,8 +159,9 @@ var findMin = function(role, score) {
   return result;
 }
 
-var max = function(role, deep) {
+var max = function(role, deep, totalDeep) {
   debugNodeCount ++;
+  logSteps();
   if(deep <= 0) return false;
 
   var points = findMax(role, MAX_SCORE);
@@ -160,7 +170,9 @@ var max = function(role, deep) {
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board.put(p, role);
-    var m = min(role, deep-1);
+    // 如果是防守对面的冲四，那么不用记下来
+    if (!p.score <= -S.FIVE) lastMaxPoint = p;
+    var m = min(R.reverse(role), deep-1);
     board.remove(p);
     if(m) {
       if(m.length) {
@@ -179,19 +191,20 @@ var max = function(role, deep) {
 var min = function(role, deep) {
   debugNodeCount ++;
   var w = board.win();
-  if(w == role) return true;
-  if(w == R.reverse(role)) return false;
+  logSteps();
+  if(w == role) return false;
+  if(w == R.reverse(role)) return true;
   if(deep <= 0) return false;
-  var points = findMin(R.reverse(role), MIN_SCORE);
+  var points = findMin(role, MIN_SCORE);
   if(points.length == 0) return false;
   if(points.length && -1 * points[0].score  >= S.FOUR) return false; //为了减少一层搜索，活四就行了。
 
   var cands = [];
-  var currentRole = R.reverse(role);
   for(var i=0;i<points.length;i++) {
     var p = points[i];
-    board.put(p, currentRole);
-    var m = max(role, deep-1);
+    board.put(p, role);
+    lastMinPoint = p;
+    var m = max(R.reverse(role), deep-1);
     board.remove(p);
     if(m) {
       m.unshift(p);
@@ -222,11 +235,13 @@ var getCache = function(vcf) {
 }
 
 //迭代加深
-var deeping = function(role, deep) {
+var deeping = function(role, deep, totalDeep) {
   var start = new Date();
   debugNodeCount = 0;
   for(var i=1;i<=deep;i++) {
-    var result = max(role, i);
+    lastMaxPoint = undefined;
+    lastMinPoint = undefined;
+    var result = max(role, i, deep);
     if(result) break; //找到一个就行
   }
   var time = Math.round(new Date() - start);
@@ -241,6 +256,7 @@ var deeping = function(role, deep) {
 var vcx = function(role, deep, onlyFour) {
 
   deep = deep === undefined ? config.vcxDeep : deep;
+  
   if(deep <= 0) return false;
 
   if (onlyFour) {
@@ -248,7 +264,7 @@ var vcx = function(role, deep, onlyFour) {
     MAX_SCORE = S.BLOCKED_FOUR;
     MIN_SCORE = S.FIVE;
 
-    var result = deeping(role, deep);
+    var result = deeping(role, deep, deep);
     if(result) {
       result.score = S.FOUR;
       return result;
@@ -258,7 +274,7 @@ var vcx = function(role, deep, onlyFour) {
     //计算通过 活三 赢的；
     MAX_SCORE = S.THREE;
     MIN_SCORE = S.BLOCKED_FOUR;
-    result = deeping(role, deep);
+    result = deeping(role, deep, deep);
     if(result) {
       result.score = S.THREE*2; //连续冲三赢，就等于是双三
     }

@@ -120,7 +120,7 @@ describe('test checkmate', function() {
       [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    var p = c.vct(1);
+    var p = c.vct(1, 10);
     console.log(p)
     assert.ok(p);
   });
