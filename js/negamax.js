@@ -79,7 +79,7 @@ var negamax = function(deep, _vcxDeep) {
 
 var r = function(deep, alpha, beta, role, step, steps) {
 
-  board.logSteps();
+  // board.logSteps();
   if(config.cache) {
     var c = Cache[board.zobrist.code];
     if(c) {
@@ -115,7 +115,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
   }
   var points = board.gen(role);
 
-  console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
+  // console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -143,7 +143,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     // 一定要注意，这里必须是 greatThan 即 明显大于，而不是 greatOrEqualThan 不然会出现很多差不多的有用分支被剪掉，会出现致命错误
     if(v.score >= beta) {
       ABcut ++;
-      if (math.greatThan(v.score, beta) && v.score >= T.THREE * 2) v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
+      v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
       v.abcut = 1; // 剪枝标记
       cache(deep, v);
       return v;
@@ -210,7 +210,7 @@ var deeping = function(deep) {
     // 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
     // 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
     var newCandidates = candidates.filter(function (d) {
-      return math.round(d.v.score) > SCORE.THREE * -2;
+      return math.round(d.v.score) > SCORE.THREE * -2 || true;
     })
     candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
 
