@@ -39,12 +39,6 @@ var debugCheckmate = debug.checkmate = {
 
 var lastMaxPoint, lastMinPoint;
 
-var logSteps = function () {
-  return;
-  console.log(board.allSteps.map((d) => '['+d[0]+','+d[1]+']').join(','))
-}
-
-
 //找到所有比目标分数大的位置
 //注意，不止要找自己的，还要找对面的，
 var findMax = function(role, score) {
@@ -161,7 +155,7 @@ var findMin = function(role, score) {
 
 var max = function(role, deep, totalDeep) {
   debugNodeCount ++;
-  logSteps();
+  //board.logSteps();
   if(deep <= 0) return false;
 
   var points = findMax(role, MAX_SCORE);
@@ -191,7 +185,7 @@ var max = function(role, deep, totalDeep) {
 var min = function(role, deep) {
   debugNodeCount ++;
   var w = board.win();
-  logSteps();
+  //board.logSteps();
   if(w == role) return false;
   if(w == R.reverse(role)) return true;
   if(deep <= 0) return false;

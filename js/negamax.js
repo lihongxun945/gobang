@@ -79,6 +79,7 @@ var negamax = function(deep, _vcxDeep) {
 
 var r = function(deep, alpha, beta, role, step, steps) {
 
+  board.logSteps();
   if(config.cache) {
     var c = Cache[board.zobrist.code];
     if(c) {
@@ -114,6 +115,8 @@ var r = function(deep, alpha, beta, role, step, steps) {
   }
   var points = board.gen(role);
 
+  console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
+
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board.put(p, role);
@@ -138,7 +141,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     // 这里不要直接返回原来的值，因为这样上一层会以为就是这个分，实际上这个节点直接剪掉就好了，根本不用考虑，也就是直接给一个很大的值让他被减掉
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
     // 一定要注意，这里必须是 greatThan 即 明显大于，而不是 greatOrEqualThan 不然会出现很多差不多的有用分支被剪掉，会出现致命错误
-    if(math.greatThan(v.score, beta)) {
+    if(v.score >= beta) {
       ABcut ++;
       if (math.greatThan(v.score, beta) && v.score >= T.THREE * 2) v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
       v.abcut = 1; // 剪枝标记

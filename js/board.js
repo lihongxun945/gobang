@@ -190,6 +190,11 @@ Board.prototype.back = function() {
   this.updateScore(s);
 }
 
+
+Board.prototype.logSteps = function() {
+  console.log(this.allSteps.map((d) => '['+d[0]+','+d[1]+']').join(','))
+}
+
 //棋面估分
 //这里只算当前分，而不是在空位下一步之后的分
 Board.prototype.evaluate = function(role) {
