@@ -103,6 +103,36 @@ var r = function(deep, alpha, beta, role, step, steps) {
 
   count ++;
   if(deep <= 1 || math.greatOrEqualThan(_e, T.FIVE)) {
+    // 经过测试，把算杀放在对子节点的搜索之后，比放在前面速度更快一些。
+    // vcf
+    // 自己没有形成活四，对面也没有形成活四，那么先尝试VCF
+    if(math.littleThan(_e, SCORE.FOUR) && math.greatThan(_e, SCORE.FOUR * -1)) {
+      mate = vcx.vcf(role, vcxDeep);
+      if(mate) {
+        DEBUG && console.log('vcf success')
+        v = {
+          score: mate.score,
+          step: step + mate.length,
+          steps: steps,
+          vcf: mate // 一个标记为，表示这个值是由vcx算出的
+        }
+        return v
+      }
+    } // vct
+    // 自己没有形成活三，对面也没有高于活三的棋型，那么尝试VCT
+    if(math.littleThan(_e, SCORE.THREE*2) && math.greatThan(_e, SCORE.THREE * -2)) {
+      var mate = vcx.vct(role, vcxDeep);
+      if(mate) {
+        DEBUG && console.log('vct success')
+        v = {
+          score: mate.score,
+          step: step + mate.length,
+          steps: steps,
+          vct: mate // 一个标记为，表示这个值是由vcx算出的
+        }
+      return v
+      }
+    }
     return {
       score: _e,
       step: step,
@@ -136,36 +166,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     v.score *= -1;
     board.remove(p);
 
-    var mate
-
-    // 经过测试，把算杀放在对子节点的搜索之后，比放在前面速度更快一些。
-    // vcf
-    // 自己没有形成活四，对面也没有形成活四，那么先尝试VCF
-    if(math.littleThan(v.score, SCORE.FOUR) && math.greatThan(v.score, SCORE.FOUR * -1)) {
-      mate = vcx.vcf(role, vcxDeep);
-      if(mate) {
-        DEBUG && console.log('vcf success')
-        v = {
-          score: mate.score,
-          step: step + mate.length,
-          steps: steps,
-          vcf: mate // 一个标记为，表示这个值是由vcx算出的
-        }
-      }
-    } // vct
-    // 自己没有形成活三，对面也没有高于活三的棋型，那么尝试VCT
-    if(!mate && math.littleThan(v.score, SCORE.THREE*2) && math.greatThan(v.score, SCORE.THREE * -2)) {
-      mate = vcx.vct(role, vcxDeep);
-      if(mate) {
-        DEBUG && console.log('vct success')
-        v = {
-          score: mate.score,
-          step: step + mate.length,
-          steps: steps,
-          vct: mate // 一个标记为，表示这个值是由vcx算出的
-        }
-      }
-    }
+    
 
     if(math.greatThan(v.score, best.score)) {
       best = v;
