@@ -30,6 +30,8 @@ var vcxDeep;
 var startTime; // 开始时间，用来计算每一步的时间
 var allBestPoints; // 记录迭代过程中得到的全部最好点
 
+var DEBUG = false;
+
 /*
  * max min search
  * white is max, black is min
@@ -79,7 +81,7 @@ var negamax = function(deep, _vcxDeep) {
 
 var r = function(deep, alpha, beta, role, step, steps) {
 
-  // board.logSteps();
+  DEBUG && board.logSteps();
   if(config.cache) {
     var c = Cache[board.zobrist.code];
     if(c) {
@@ -100,7 +102,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
   var _e = board.evaluate(role);
 
   count ++;
-  if(deep <= 0 || math.greatOrEqualThan(_e, T.FIVE)) {
+  if(deep <= 1 || math.greatOrEqualThan(_e, T.FIVE)) {
     return {
       score: _e,
       step: step,
@@ -115,7 +117,8 @@ var r = function(deep, alpha, beta, role, step, steps) {
   }
   var points = board.gen(role);
 
-  // console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
+  DEBUG && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
+  DEBUG && console.log('A~B: ' + alpha + '~' + beta)
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -132,54 +135,56 @@ var r = function(deep, alpha, beta, role, step, steps) {
     var v = r(_deep, -beta, -alpha, R.reverse(role), step+1, _steps);
     v.score *= -1;
     board.remove(p);
-    alpha = Math.max(best.score, alpha);
+
+    var mate
+
+    // 经过测试，把算杀放在对子节点的搜索之后，比放在前面速度更快一些。
+    // vcf
+    // 自己没有形成活四，对面也没有形成活四，那么先尝试VCF
+    if(math.littleThan(v.score, SCORE.FOUR) && math.greatThan(v.score, SCORE.FOUR * -1)) {
+      mate = vcx.vcf(role, vcxDeep);
+      if(mate) {
+        DEBUG && console.log('vcf success')
+        v = {
+          score: mate.score,
+          step: step + mate.length,
+          steps: steps,
+          vcf: mate // 一个标记为，表示这个值是由vcx算出的
+        }
+      }
+    } // vct
+    // 自己没有形成活三，对面也没有高于活三的棋型，那么尝试VCT
+    if(!mate && math.littleThan(v.score, SCORE.THREE*2) && math.greatThan(v.score, SCORE.THREE * -2)) {
+      mate = vcx.vct(role, vcxDeep);
+      if(mate) {
+        DEBUG && console.log('vct success')
+        v = {
+          score: mate.score,
+          step: step + mate.length,
+          steps: steps,
+          vct: mate // 一个标记为，表示这个值是由vcx算出的
+        }
+      }
+    }
 
     if(math.greatThan(v.score, best.score)) {
       best = v;
     }
+    alpha = Math.max(best.score, alpha);
     //AB 剪枝
     // 这里不要直接返回原来的值，因为这样上一层会以为就是这个分，实际上这个节点直接剪掉就好了，根本不用考虑，也就是直接给一个很大的值让他被减掉
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
     // 一定要注意，这里必须是 greatThan 即 明显大于，而不是 greatOrEqualThan 不然会出现很多差不多的有用分支被剪掉，会出现致命错误
     if(v.score >= beta) {
+      DEBUG && console.log('AB Cut [' + p[0] + ',' + p[1] + ']' + v.score + ' >= ' + beta + '')
       ABcut ++;
       v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
-      v.abcut = 1; // 剪枝标记
+      if (math.greatThan(v.score, beta) && v.score >= T.THREE * 2) v.abcut = 1; // 剪枝标记
       cache(deep, v);
       return v;
     }
   }
-  // 经过测试，把算杀放在对子节点的搜索之后，比放在前面速度更快一些。
-  // vcf
-  // 自己没有形成活四，对面也没有形成活四，那么先尝试VCF
-  if(math.littleThan(best.score, SCORE.FOUR) && math.greatThan(best.score, SCORE.FOUR * -1)) {
-    var mate = vcx.vcf(role, vcxDeep);
-    if(mate) {
-      var _r = {
-        score: mate.score,
-        step: step + mate.length,
-        steps: steps,
-        vcf: mate // 一个标记为，表示这个值是由vcx算出的
-      }
-      cache(deep, _r);
-      return _r;
-    }
-  }
-  // vct
-  // 自己没有形成活三，对面也没有高于活三的棋型，那么尝试VCT
-  if(math.littleThan(best.score, SCORE.THREE*2) && math.greatThan(best.score, SCORE.THREE * -2)) {
-    var mate = vcx.vct(role, vcxDeep);
-    if(mate) {
-      var _r = {
-        score: mate.score,
-        step: step + mate.length,
-        steps: steps,
-        vct: mate // 一个标记为，表示这个值是由vcx算出的
-      }
-      cache(deep, _r);
-      return _r;
-    }
-  }
+
   cache(deep, best);
   
   //console.log('end: role:' + role + ', deep:' + deep + ', best: ' + best)
@@ -210,7 +215,7 @@ var deeping = function(deep) {
     // 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
     // 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
     var newCandidates = candidates.filter(function (d) {
-      return math.round(d.v.score) > SCORE.THREE * -2 || true;
+      return !d.abcut;
     })
     candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
 

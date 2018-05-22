@@ -156,7 +156,7 @@ var findMin = function(role, score) {
 var max = function(role, deep, totalDeep) {
   debugNodeCount ++;
   //board.logSteps();
-  if(deep <= 0) return false;
+  if(deep <= 1) return false;
 
   var points = findMax(role, MAX_SCORE);
   if(points.length && points[0].score >= S.FOUR) return [points[0]]; //为了减少一层搜索，活四就行了。
@@ -188,7 +188,7 @@ var min = function(role, deep) {
   //board.logSteps();
   if(w == role) return false;
   if(w == R.reverse(role)) return true;
-  if(deep <= 0) return false;
+  if(deep <= 1) return false;
   var points = findMin(role, MIN_SCORE);
   if(points.length == 0) return false;
   if(points.length && -1 * points[0].score  >= S.FOUR) return false; //为了减少一层搜索，活四就行了。
