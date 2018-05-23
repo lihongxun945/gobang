@@ -12,7 +12,7 @@ module.exports = {
   TWO: 100,
   THREE: 1000,
   FOUR: 100000,
-  FIVE: 1000000,
+  FIVE: 10000000,
   BLOCKED_ONE: 1,
   BLOCKED_TWO: 10,
   BLOCKED_THREE: 100,
@@ -1398,8 +1398,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     var v = r(_deep, -beta, -alpha, R.reverse(role), step+1, _steps);
     v.score *= -1;
     board.remove(p);
-
-    
+ 
 
     if(math.greatThan(v.score, best.score)) {
       best = v;
@@ -1414,7 +1413,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
       ABcut ++;
       v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
       if (math.greatThan(v.score, beta) && v.score >= T.THREE * 2) v.abcut = 1; // 剪枝标记
-      cache(deep, v);
+      // cache(deep, v);
       return v;
     }
   }
@@ -1454,7 +1453,8 @@ var deeping = function(deep) {
     })
     candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
 
-    if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
+    bestScore = MIN;
+    // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
   }
 
   // 美化一下
