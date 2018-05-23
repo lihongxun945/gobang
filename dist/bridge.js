@@ -339,7 +339,7 @@ Board.prototype.evaluate = function(role) {
  */
 
 
-Board.prototype.gen = function(role, starSpread) {
+Board.prototype.gen = function(role, onlyThrees, starSpread) {
   var fives = [];
   var comfours=[];
   var humfours=[];
@@ -456,12 +456,18 @@ Board.prototype.gen = function(role, starSpread) {
     return result;
   }
 
+
   var twos;
   if (role === R.com) twos = comtwos.concat(humtwos);
   else twos = humtwos.concat(comtwos);
 
   twos.sort(function(a, b) { return b.score - a.score });
-;
+
+  // 只返回大于等于活三的棋
+  // 这里注意，如果没有活三，那么要仍然记得返回一个值，不然在搜索中会因为没有子节点而返回默认的MIN
+  if (onlyThrees) {
+    return result.length ? result : [twos[0]];
+  }
   result = result.concat(twos.length ? twos : neighbors);
 
   //这种分数低的，就不用全部计算了
@@ -732,14 +738,14 @@ onmessage = function(e) {
 },{"./ai.js":2,"./config.js":6,"./role.js":12}],6:[function(require,module,exports){
 module.exports = {
   opening: true, // 使用开局库
-  searchDeep: 6,  //搜索深度
-  countLimit: 16, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
-  timeLimit: 1000, // 时间限制，秒
+  searchDeep: 10,  //搜索深度
+  countLimit: 20, //gen函数返回的节点数量上限，超过之后将会按照分数进行截断
+  timeLimit: 100, // 时间限制，秒
   vcxDeep:  5,  //算杀深度
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
   // TODO: 目前开启缓存后，搜索会出现一些未知的bug
-  cache: false // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
+  cache: true // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
 }
 
 },{}],7:[function(require,module,exports){
@@ -1256,6 +1262,8 @@ var allBestPoints; // 记录迭代过程中得到的全部最好点
 
 var DEBUG = false;
 
+var deepLimit;
+
 /*
  * max min search
  * white is max, black is min
@@ -1326,37 +1334,38 @@ var r = function(deep, alpha, beta, role, step, steps) {
   var _e = board.evaluate(role);
 
   count ++;
-  if(deep <= 1 || math.greatOrEqualThan(_e, T.FIVE)) {
-    // 经过测试，把算杀放在对子节点的搜索之后，比放在前面速度更快一些。
-    // vcf
-    // 自己没有形成活四，对面也没有形成活四，那么先尝试VCF
-    if(math.littleThan(_e, SCORE.FOUR) && math.greatThan(_e, SCORE.FOUR * -1)) {
-      mate = vcx.vcf(role, vcxDeep);
-      if(mate) {
-        DEBUG && console.log('vcf success')
-        v = {
-          score: mate.score,
-          step: step + mate.length,
-          steps: steps,
-          vcf: mate // 一个标记为，表示这个值是由vcx算出的
-        }
-        return v
-      }
-    } // vct
-    // 自己没有形成活三，对面也没有高于活三的棋型，那么尝试VCT
-    if(math.littleThan(_e, SCORE.THREE*2) && math.greatThan(_e, SCORE.THREE * -2)) {
-      var mate = vcx.vct(role, vcxDeep);
-      if(mate) {
-        DEBUG && console.log('vct success')
-        v = {
-          score: mate.score,
-          step: step + mate.length,
-          steps: steps,
-          vct: mate // 一个标记为，表示这个值是由vcx算出的
-        }
-      return v
-      }
-    }
+  // 搜索到底 或者已经胜利
+  if(deep <= 1 || math.greatOrEqualThan(_e, T.FIVE) || math.littleOrEqualThan(_e, -T.FIVE)) {
+  //// 经过测试，把算杀放在对子节点的搜索之后，比放在前面速度更快一些。
+  //// vcf
+  //// 自己没有形成活四，对面也没有形成活四，那么先尝试VCF
+  //if(math.littleThan(_e, SCORE.FOUR) && math.greatThan(_e, SCORE.FOUR * -1)) {
+  //  mate = vcx.vcf(role, vcxDeep);
+  //  if(mate) {
+  //    DEBUG && console.log('vcf success')
+  //    v = {
+  //      score: mate.score,
+  //      step: step + mate.length,
+  //      steps: steps,
+  //      vcf: mate // 一个标记为，表示这个值是由vcx算出的
+  //    }
+  //    return v
+  //  }
+  //} // vct
+  //// 自己没有形成活三，对面也没有高于活三的棋型，那么尝试VCT
+  //if(math.littleThan(_e, SCORE.THREE*2) && math.greatThan(_e, SCORE.THREE * -2)) {
+  //  var mate = vcx.vct(role, vcxDeep);
+  //  if(mate) {
+  //    DEBUG && console.log('vct success')
+  //    v = {
+  //      score: mate.score,
+  //      step: step + mate.length,
+  //      steps: steps,
+  //      vct: mate // 一个标记为，表示这个值是由vcx算出的
+  //    }
+  //  return v
+  //  }
+  //}
     return {
       score: _e,
       step: step,
@@ -1369,7 +1378,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     step: step,
     steps: steps
   }
-  var points = board.gen(role);
+  var points = board.gen(role, (deepLimit - deep) > 4);
 
   DEBUG && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
   DEBUG && console.log('A~B: ' + alpha + '~' + beta)
@@ -1400,7 +1409,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     // 这里不要直接返回原来的值，因为这样上一层会以为就是这个分，实际上这个节点直接剪掉就好了，根本不用考虑，也就是直接给一个很大的值让他被减掉
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
     // 一定要注意，这里必须是 greatThan 即 明显大于，而不是 greatOrEqualThan 不然会出现很多差不多的有用分支被剪掉，会出现致命错误
-    if(v.score >= beta) {
+    if(math.greatOrEqualThan(v.score, beta)) {
       DEBUG && console.log('AB Cut [' + p[0] + ',' + p[1] + ']' + v.score + ' >= ' + beta + '')
       ABcut ++;
       v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
@@ -1436,6 +1445,7 @@ var deeping = function(deep) {
 
   //迭代加深
   for(var i=2;i<=deep; i+=2) {
+    deepLimit = i;
     negamax(i);
     // 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
     // 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
@@ -1444,7 +1454,7 @@ var deeping = function(deep) {
     })
     candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
 
-    if (bestScore < T.THREE * 2) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
+    if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
   }
 
   // 美化一下

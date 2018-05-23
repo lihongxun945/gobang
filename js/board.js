@@ -242,7 +242,7 @@ Board.prototype.evaluate = function(role) {
  */
 
 
-Board.prototype.gen = function(role, starSpread) {
+Board.prototype.gen = function(role, onlyThrees, starSpread) {
   var fives = [];
   var comfours=[];
   var humfours=[];
@@ -359,12 +359,18 @@ Board.prototype.gen = function(role, starSpread) {
     return result;
   }
 
+
   var twos;
   if (role === R.com) twos = comtwos.concat(humtwos);
   else twos = humtwos.concat(comtwos);
 
   twos.sort(function(a, b) { return b.score - a.score });
-;
+
+  // 只返回大于等于活三的棋
+  // 这里注意，如果没有活三，那么要仍然记得返回一个值，不然在搜索中会因为没有子节点而返回默认的MIN
+  if (onlyThrees) {
+    return result.length ? result : [twos[0]];
+  }
   result = result.concat(twos.length ? twos : neighbors);
 
   //这种分数低的，就不用全部计算了

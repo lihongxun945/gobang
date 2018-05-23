@@ -43,4 +43,6 @@ describe('test board', function() {
     assert.ok(equal(board.evaluate(2), S.THREE));
   });
 
+    
+
 });
