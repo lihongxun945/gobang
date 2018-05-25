@@ -2,6 +2,8 @@ module.exports = {
   greating: [
     '你好~我是轩轩~',
     'Hello~Nice to meet you~',
+    '欢迎欢迎，热烈欢迎~',
+    '来切磋下~',
   ],
   thinking: [
     '容我想一想~',
