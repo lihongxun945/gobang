@@ -773,7 +773,7 @@ module.exports = {
   log: true,
   star: true, // 是否开启 starspread
   // TODO: 目前开启缓存后，搜索会出现一些未知的bug
-  cache: false // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
+  cache: true // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
 }
 
 },{}],7:[function(require,module,exports){
@@ -1347,14 +1347,15 @@ var r = function(deep, alpha, beta, role, step, steps) {
     if(c) {
       if(c.deep >= deep) { // 如果缓存中的结果搜索深度不比当前小，则结果完全可用
         cacheGet ++;
+        DEBUG && console.log('缓存命中:', c)
         return c.score;
       } else {
         // 如果缓存的结果中搜索深度比当前小，那么任何一方出现双三及以上结果的情况下可用
         // TODO: 只有这一个缓存策略是会导致开启缓存后会和以前的结果有一点点区别的，其他几种都是透明的缓存策略
-        if (math.greatOrEqualThan(c.score, SCORE.THREE * 2) || math.littleOrEqualThan(c.score, SCORE.THREE * -2)) {
-          cacheGet ++;
-          return c.score;
-        }
+      //if (math.greatOrEqualThan(c.score, SCORE.THREE * 2) || math.littleOrEqualThan(c.score, SCORE.THREE * -2)) {
+      //  cacheGet ++;
+      //  return c.score;
+      //}
       }
     }
   }
@@ -1440,9 +1441,9 @@ var r = function(deep, alpha, beta, role, step, steps) {
     if(math.greatOrEqualThan(v.score, beta)) {
       DEBUG && console.log('AB Cut [' + p[0] + ',' + p[1] + ']' + v.score + ' >= ' + beta + '')
       ABcut ++;
-      v.score = MAX-1; // 被剪枝的，直接用一个极小值来记录
-      if (math.greatThan(v.score, beta) && v.score >= T.THREE * 2) v.abcut = 1; // 剪枝标记
-      // cache(deep, v);
+      v.score = MAX-1; // 被剪枝的，直接用一个极大值来记录
+      v.abcut = 1; // 剪枝标记
+      // cache(deep, v); // 别缓存被剪枝的，而且，这个返回到上层之后，也注意都不要缓存
       return v;
     }
   }
@@ -1454,11 +1455,16 @@ var r = function(deep, alpha, beta, role, step, steps) {
 }
 
 var cache = function(deep, score) {
-  if(!config.cache) return;
-  if (score.abcut) return; // 被剪枝的暂时不缓存
+  if(!config.cache) return false;
+  if (score.abcut) return false; // 被剪枝的不要缓存哦，因为分数是一个极值
+  // 记得clone，因为score在搜索的时候可能会被改的，这里要clone一个新的
   Cache[board.zobrist.code] = {
     deep: deep,
-    score: score
+    score: {
+      score: score.score,
+      steps: score.steps,
+      step: score.step
+    }
   }
   cacheCount ++;
 }

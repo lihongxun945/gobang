@@ -22,7 +22,7 @@ describe('测试AB剪枝的bug', function() {
     var p = c(10);
     console.log("######", p);
     assert.ok(p.score > 1500);
-    assert.ok(p[0] == 6 && p[1] === 5);
+    assert.ok((p[0] == 6 && p[1] === 5) || (p[0] == 5 && p[1] === 4));
   });
   it(`测试vct bug，此处应该没有杀棋`, function() {
     b = [
