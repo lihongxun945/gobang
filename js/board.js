@@ -265,10 +265,25 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
         var neighbor = [2,2];
         if(this.steps.length < 6) neighbor = [1, 1];
         if(this.hasNeighbor([i, j], neighbor[0], neighbor[1])) { //必须是有邻居的才行
+
           var scoreHum = p.scoreHum = this.humScore[i][j];
           var scoreCom = p.scoreCom = this.comScore[i][j];
           var maxScore = Math.max(scoreCom, scoreHum);
           p.score = maxScore
+
+
+          // 双星延伸
+          if (starSpread) {
+            lastPoint1 = this.allSteps[this.allSteps.length-1]
+            lastPoint2 = this.allSteps[this.allSteps.length-2]
+            if (
+              maxScore >= S.BLOCKED_FOUR ||
+              (i === lastPoint1[0] || j === lastPoint1[1] || (Math.abs(i-lastPoint1[0]) === Math.abs(j-lastPoint1[1])))
+             || (i === lastPoint2[0] || j === lastPoint2[1] || (Math.abs(i-lastPoint2[0]) === Math.abs(j-lastPoint2[1]))) ) {
+            } else {
+              continue;
+            }
+          }
 
           // 结果分级
           if (maxScore >= S.THREE) {
@@ -302,14 +317,11 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
           } else if(scoreHum >= S.THREE) {
             humthrees.push(p);
           } else if(scoreCom >= S.TWO) {
-            if (!starSpread) comtwos.unshift(p);
-            else if (starSpread && this.isStarSpread(p, this.last(R.com))) comtwos.unshift(p);
+            comtwos.unshift(p);
           } else if(scoreHum >= S.TWO) {
-            if (!starSpread) humtwos.unshift(p);
-            else if (starSpread && this.isStarSpread(p, this.last(R.hum))) humtwos.unshift(p);
+            humtwos.unshift(p);
           } else {
-            if (!starSpread) neighbors.push(p);
-            else if (starSpread && this.isStarSpread(p, this.last(R.hum))) neighbors.push(p);
+            neighbors.push(p);
           }
         }
       }

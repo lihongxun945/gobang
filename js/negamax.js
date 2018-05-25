@@ -148,7 +148,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     step: step,
     steps: steps
   }
-  var points = board.gen(role, (deepLimit - deep) > 4);
+  var points = board.gen(role, (deepLimit - deep) > 4, (deepLimit - deep) > 2);
 
   DEBUG && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
   DEBUG && console.log('A~B: ' + alpha + '~' + beta)
