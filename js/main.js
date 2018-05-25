@@ -2,6 +2,7 @@ var S = require("./score.js");
 var R = require("./role.js");
 var W = require("./win.js");
 var config = require('./config.js'); //readonly
+var messages = require('./messages.js');
 
 var Board = function(container, status) {
   this.container = container;
@@ -29,10 +30,12 @@ var Board = function(container, status) {
     var d = e.data;
     self._set(d[0], d[1], R.com);
     self.lock = false;
-    self.setStatus("电脑用时"+((new Date() - self.time)/1000)+"秒, 评分 " + d.score + ', 步数 ' + d.step);
+    var time = (new Date() - self.time)
+    self.setStatus("轩轩用时"+(time/1000)+"秒, 评分 " + d.score + ', 搜索深度 ' + d.step);
+    self.talk(d, time)
   }
   this.setStatus("请点击开始按钮");
-
+  this.print(this.rand(messages.greating));
 }
 
 Board.prototype.start = function() {
@@ -56,7 +59,7 @@ Board.prototype.start = function() {
     title: "请选择选手",
     buttons: [
       {
-        text: "电脑先手",
+        text: "轩轩先手",
         onClick: function(){
           self.worker.postMessage({
             type: "BEGIN"
@@ -122,7 +125,7 @@ Board.prototype._set = function(x, y, role) {
   var winner = W(this.board);
   var self = this;
   if(winner == R.com) {
-    $.alert("电脑赢了！", function() {
+    $.alert("轩轩赢了！", function() {
       self.stop();
     });
   } else if (winner == R.hum) {
@@ -148,7 +151,7 @@ Board.prototype.com = function(x, y, role) {
     x: x,
     y: y
   });
-  this.setStatus("电脑正在思考...");
+  this.setStatus("轩轩正在思考...");
 }
 
 Board.prototype.setStatus = function(s) {
@@ -157,7 +160,7 @@ Board.prototype.setStatus = function(s) {
 
 Board.prototype.back = function(step) {
   if(this.lock) {
-    this.setStatus("电脑正在思考，请稍等..");
+    this.setStatus("轩轩正在思考，请稍等..");
     return;
   }
   step = step || 1;
@@ -172,6 +175,7 @@ Board.prototype.back = function(step) {
   this.worker.postMessage({
     type: "BACK"
   });
+  this.print(this.rand(messages.back));
 }
 
 
@@ -180,6 +184,45 @@ Board.prototype.setConfig = function(c) {
     type: "CONFIG",
     config: c
   });
+}
+
+Board.prototype.talk = function(d, time) {
+  var score = d.score || 0,
+      step = d.step;
+  var t;
+  if (this.steps.length <= 3) {
+    t = 'opening'
+  } else if (score >= S.FIVE * 0.5) {
+    t = 'win'
+  } else if (score >= S.THREE * 1.5) {
+    t = 'superiority'
+  } else if (score >= S.THREE * -1.5) {
+    t = 'balance'
+  } else if (score >= S.FIVE * -0.5) {
+    t = 'inferior'
+  } else {
+    t = 'failed'
+  }
+  arr = messages[t];
+  this.print(this.rand(arr))
+}
+
+
+Board.prototype.print = function(m) {
+  var i=1;
+  var b = $(".chat-inner");
+  var inter = setInterval(function () {
+    if (i>m.length) {
+      clearInterval(inter)
+      return false
+    } else {
+      b.text(m.slice(0, i))
+    }
+    i ++;
+  }, 40)
+}
+Board.prototype.rand = function(arr) {
+  return arr[Math.floor(Math.random()*arr.length)]
 }
 
 

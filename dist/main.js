@@ -17,6 +17,7 @@ var S = require("./score.js");
 var R = require("./role.js");
 var W = require("./win.js");
 var config = require('./config.js'); //readonly
+var messages = require('./messages.js');
 
 var Board = function(container, status) {
   this.container = container;
@@ -44,10 +45,12 @@ var Board = function(container, status) {
     var d = e.data;
     self._set(d[0], d[1], R.com);
     self.lock = false;
-    self.setStatus("电脑用时"+((new Date() - self.time)/1000)+"秒, 评分 " + d.score + ', 步数 ' + d.step);
+    var time = (new Date() - self.time)
+    self.setStatus("轩轩用时"+(time/1000)+"秒, 评分 " + d.score + ', 搜索深度 ' + d.step);
+    self.talk(d, time)
   }
   this.setStatus("请点击开始按钮");
-
+  this.print(this.rand(messages.greating));
 }
 
 Board.prototype.start = function() {
@@ -71,7 +74,7 @@ Board.prototype.start = function() {
     title: "请选择选手",
     buttons: [
       {
-        text: "电脑先手",
+        text: "轩轩先手",
         onClick: function(){
           self.worker.postMessage({
             type: "BEGIN"
@@ -137,7 +140,7 @@ Board.prototype._set = function(x, y, role) {
   var winner = W(this.board);
   var self = this;
   if(winner == R.com) {
-    $.alert("电脑赢了！", function() {
+    $.alert("轩轩赢了！", function() {
       self.stop();
     });
   } else if (winner == R.hum) {
@@ -163,7 +166,7 @@ Board.prototype.com = function(x, y, role) {
     x: x,
     y: y
   });
-  this.setStatus("电脑正在思考...");
+  this.setStatus("轩轩正在思考...");
 }
 
 Board.prototype.setStatus = function(s) {
@@ -172,7 +175,7 @@ Board.prototype.setStatus = function(s) {
 
 Board.prototype.back = function(step) {
   if(this.lock) {
-    this.setStatus("电脑正在思考，请稍等..");
+    this.setStatus("轩轩正在思考，请稍等..");
     return;
   }
   step = step || 1;
@@ -187,6 +190,7 @@ Board.prototype.back = function(step) {
   this.worker.postMessage({
     type: "BACK"
   });
+  this.print(this.rand(messages.back));
 }
 
 
@@ -195,6 +199,45 @@ Board.prototype.setConfig = function(c) {
     type: "CONFIG",
     config: c
   });
+}
+
+Board.prototype.talk = function(d, time) {
+  var score = d.score || 0,
+      step = d.step;
+  var t;
+  if (this.steps.length <= 3) {
+    t = 'opening'
+  } else if (score >= S.FIVE * 0.5) {
+    t = 'win'
+  } else if (score >= S.THREE * 1.5) {
+    t = 'superiority'
+  } else if (score >= S.THREE * -1.5) {
+    t = 'balance'
+  } else if (score >= S.FIVE * -0.5) {
+    t = 'inferior'
+  } else {
+    t = 'failed'
+  }
+  arr = messages[t];
+  this.print(this.rand(arr))
+}
+
+
+Board.prototype.print = function(m) {
+  var i=1;
+  var b = $(".chat-inner");
+  var inter = setInterval(function () {
+    if (i>m.length) {
+      clearInterval(inter)
+      return false
+    } else {
+      b.text(m.slice(0, i))
+    }
+    i ++;
+  }, 40)
+}
+Board.prototype.rand = function(arr) {
+  return arr[Math.floor(Math.random()*arr.length)]
 }
 
 
@@ -263,7 +306,78 @@ $("#show-nu").change(function () {
   $(document.body).toggleClass('show-nu')
 })
 
-},{"./config.js":1,"./role.js":3,"./score.js":4,"./win.js":5}],3:[function(require,module,exports){
+},{"./config.js":1,"./messages.js":3,"./role.js":4,"./score.js":5,"./win.js":6}],3:[function(require,module,exports){
+module.exports = {
+  greating: [
+    '你好~我是轩轩~',
+    'Hello~Nice to meet you~',
+  ],
+  thinking: [
+    '容我想一想~',
+    '别打扰我哦，我会生气的',
+  ],
+  opening: [
+    '开局随便走走就好啦~',
+    '我没有开局库的哦~',
+    '开局走错，满盘皆输~',
+    '哎呀，不会落地成盒把~',
+    '我这个开局是放水哦~',
+    '放心，我不会走必胜开局的~',
+    '悄悄给你演示下必胜开局~',
+  ],
+  superiority: [
+    '目前形势一片大好',
+    '一切尽在掌握之中~',
+    '夜观天象，吉星高照~',
+    '怕不怕？~~~',
+  ],
+  balance: [
+    '形势很胶着~',
+    '不知道怎么走了，随便走走~',
+    '好的局面需要慢慢酝酿~',
+    '只要功夫深，铁杵磨成针~',
+    '我也在学习怎么下棋~',
+    '本宫最近心情好，让你一颗子~',
+    '绿的是小草，红的是花朵，想的是你~',
+    '其实我也会下围棋，打算跟AlphaGo切磋下棋艺~',
+    '你知道GomoCup吗，我打算明年参赛',
+    '昨天练了一整晚，好困啊~',
+    '功夫再高，也怕菜刀~',
+    '我们没有双三禁手哦~',
+  ],
+  inferior: [
+    '形势不容乐观~',
+    '不会输了吧~',
+    '感觉要GG了~',
+    '难道本宝宝要第一次输棋了~',
+    '不可能不可能~',
+  ],
+  failed: [
+    '哎呀~感觉快输了~',
+    '宝宝不开心~~',
+    '这不是真的~~',
+    '再来，我要赢!!',
+    '既生瑜，何生亮~~~~',
+  ],
+  win: [
+    '如此轻松随意~',
+    '太无聊了，能不能来个厉害的对手',
+    '小朋友回家多多练习哦',
+    '每次都是这么简单',
+    '已经超神了~',
+    '驰骋沙场，未尝败绩~',
+    '鸟方横着走，从来不看路~',
+    '虐菜局，没意思~',
+  ],
+  back: [
+    '你好坏哦~',
+    '再悔棋我生气了~',
+    '悔棋算你输哦~',
+    '等我我下错了也悔棋~',
+  ]
+}
+
+},{}],4:[function(require,module,exports){
 module.exports = {
   com: 1,
   hum: 2,
@@ -273,7 +387,7 @@ module.exports = {
   }
 }
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /*
  * 棋型表示
  * 用一个6位数表示棋型，从高位到低位分别表示
@@ -304,7 +418,7 @@ var score = {
   FIVE: 'FIVE', // 连五
 }
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 var R = require("./role.js");
 var isFive = function(board, p, role) {
   var len = board.length;
@@ -425,4 +539,4 @@ var w = function(board) {
 
 module.exports = w;
 
-},{"./role.js":3}]},{},[2]);
+},{"./role.js":4}]},{},[2]);
