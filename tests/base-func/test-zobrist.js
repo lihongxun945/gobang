@@ -1,4 +1,4 @@
-var z = require("../js/zobrist.js");
+var z = require("../../js/zobrist.js");
 var assert = require('assert');
 
 describe('test Zobrist', function() {

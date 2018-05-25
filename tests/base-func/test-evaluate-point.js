@@ -1,7 +1,7 @@
-var e = require("../js/evaluate-point.js");
-var S = require("../js/score.js");
+var e = require("../../js/evaluate-point.js");
+var S = require("../../js/score.js");
 var assert = require('assert');
-var board = require('../js/board.js');
+var board = require('../../js/board.js');
 
 var b;
 

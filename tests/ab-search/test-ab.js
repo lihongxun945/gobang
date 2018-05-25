@@ -1,5 +1,5 @@
-var c = require("../js/negamax.js");
-var board = require("../js/board.js");
+var c = require("../../js/negamax.js");
+var board = require("../../js/board.js");
 var assert = require('assert');
 
 describe('测试AB剪枝的bug', function() {
@@ -21,7 +21,7 @@ describe('测试AB剪枝的bug', function() {
     board.init(b);
     var p = c(10);
     console.log("######", p);
-    assert.ok(p.score >= 2000);
+    assert.ok(p.score > 1500);
     assert.ok(p[0] == 6 && p[1] === 5);
   });
   it(`测试vct bug，此处应该没有杀棋`, function() {

@@ -1,5 +1,5 @@
 var assert = require('assert');
-var board = require("../js/board.js");
+var board = require("../../js/board.js");
 var b;
 
 describe('test win', function() {
@@ -53,6 +53,6 @@ describe('test win', function() {
     ];
     board.init(b);
     assert.equal(board.win(), 2);
-    assert.equal(board.evaluate(1), 1000000);
+    assert.ok(board.evaluate(2) > 100000);
   });
 });

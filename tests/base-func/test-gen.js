@@ -1,5 +1,5 @@
 var assert = require('assert');
-var board = require("../js/board.js");
+var board = require("../../js/board.js");
 var b
 
 describe('test gen', function() {

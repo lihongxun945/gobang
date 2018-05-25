@@ -1,6 +1,6 @@
-var c = require("../js/vcx.js");
+var c = require("../../js/vcx.js");
 var assert = require('assert');
-var board = require("../js/board.js");
+var board = require("../../js/board.js");
 
 describe('test checkmate', function() {
 

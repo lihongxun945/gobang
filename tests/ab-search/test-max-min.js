@@ -1,5 +1,5 @@
-var c = require("../js/negamax.js");
-var board = require("../js/board.js");
+var c = require("../../js/negamax.js");
+var board = require("../../js/board.js");
 var assert = require('assert');
 
 describe('test maxmin', function() {

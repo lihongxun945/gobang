@@ -1,5 +1,5 @@
-var board = require("../js/board.js");
-var S = require("../js/score.js");
+var board = require("../../js/board.js");
+var S = require("../../js/score.js");
 var assert = require('assert');
 
 var b;
