@@ -773,7 +773,7 @@ module.exports = {
   log: true,
   star: true, // 是否开启 starspread
   // TODO: 目前开启缓存后，搜索会出现一些未知的bug
-  cache: false // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
+  cache: true // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
 }
 
 },{}],7:[function(require,module,exports){
@@ -1348,7 +1348,13 @@ var r = function(deep, alpha, beta, role, step, steps) {
       if(c.deep >= deep) { // 如果缓存中的结果搜索深度不比当前小，则结果完全可用
         cacheGet ++;
         DEBUG && console.log('缓存命中:', c)
-        return c.score;
+        
+        // 记得clone，因为这个分数会在搜索过程中被修改，会使缓存中的值不正确
+        return {
+          score: c.score.score,
+          steps: c.score.steps,
+          step: c.score.step
+        };
       } else {
         // 如果缓存的结果中搜索深度比当前小，那么任何一方出现双三及以上结果的情况下可用
         // TODO: 只有这一个缓存策略是会导致开启缓存后会和以前的结果有一点点区别的，其他几种都是透明的缓存策略
