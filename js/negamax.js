@@ -148,7 +148,8 @@ var r = function(deep, alpha, beta, role, step, steps) {
     step: step,
     steps: steps
   }
-  var points = board.gen(role, (deepLimit - deep) > 4, (deepLimit - deep) > 2);
+  // 双方个下两个子之后，开启star spread 模式
+  var points = board.gen(role, (deepLimit - deep) > 4, (deepLimit - deep) > 4);
 
   DEBUG && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
   DEBUG && console.log('A~B: ' + alpha + '~' + beta)
@@ -269,6 +270,7 @@ var deeping = function(deep) {
   config.log && console.log('算杀缓存:' + '总数 ' + debug.checkmate.cacheCount + ', 命中:' + (debug.checkmate.cacheHit / debug.checkmate.totalCount * 100).toFixed(3) + '% ,' + debug.checkmate.cacheHit + '/'+debug.checkmate.totalCount);
   //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   config.log && console.log('当前统计：' + count + '个节点, 耗时:' + time.toFixed(2) + 's, NPS:' + Math.floor(count/ time) + 'N/S');
+  board.log()
   config.log && console.log("================================");
   return result;
 }

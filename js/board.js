@@ -5,6 +5,9 @@ var S = require("./score.js");
 var config = require("./config.js");
 var array = require("./arrary.js");
 
+var count = 0;
+var total = 0;
+
 //冲四的分其实肯定比活三高，但是如果这样的话容易形成盲目冲四的问题，所以如果发现电脑有无意义的冲四，则将分数降低到和活三一样
 //而对于冲四活三这种杀棋，则将分数提高。
 var fixScore = function(type) {
@@ -242,6 +245,9 @@ Board.prototype.evaluate = function(role) {
  */
 
 
+Board.prototype.log = function () {
+  console.log('star: ' + (count/total*100).toFixed(2) + '%, ' + count + '/' + total)
+}
 Board.prototype.gen = function(role, onlyThrees, starSpread) {
   var fives = [];
   var comfours=[];
@@ -272,8 +278,16 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
           p.score = maxScore
 
 
-          // 双星延伸
-          if (starSpread) {
+          total ++;
+          /* 双星延伸，以提升性能
+           * 思路：每次下的子，只可能是自己进攻，或者防守对面（也就是对面进攻点）
+           * 我们假定任何时候，绝大多数情况下进攻的路线都可以按次序连城一条折线，那么每次每一个子，一定都是在上一个己方棋子的八个方向之一。
+           * 因为既可能自己进攻，也可能防守对面，所以是最后两个子的米子方向上
+           * 那么极少数情况，进攻路线无法连成一条折线呢?很简单，我们对前双方两步不作star限制就好，这样可以 兼容一条折线中间伸出一段的情况
+           *
+           * 另外，这里如果一个点的分数大于等于冲四，就不受star的限制，这样可以通过不断冲四来创造局面
+           */
+          if (starSpread && config.star) {
             lastPoint1 = this.allSteps[this.allSteps.length-1]
             lastPoint2 = this.allSteps[this.allSteps.length-2]
             if (
@@ -281,6 +295,7 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
               (i === lastPoint1[0] || j === lastPoint1[1] || (Math.abs(i-lastPoint1[0]) === Math.abs(j-lastPoint1[1])))
              || (i === lastPoint2[0] || j === lastPoint2[1] || (Math.abs(i-lastPoint2[0]) === Math.abs(j-lastPoint2[1]))) ) {
             } else {
+              count ++;
               continue;
             }
           }
