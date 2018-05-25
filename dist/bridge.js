@@ -102,6 +102,9 @@ var S = require("./score.js");
 var config = require("./config.js");
 var array = require("./arrary.js");
 
+var count = 0;
+var total = 0;
+
 //冲四的分其实肯定比活三高，但是如果这样的话容易形成盲目冲四的问题，所以如果发现电脑有无意义的冲四，则将分数降低到和活三一样
 //而对于冲四活三这种杀棋，则将分数提高。
 var fixScore = function(type) {
@@ -339,6 +342,9 @@ Board.prototype.evaluate = function(role) {
  */
 
 
+Board.prototype.log = function () {
+  console.log('star: ' + (count/total*100).toFixed(2) + '%, ' + count + '/' + total)
+}
 Board.prototype.gen = function(role, onlyThrees, starSpread) {
   var fives = [];
   var comfours=[];
@@ -369,8 +375,16 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
           p.score = maxScore
 
 
-          // 双星延伸
-          if (starSpread) {
+          total ++;
+          /* 双星延伸，以提升性能
+           * 思路：每次下的子，只可能是自己进攻，或者防守对面（也就是对面进攻点）
+           * 我们假定任何时候，绝大多数情况下进攻的路线都可以按次序连城一条折线，那么每次每一个子，一定都是在上一个己方棋子的八个方向之一。
+           * 因为既可能自己进攻，也可能防守对面，所以是最后两个子的米子方向上
+           * 那么极少数情况，进攻路线无法连成一条折线呢?很简单，我们对前双方两步不作star限制就好，这样可以 兼容一条折线中间伸出一段的情况
+           *
+           * 另外，这里如果一个点的分数大于等于冲四，就不受star的限制，这样可以通过不断冲四来创造局面
+           */
+          if (starSpread && config.star) {
             lastPoint1 = this.allSteps[this.allSteps.length-1]
             lastPoint2 = this.allSteps[this.allSteps.length-2]
             if (
@@ -378,6 +392,7 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
               (i === lastPoint1[0] || j === lastPoint1[1] || (Math.abs(i-lastPoint1[0]) === Math.abs(j-lastPoint1[1])))
              || (i === lastPoint2[0] || j === lastPoint2[1] || (Math.abs(i-lastPoint2[0]) === Math.abs(j-lastPoint2[1]))) ) {
             } else {
+              count ++;
               continue;
             }
           }
@@ -756,6 +771,7 @@ module.exports = {
   vcxDeep:  5,  //算杀深度
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
+  star: true, // 是否开启 starspread
   // TODO: 目前开启缓存后，搜索会出现一些未知的bug
   cache: false // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
 }
@@ -1390,7 +1406,8 @@ var r = function(deep, alpha, beta, role, step, steps) {
     step: step,
     steps: steps
   }
-  var points = board.gen(role, (deepLimit - deep) > 4, (deepLimit - deep) > 2);
+  // 双方个下两个子之后，开启star spread 模式
+  var points = board.gen(role, (deepLimit - deep) > 4, (deepLimit - deep) > 4);
 
   DEBUG && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
   DEBUG && console.log('A~B: ' + alpha + '~' + beta)
@@ -1511,6 +1528,7 @@ var deeping = function(deep) {
   config.log && console.log('算杀缓存:' + '总数 ' + debug.checkmate.cacheCount + ', 命中:' + (debug.checkmate.cacheHit / debug.checkmate.totalCount * 100).toFixed(3) + '% ,' + debug.checkmate.cacheHit + '/'+debug.checkmate.totalCount);
   //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   config.log && console.log('当前统计：' + count + '个节点, 耗时:' + time.toFixed(2) + 's, NPS:' + Math.floor(count/ time) + 'N/S');
+  board.log()
   config.log && console.log("================================");
   return result;
 }
