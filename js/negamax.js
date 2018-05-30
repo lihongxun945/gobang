@@ -46,17 +46,12 @@ var negamax = function(deep, _vcxDeep) {
   PVcut = 0;
   vcxDeep = (_vcxDeep == undefined ? config.vcxDeep : _vcxDeep);
 
-  if (candidates[0].level > 1) {
-    // 最大值就是能成活二的，这时0.x秒就搜索完了，增加深度以充分利用时间
-    deep += 2
-  }
-
   for(var i=0;i<candidates.length;i++) {
     var p = candidates[i];
     board.put(p, R.com);
     var steps = [p];
     // 越靠后的点，搜索深度约低，因为出现好棋的可能性比较小
-    var v = r(deep-(p.level||1), -MAX, -bestScore, R.hum, 1, steps.slice(0));
+    var v = r(deep-1, -MAX, -bestScore, R.hum, 1, steps.slice(0));
     v.score *= -1
     bestScore = Math.max(bestScore, v.score)
     board.remove(p);
@@ -143,6 +138,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
   //  return v
   //  }
   //}
+    DEBUG && console.log('reach end', _e)
     return {
       score: _e,
       step: step,
@@ -165,7 +161,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     var p = points[i];
     board.put(p, role);
 
-    var _deep = deep-(p.level||1);
+    var _deep = deep-1;
 
     // 冲四延伸
     if ( (role == R.com && p.scoreHum >= SCORE.FIVE) ||
@@ -222,6 +218,7 @@ var deeping = function(deep) {
   start = (+ new Date())
   bestScore = MIN;
   deep = deep === undefined ? config.searchDeep : deep;
+  //Cache = {}; // 每次开始迭代的时候清空缓存。这里缓存的主要目的是在每一次的时候加快搜索，而不是长期存储。事实证明这样的清空方式对搜索速度的影响非常小（小于10%)
 
   var result;
 
@@ -229,15 +226,15 @@ var deeping = function(deep) {
   for(var i=2;i<=deep; i+=2) {
     deepLimit = i;
     negamax(i);
-    // 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
-    // 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
-    var newCandidates = candidates.filter(function (d) {
-      return !d.abcut;
-    })
-    candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
-
+  //// 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
+  //// 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
+  //var newCandidates = candidates.filter(function (d) {
+  //  return !d.abcut;
+  //})
+  //candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
+    if (math.greatOrEqualThan(bestScore, SCORE.FOUR)) break; // 能达到活四的分数，则必胜
     bestScore = MIN;
-    // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=
+    // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=， 上次层搜到的分数，在更深一层搜索的时候，会因为满足 >= 的条件而把自己剪枝掉
     // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
   }
 

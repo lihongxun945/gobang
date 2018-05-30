@@ -6,7 +6,7 @@ var vcx = require('../../js/vcx.js');
 describe('冲四为啥还很慢呢', function() {
 
 
-  it(`it should be OK`, function() {
+  it(`速度测试1`, function() {
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -25,11 +25,12 @@ describe('冲四为啥还很慢呢', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
+
     p = c();
     assert.ok(p);
   });
 
-  it(`it should be OK`, function() {
+  it(`速度测试2`, function() {
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 1, 2, 2, 0, 0, 0, 1, 0, 0, 0],
@@ -48,6 +49,10 @@ describe('冲四为啥还很慢呢', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
+    console.log(board.board)
+    console.log(board.comScore)
+    console.log(board.humScore)
+    console.log(board.gen())
     p = c();
     assert.ok(p);
   });

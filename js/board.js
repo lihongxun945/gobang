@@ -203,7 +203,7 @@ Board.prototype.logSteps = function() {
 Board.prototype.evaluate = function(role) {
 
   //这里加了缓存，但是并没有提升速度
-  if(config.cache && this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
+  // if(config.cache && this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
 
   // 这里都是用正整数初始化的，所以初始值是0
   this.comMaxScore = 0;
@@ -221,10 +221,12 @@ Board.prototype.evaluate = function(role) {
       }
     }
   }
+  console.log(this.comMaxScore, this.humMaxScore)
   this.comMaxScore = fixScore(this.comMaxScore);
   this.humMaxScore = fixScore(this.humMaxScore);
+  console.log(this.comMaxScore, this.humMaxScore)
   var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
-  if (config.cache) this.evaluateCache[this.zobrist.code] = result;
+  // if (config.cache) this.evaluateCache[this.zobrist.code] = result;
 
   return result;
 
@@ -300,14 +302,14 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
             }
           }
 
-          // 结果分级
-          if (maxScore >= S.THREE) {
-            p.level = 1
-          } else if (maxScore >= S.TWO) {
-            p.level = 2
-          } else {
-            p.level = 3
-          }
+        //// 结果分级
+        //if (maxScore >= S.THREE) {
+        //  p.level = 1
+        //} else if (maxScore >= S.TWO) {
+        //  p.level = 2
+        //} else {
+        //  p.level = 3
+        //}
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             fives.push(p);
