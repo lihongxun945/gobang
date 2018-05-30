@@ -323,8 +323,9 @@ Board.prototype.evaluate = function(role) {
   }
   config.debug && console.log(this.comMaxScore, this.humMaxScore)
   // 有冲四延伸了，不需要专门处理冲四活三
-  // this.comMaxScore = fixScore(this.comMaxScore);
-  // this.humMaxScore = fixScore(this.humMaxScore);
+  // 不过这里做了这一步，可以减少电脑胡乱冲四的毛病
+  this.comMaxScore = fixScore(this.comMaxScore);
+  this.humMaxScore = fixScore(this.humMaxScore);
   config.debug && console.log(this.comMaxScore, this.humMaxScore)
   var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
   // if (config.cache) this.evaluateCache[this.zobrist.code] = result;
