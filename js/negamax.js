@@ -216,7 +216,7 @@ var deeping = function(deep) {
   start = (+ new Date())
   bestScore = MIN;
   deep = deep === undefined ? config.searchDeep : deep;
-  //Cache = {}; // 每次开始迭代的时候清空缓存。这里缓存的主要目的是在每一次的时候加快搜索，而不是长期存储。事实证明这样的清空方式对搜索速度的影响非常小（小于10%)
+  Cache = {}; // 每次开始迭代的时候清空缓存。这里缓存的主要目的是在每一次的时候加快搜索，而不是长期存储。事实证明这样的清空方式对搜索速度的影响非常小（小于10%)
 
   var result;
 
