@@ -113,11 +113,11 @@ Board.prototype.updateScore = function(p) {
       len = this.board.length;
 
   function update(x, y, dir) {
-    var cs = scorePoint(self, [x, y], R.com, dir);
-    var hs = scorePoint(self, [x, y], R.hum, dir);
-    self.comScore[x][y] = cs;
-    self.humScore[x][y] = hs;
-    config.debug && console.log('update:' + x + ',' + y + '; cs:' + cs + ' hs:' + hs)
+    role = self.board[x][y];
+    if (role !== R.reverse(R.com)) self.comScore[x][y] = scorePoint(self, [x, y], R.com, dir);
+    else self.comScore[x][y] = 0
+    if (role !== R.reverse(R.hum)) self.humScore[x][y] = scorePoint(self, [x, y], R.hum, dir);
+    else self.humScore[x][y] = 0
   }
   // 无论是不是空位 都需要更新
   // -
