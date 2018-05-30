@@ -117,6 +117,7 @@ Board.prototype.updateScore = function(p) {
     var hs = scorePoint(self, [x, y], R.hum, dir);
     self.comScore[x][y] = cs;
     self.humScore[x][y] = hs;
+    config.debug && console.log('update:' + x + ',' + y + '; cs:' + cs + ' hs:' + hs)
   }
   // 无论是不是空位 都需要更新
   // -
@@ -156,6 +157,7 @@ Board.prototype.updateScore = function(p) {
 
 //下子
 Board.prototype.put = function(p, role, record) {
+  config.debug && console.log('put [' + p + ']' + ' ' + role)
   this.board[p[0]][p[1]] = role;
   this.zobrist.go(p[0], p[1], role);
   if (record) this.steps.push(p);
@@ -174,6 +176,7 @@ Board.prototype.last = function(role) {
 //移除棋子
 Board.prototype.remove = function(p) {
   var r = this.board[p[0]][p[1]];
+  config.debug && console.log('remove [' + p + ']' + ' ' + r)
   this.zobrist.go(p[0], p[1], r);
   this.board[p[0]][p[1]] = R.empty;
   this.updateScore(p);
@@ -221,10 +224,11 @@ Board.prototype.evaluate = function(role) {
       }
     }
   }
-  console.log(this.comMaxScore, this.humMaxScore)
-  this.comMaxScore = fixScore(this.comMaxScore);
-  this.humMaxScore = fixScore(this.humMaxScore);
-  console.log(this.comMaxScore, this.humMaxScore)
+  config.debug && console.log(this.comMaxScore, this.humMaxScore)
+  // 有冲四延伸了，不需要专门处理冲四活三
+  // this.comMaxScore = fixScore(this.comMaxScore);
+  // this.humMaxScore = fixScore(this.humMaxScore);
+  config.debug && console.log(this.comMaxScore, this.humMaxScore)
   var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
   // if (config.cache) this.evaluateCache[this.zobrist.code] = result;
 

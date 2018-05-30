@@ -214,6 +214,7 @@ Board.prototype.updateScore = function(p) {
     var hs = scorePoint(self, [x, y], R.hum, dir);
     self.comScore[x][y] = cs;
     self.humScore[x][y] = hs;
+    config.debug && console.log('update:' + x + ',' + y + '; cs:' + cs + ' hs:' + hs)
   }
   // 无论是不是空位 都需要更新
   // -
@@ -253,6 +254,7 @@ Board.prototype.updateScore = function(p) {
 
 //下子
 Board.prototype.put = function(p, role, record) {
+  config.debug && console.log('put [' + p + ']' + ' ' + role)
   this.board[p[0]][p[1]] = role;
   this.zobrist.go(p[0], p[1], role);
   if (record) this.steps.push(p);
@@ -271,6 +273,7 @@ Board.prototype.last = function(role) {
 //移除棋子
 Board.prototype.remove = function(p) {
   var r = this.board[p[0]][p[1]];
+  config.debug && console.log('remove [' + p + ']' + ' ' + r)
   this.zobrist.go(p[0], p[1], r);
   this.board[p[0]][p[1]] = R.empty;
   this.updateScore(p);
@@ -300,7 +303,7 @@ Board.prototype.logSteps = function() {
 Board.prototype.evaluate = function(role) {
 
   //这里加了缓存，但是并没有提升速度
-  if(config.cache && this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
+  // if(config.cache && this.evaluateCache[this.zobrist.code]) return this.evaluateCache[this.zobrist.code];
 
   // 这里都是用正整数初始化的，所以初始值是0
   this.comMaxScore = 0;
@@ -318,10 +321,13 @@ Board.prototype.evaluate = function(role) {
       }
     }
   }
-  this.comMaxScore = fixScore(this.comMaxScore);
-  this.humMaxScore = fixScore(this.humMaxScore);
+  config.debug && console.log(this.comMaxScore, this.humMaxScore)
+  // 有冲四延伸了，不需要专门处理冲四活三
+  // this.comMaxScore = fixScore(this.comMaxScore);
+  // this.humMaxScore = fixScore(this.humMaxScore);
+  config.debug && console.log(this.comMaxScore, this.humMaxScore)
   var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
-  if (config.cache) this.evaluateCache[this.zobrist.code] = result;
+  // if (config.cache) this.evaluateCache[this.zobrist.code] = result;
 
   return result;
 
@@ -397,14 +403,14 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
             }
           }
 
-          // 结果分级
-          if (maxScore >= S.THREE) {
-            p.level = 1
-          } else if (maxScore >= S.TWO) {
-            p.level = 2
-          } else {
-            p.level = 3
-          }
+        //// 结果分级
+        //if (maxScore >= S.THREE) {
+        //  p.level = 1
+        //} else if (maxScore >= S.TWO) {
+        //  p.level = 2
+        //} else {
+        //  p.level = 3
+        //}
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             fives.push(p);
@@ -773,7 +779,8 @@ module.exports = {
   log: true,
   star: true, // 是否开启 starspread
   // TODO: 目前开启缓存后，搜索会出现一些未知的bug
-  cache: true // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
+  cache: true, // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
+  debug: false, // 打印详细的debug信息
 }
 
 },{}],7:[function(require,module,exports){
@@ -1288,8 +1295,6 @@ var vcxDeep;
 var startTime; // 开始时间，用来计算每一步的时间
 var allBestPoints; // 记录迭代过程中得到的全部最好点
 
-var DEBUG = false;
-
 var deepLimit;
 
 /*
@@ -1304,17 +1309,12 @@ var negamax = function(deep, _vcxDeep) {
   PVcut = 0;
   vcxDeep = (_vcxDeep == undefined ? config.vcxDeep : _vcxDeep);
 
-  if (candidates[0].level > 1) {
-    // 最大值就是能成活二的，这时0.x秒就搜索完了，增加深度以充分利用时间
-    deep += 2
-  }
-
   for(var i=0;i<candidates.length;i++) {
     var p = candidates[i];
     board.put(p, R.com);
     var steps = [p];
     // 越靠后的点，搜索深度约低，因为出现好棋的可能性比较小
-    var v = r(deep-(p.level||1), -MAX, -bestScore, R.hum, 1, steps.slice(0));
+    var v = r(deep-1, -MAX, -bestScore, R.hum, 1, steps.slice(0));
     v.score *= -1
     bestScore = Math.max(bestScore, v.score)
     board.remove(p);
@@ -1341,13 +1341,13 @@ var negamax = function(deep, _vcxDeep) {
 
 var r = function(deep, alpha, beta, role, step, steps) {
 
-  DEBUG && board.logSteps();
+  config.debug && board.logSteps();
   if(config.cache) {
     var c = Cache[board.zobrist.code];
     if(c) {
       if(c.deep >= deep) { // 如果缓存中的结果搜索深度不比当前小，则结果完全可用
         cacheGet ++;
-        DEBUG && console.log('缓存命中:', c)
+        config.debug && console.log('缓存命中:', c)
         
         // 记得clone，因为这个分数会在搜索过程中被修改，会使缓存中的值不正确
         return {
@@ -1377,7 +1377,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
   //if(math.littleThan(_e, SCORE.FOUR) && math.greatThan(_e, SCORE.FOUR * -1)) {
   //  mate = vcx.vcf(role, vcxDeep);
   //  if(mate) {
-  //    DEBUG && console.log('vcf success')
+  //    config.debug && console.log('vcf success')
   //    v = {
   //      score: mate.score,
   //      step: step + mate.length,
@@ -1391,7 +1391,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
   //if(math.littleThan(_e, SCORE.THREE*2) && math.greatThan(_e, SCORE.THREE * -2)) {
   //  var mate = vcx.vct(role, vcxDeep);
   //  if(mate) {
-  //    DEBUG && console.log('vct success')
+  //    config.debug && console.log('vct success')
   //    v = {
   //      score: mate.score,
   //      step: step + mate.length,
@@ -1401,6 +1401,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
   //  return v
   //  }
   //}
+    config.debug && console.log('reach end', _e)
     return {
       score: _e,
       step: step,
@@ -1416,14 +1417,14 @@ var r = function(deep, alpha, beta, role, step, steps) {
   // 双方个下两个子之后，开启star spread 模式
   var points = board.gen(role, (deepLimit - deep) > 4, (deepLimit - deep) > 4);
 
-  DEBUG && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
-  DEBUG && console.log('A~B: ' + alpha + '~' + beta)
+  config.debug && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
+  config.debug && console.log('A~B: ' + alpha + '~' + beta)
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
     board.put(p, role);
 
-    var _deep = deep-(p.level||1);
+    var _deep = deep-1;
 
     // 冲四延伸
     if ( (role == R.com && p.scoreHum >= SCORE.FIVE) ||
@@ -1445,7 +1446,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
     // 一定要注意，这里必须是 greatThan 即 明显大于，而不是 greatOrEqualThan 不然会出现很多差不多的有用分支被剪掉，会出现致命错误
     if(math.greatOrEqualThan(v.score, beta)) {
-      DEBUG && console.log('AB Cut [' + p[0] + ',' + p[1] + ']' + v.score + ' >= ' + beta + '')
+      config.debug && console.log('AB Cut [' + p[0] + ',' + p[1] + ']' + v.score + ' >= ' + beta + '')
       ABcut ++;
       v.score = MAX-1; // 被剪枝的，直接用一个极大值来记录
       v.abcut = 1; // 剪枝标记
@@ -1480,6 +1481,7 @@ var deeping = function(deep) {
   start = (+ new Date())
   bestScore = MIN;
   deep = deep === undefined ? config.searchDeep : deep;
+  //Cache = {}; // 每次开始迭代的时候清空缓存。这里缓存的主要目的是在每一次的时候加快搜索，而不是长期存储。事实证明这样的清空方式对搜索速度的影响非常小（小于10%)
 
   var result;
 
@@ -1487,15 +1489,15 @@ var deeping = function(deep) {
   for(var i=2;i<=deep; i+=2) {
     deepLimit = i;
     negamax(i);
-    // 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
-    // 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
-    var newCandidates = candidates.filter(function (d) {
-      return !d.abcut;
-    })
-    candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
-
+  //// 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
+  //// 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
+  //var newCandidates = candidates.filter(function (d) {
+  //  return !d.abcut;
+  //})
+  //candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
+    if (math.greatOrEqualThan(bestScore, SCORE.FIVE)) break; // 能赢了
     bestScore = MIN;
-    // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=
+    // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=， 上次层搜到的分数，在更深一层搜索的时候，会因为满足 >= 的条件而把自己剪枝掉
     // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
   }
 

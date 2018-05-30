@@ -30,8 +30,6 @@ var vcxDeep;
 var startTime; // 开始时间，用来计算每一步的时间
 var allBestPoints; // 记录迭代过程中得到的全部最好点
 
-var DEBUG = false;
-
 var deepLimit;
 
 /*
@@ -78,13 +76,13 @@ var negamax = function(deep, _vcxDeep) {
 
 var r = function(deep, alpha, beta, role, step, steps) {
 
-  DEBUG && board.logSteps();
+  config.debug && board.logSteps();
   if(config.cache) {
     var c = Cache[board.zobrist.code];
     if(c) {
       if(c.deep >= deep) { // 如果缓存中的结果搜索深度不比当前小，则结果完全可用
         cacheGet ++;
-        DEBUG && console.log('缓存命中:', c)
+        config.debug && console.log('缓存命中:', c)
         
         // 记得clone，因为这个分数会在搜索过程中被修改，会使缓存中的值不正确
         return {
@@ -114,7 +112,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
   //if(math.littleThan(_e, SCORE.FOUR) && math.greatThan(_e, SCORE.FOUR * -1)) {
   //  mate = vcx.vcf(role, vcxDeep);
   //  if(mate) {
-  //    DEBUG && console.log('vcf success')
+  //    config.debug && console.log('vcf success')
   //    v = {
   //      score: mate.score,
   //      step: step + mate.length,
@@ -128,7 +126,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
   //if(math.littleThan(_e, SCORE.THREE*2) && math.greatThan(_e, SCORE.THREE * -2)) {
   //  var mate = vcx.vct(role, vcxDeep);
   //  if(mate) {
-  //    DEBUG && console.log('vct success')
+  //    config.debug && console.log('vct success')
   //    v = {
   //      score: mate.score,
   //      step: step + mate.length,
@@ -138,7 +136,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
   //  return v
   //  }
   //}
-    DEBUG && console.log('reach end', _e)
+    config.debug && console.log('reach end', _e)
     return {
       score: _e,
       step: step,
@@ -154,8 +152,8 @@ var r = function(deep, alpha, beta, role, step, steps) {
   // 双方个下两个子之后，开启star spread 模式
   var points = board.gen(role, (deepLimit - deep) > 4, (deepLimit - deep) > 4);
 
-  DEBUG && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
-  DEBUG && console.log('A~B: ' + alpha + '~' + beta)
+  config.debug && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
+  config.debug && console.log('A~B: ' + alpha + '~' + beta)
 
   for(var i=0;i<points.length;i++) {
     var p = points[i];
@@ -183,7 +181,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     // 这样会导致一些差不多的节点都被剪掉，但是没关系，不影响棋力
     // 一定要注意，这里必须是 greatThan 即 明显大于，而不是 greatOrEqualThan 不然会出现很多差不多的有用分支被剪掉，会出现致命错误
     if(math.greatOrEqualThan(v.score, beta)) {
-      DEBUG && console.log('AB Cut [' + p[0] + ',' + p[1] + ']' + v.score + ' >= ' + beta + '')
+      config.debug && console.log('AB Cut [' + p[0] + ',' + p[1] + ']' + v.score + ' >= ' + beta + '')
       ABcut ++;
       v.score = MAX-1; // 被剪枝的，直接用一个极大值来记录
       v.abcut = 1; // 剪枝标记
@@ -232,7 +230,7 @@ var deeping = function(deep) {
   //  return !d.abcut;
   //})
   //candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
-    if (math.greatOrEqualThan(bestScore, SCORE.FOUR)) break; // 能达到活四的分数，则必胜
+    if (math.greatOrEqualThan(bestScore, SCORE.FIVE)) break; // 能赢了
     bestScore = MIN;
     // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=， 上次层搜到的分数，在更深一层搜索的时候，会因为满足 >= 的条件而把自己剪枝掉
     // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
