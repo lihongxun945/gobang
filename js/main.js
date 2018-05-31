@@ -290,3 +290,10 @@ counter($('#vcx'), config.vcxDeep, 0, 12, function (n) {
 $("#show-nu").change(function () {
   $(document.body).toggleClass('show-nu')
 })
+
+$("#spread").change(function (e) {
+  var checked = $(this).is(":checked");
+  b.setConfig({
+    spread: checked ? 2 : 0
+  })
+})

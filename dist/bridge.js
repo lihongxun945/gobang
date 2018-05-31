@@ -697,6 +697,7 @@ module.exports = {
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
   // 下面几个设置都是用来提升搜索速度的
+  spreadLimit: 2,// 单步延伸 长度限制
   star: true, // 是否开启 starspread
   // TODO: 目前开启缓存后，搜索会出现一些未知的bug
   cache: true, // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
@@ -1233,7 +1234,7 @@ var negamax = function(deep, alpha, beta) {
     var p = candidates[i];
     board.put(p, R.com);
     var steps = [p];
-    var v = r(deep-1, -beta, -alpha, R.hum, 1, steps.slice(0));
+    var v = r(deep-1, -beta, -alpha, R.hum, 1, steps.slice(0), 0);
     v.score *= -1;
     alpha = Math.max(alpha, v.score);
     board.remove(p);
@@ -1259,7 +1260,7 @@ var negamax = function(deep, alpha, beta) {
   return alpha;
 }
 
-var r = function(deep, alpha, beta, role, step, steps) {
+var r = function(deep, alpha, beta, role, step, steps, spread) {
 
   config.debug && board.logSteps();
   if(config.cache) {
@@ -1344,17 +1345,30 @@ var r = function(deep, alpha, beta, role, step, steps) {
 
     var _deep = deep-1;
 
+    var _spread = spread;
+
     // 冲四延伸
-    if ( (role == R.com && p.scoreHum >= SCORE.FIVE) ||
-      (role == R.hum && p.scoreCom >= SCORE.FIVE)) _deep = deep
+    if ( (role == R.com && p.scoreHum >= SCORE.FIVE) || (role == R.hum && p.scoreCom >= SCORE.FIVE)) {
+      _deep = deep;
+      _spread ++
+    }
+
+    // 单步延伸策略：双三延伸
+    if (_spread <= config.spreadLimit) {
+      if ( (role == R.com && p.scoreCom >= SCORE.THREE * 2) || (role == R.hum && p.scoreHum >= SCORE.THREE*2)) {
+        _deep = deep;
+        _spread ++
+      }
+    }
 
     var _steps = steps.slice(0);
     _steps.push(p);
-    var v = r(_deep, -beta, -alpha, R.reverse(role), step+1, _steps);
+    var v = r(_deep, -beta, -alpha, R.reverse(role), step+1, _steps, _spread);
     v.score *= -1;
     board.remove(p);
  
 
+    // 注意，这里决定了剪枝时使用的值必须比MAX小
     if(v.score > best.score) {
       best = v;
     }
@@ -1366,7 +1380,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     if(math.greatOrEqualThan(v.score, beta)) {
       config.debug && console.log('AB Cut [' + p[0] + ',' + p[1] + ']' + v.score + ' >= ' + beta + '')
       ABcut ++;
-      v.score = MAX-1; // 被剪枝的，直接用一个极大值来记录
+      v.score = MAX-1; // 被剪枝的，直接用一个极大值来记录，但是注意必须比MAX小
       v.abcut = 1; // 剪枝标记
       // cache(deep, v); // 别缓存被剪枝的，而且，这个返回到上层之后，也注意都不要缓存
       return v;

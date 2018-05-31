@@ -8,6 +8,7 @@ module.exports = {
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
   // 下面几个设置都是用来提升搜索速度的
+  spreadLimit: 2,// 单步延伸 长度限制
   star: true, // 是否开启 starspread
   // TODO: 目前开启缓存后，搜索会出现一些未知的bug
   cache: true, // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
@@ -309,6 +310,13 @@ counter($('#vcx'), config.vcxDeep, 0, 12, function (n) {
 
 $("#show-nu").change(function () {
   $(document.body).toggleClass('show-nu')
+})
+
+$("#spread").change(function (e) {
+  var checked = $(this).is(":checked");
+  b.setConfig({
+    spread: checked ? 2 : 0
+  })
 })
 
 },{"./config.js":1,"./messages.js":3,"./role.js":4,"./score.js":5,"./win.js":6}],3:[function(require,module,exports){
