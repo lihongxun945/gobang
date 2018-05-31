@@ -650,92 +650,10 @@ Board.prototype.win = function() {
   return false;
 }
 
-// a点是否在b点的starSpread路线上
-Board.prototype.isStarSpread = function (a, b) {
-  if (!b) return true
-
-  if (! ((a[0] === b[0] || a[1] === b[1] || (Math.abs(a[0]-b[0]) === Math.abs(a[1] - b[1]))) && Math.abs(a[0]-b[0]) <= 3 && Math.abs(a[1]-b[1]) <= 3)) return false;
-  // 同一行
-  if (a[0] === b[0]) {
-    // a 在左边
-    if (a[1] < b[1]) {
-      var empty=0;
-      for(var i=a[1]+1;i<b[1];i++) {
-        if (this.board[a[0]][i] === R.reverse(this.board[b[0]][b[1]])) return false;
-        if (this.board[a[0]][i] === 0) empty++;
-      }
-      return empty <= 1;
-    }
-    // a 在右边
-    if (a[1] > b[1]) {
-      var empty=0;
-      for(var i=a[1]-1;i>b[1];i--) {
-        if (this.board[a[0]][i] === R.reverse(this.board[b[0]][b[1]])) return false;
-        if (this.board[a[0]][i] === 0) empty++;
-      }
-      return empty <= 1;
-    }
-  }
-  // 同一列
-  if (a[1] === b[1]) {
-    // a 在上边
-    if (a[0] < b[0]) {
-      var empty=0;
-      for(var i=a[0]+1;i<b[0];i++) {
-        if (this.board[i][a[1]] === R.reverse(this.board[b[0]][b[1]])) return false;
-        if (this.board[i][a[1]] === 0) empty++;
-      }
-      return empty <= 1;
-    }
-    // a 在下边
-    if (a[0] > b[0]) {
-      var empty=0;
-      for(var i=a[0]-1;i<b[0];i--) {
-        if (this.board[i][a[1]] === R.reverse(this.board[b[0]][b[1]])) return false;
-        if (this.board[i][a[1]] === 0) empty++;
-      }
-      return empty <= 1;
-    }
-  }
-  // a 在左上
-  if (a[0] < b[0] && a[1] < b[1]) {
-    var empty=0;
-    for(var i=1;a[0]+i<b[0];i++) {
-      if (this.board[a[0]+i][a[1]+i] === R.reverse(this.board[b[0]][b[1]])) return false;
-      if (this.board[a[0]+i][a[1]+i] === 0) empty++;
-    }
-    return empty <= 1;
-  }
-  // a 在右下
-  if (a[0] > b[0] && a[1] > b[1]) {
-    var empty=0;
-    for(var i=1;a[0]-i>b[0];i++) {
-      if (this.board[a[0]-i][a[1]-i] === R.reverse(this.board[b[0]][b[1]])) return false;
-      if (this.board[a[0]-i][a[1]-i] === 0) empty++;
-    }
-    return empty <= 1;
-  }
-  // a 在左下
-  if (a[0] > b[0] && a[1] < b[1]) {
-    var empty=0;
-    for(var i=1;a[0]-i>b[0];i++) {
-      if (this.board[a[0]-i][a[1]+i] === R.reverse(this.board[b[0]][b[1]])) return false;
-      if (this.board[a[0]-i][a[1]+i] === 0) empty++;
-    }
-    return empty <= 1;
-  }
-  // a 在右上
-  if (a[0] < b[0] && a[1] > b[1]) {
-    var empty=0;
-    for(var i=1;a[0]+i>b[0];i++) {
-      if (this.board[a[0]+i][a[1]-i] === R.reverse(this.board[b[0]][b[1]])) return false;
-      if (this.board[a[0]+i][a[1]-i] === 0) empty++;
-    }
-    return empty <= 1;
-  }
-
-  return false;
+Board.prototype.toString = function () {
+  return this.board.map(function (d) { return d.join(',') }).join('\n')
 }
+
 
 var board = new Board();
 
@@ -778,9 +696,13 @@ module.exports = {
   vcxDeep:  5,  //算杀深度
   random: false,// 在分数差不多的时候是不是随机选择一个走
   log: true,
+  // 下面几个设置都是用来提升搜索速度的
   star: true, // 是否开启 starspread
   // TODO: 目前开启缓存后，搜索会出现一些未知的bug
   cache: true, // 使用缓存, 其实只有搜索的缓存有用，其他缓存几乎无用。因为只有搜索的缓存命中后就能剪掉一整个分支，这个分支一般会包含很多个点。而在其他地方加缓存，每次命中只能剪掉一个点，影响不大。
+  window: false, // 启用期望窗口，由于用的模糊比较，所以和期望窗口是有冲突的
+
+  // 调试
   debug: false, // 打印详细的debug信息
 }
 
@@ -1280,8 +1202,6 @@ var board = require("./board.js");
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
 
-var bestScore;
-
 var count=0,  //每次思考的节点数
     PVcut,
     ABcut,  //AB剪枝次数
@@ -1303,21 +1223,19 @@ var deepLimit;
  * white is max, black is min
  */
 
-var negamax = function(deep, _vcxDeep) {
+var negamax = function(deep, alpha, beta) {
 
   count = 0;
   ABcut = 0;
   PVcut = 0;
-  vcxDeep = (_vcxDeep == undefined ? config.vcxDeep : _vcxDeep);
 
   for(var i=0;i<candidates.length;i++) {
     var p = candidates[i];
     board.put(p, R.com);
     var steps = [p];
-    // 越靠后的点，搜索深度约低，因为出现好棋的可能性比较小
-    var v = r(deep-1, -MAX, -bestScore, R.hum, 1, steps.slice(0));
-    v.score *= -1
-    bestScore = Math.max(bestScore, v.score)
+    var v = r(deep-1, -beta, -alpha, R.hum, 1, steps.slice(0));
+    v.score *= -1;
+    alpha = Math.max(alpha, v.score);
     board.remove(p);
     p.v = v
 
@@ -1338,6 +1256,7 @@ var negamax = function(deep, _vcxDeep) {
       + (d.v.vcf ? (',vcf:' + d.v.vcf.join(';')) : '')
   }))
 
+  return alpha;
 }
 
 var r = function(deep, alpha, beta, role, step, steps) {
@@ -1348,8 +1267,6 @@ var r = function(deep, alpha, beta, role, step, steps) {
     if(c) {
       if(c.deep >= deep) { // 如果缓存中的结果搜索深度不比当前小，则结果完全可用
         cacheGet ++;
-        config.debug && console.log('缓存命中:', c)
-        
         // 记得clone，因为这个分数会在搜索过程中被修改，会使缓存中的值不正确
         return {
           score: c.score.score,
@@ -1438,7 +1355,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     board.remove(p);
  
 
-    if(math.greatThan(v.score, best.score)) {
+    if(v.score > best.score) {
       best = v;
     }
     alpha = Math.max(best.score, alpha);
@@ -1466,40 +1383,68 @@ var cache = function(deep, score) {
   if(!config.cache) return false;
   if (score.abcut) return false; // 被剪枝的不要缓存哦，因为分数是一个极值
   // 记得clone，因为score在搜索的时候可能会被改的，这里要clone一个新的
-  Cache[board.zobrist.code] = {
+  var obj = {
     deep: deep,
     score: {
       score: score.score,
       steps: score.steps,
       step: score.step
-    }
+    },
+    board: board.toString()
   }
+  Cache[board.zobrist.code] = obj
+  config.debug && console.log('add cache[' + board.zobrist.code + ']', obj)
   cacheCount ++;
 }
 
 var deeping = function(deep) {
   candidates = board.gen(R.com);
   start = (+ new Date())
-  bestScore = MIN;
   deep = deep === undefined ? config.searchDeep : deep;
   Cache = {}; // 每次开始迭代的时候清空缓存。这里缓存的主要目的是在每一次的时候加快搜索，而不是长期存储。事实证明这样的清空方式对搜索速度的影响非常小（小于10%)
 
   var result;
+  // 期望窗口
+  var windows;
+  var bestScore;
+  if (config.window) {
+    windows = [
+      [1000, MAX],
+      [0, 1000],
+      [-1000, 0],
+      [MIN, -1000]
+    ]
+  } else {
+    windows = [
+      [MIN, MAX]
+    ]
+  }
 
-  //迭代加深
-  for(var i=2;i<=deep; i+=2) {
-    deepLimit = i;
-    negamax(i);
-  //// 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
-  //// 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
-  //var newCandidates = candidates.filter(function (d) {
-  //  return !d.abcut;
-  //})
-  //candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
-    if (math.greatOrEqualThan(bestScore, SCORE.FIVE)) break; // 能赢了
-    bestScore = MIN;
-    // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=， 上次层搜到的分数，在更深一层搜索的时候，会因为满足 >= 的条件而把自己剪枝掉
-    // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
+  var find = false;
+  for (var j=0; j<windows.length && !find; j++) {
+    //迭代加深
+    var alpha = windows[j][0];
+    var beta = windows[j][1];
+    console.log('window: [' + alpha + '~' + beta + ']')
+    for(var i=2; i<=deep; i+=2) {
+      deepLimit = i;
+      bestScore = negamax(i, alpha, beta);
+    //// 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
+    //// 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
+    //var newCandidates = candidates.filter(function (d) {
+    //  return !d.abcut;
+    //})
+    //candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
+
+      if (math.greatOrEqualThan(bestScore, SCORE.FIVE)) break; // 能赢了
+      // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=， 上次层搜到的分数，在更深一层搜索的时候，会因为满足 >= 的条件而把自己剪枝掉
+      // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
+    }
+    console.log('best score:' + bestScore)
+    if (bestScore > alpha && bestScore <= beta) {
+      find = true;
+      console.log('find!!' + bestScore)
+    }
   }
 
   // 美化一下

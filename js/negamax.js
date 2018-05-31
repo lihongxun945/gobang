@@ -79,8 +79,6 @@ var r = function(deep, alpha, beta, role, step, steps) {
     if(c) {
       if(c.deep >= deep) { // 如果缓存中的结果搜索深度不比当前小，则结果完全可用
         cacheGet ++;
-        config.debug && console.log('缓存命中:', c)
-        
         // 记得clone，因为这个分数会在搜索过程中被修改，会使缓存中的值不正确
         return {
           score: c.score.score,
@@ -169,7 +167,7 @@ var r = function(deep, alpha, beta, role, step, steps) {
     board.remove(p);
  
 
-    if(math.greatThan(v.score, best.score)) {
+    if(v.score > best.score) {
       best = v;
     }
     alpha = Math.max(best.score, alpha);
@@ -197,14 +195,17 @@ var cache = function(deep, score) {
   if(!config.cache) return false;
   if (score.abcut) return false; // 被剪枝的不要缓存哦，因为分数是一个极值
   // 记得clone，因为score在搜索的时候可能会被改的，这里要clone一个新的
-  Cache[board.zobrist.code] = {
+  var obj = {
     deep: deep,
     score: {
       score: score.score,
       steps: score.steps,
       step: score.step
-    }
+    },
+    board: board.toString()
   }
+  Cache[board.zobrist.code] = obj
+  config.debug && console.log('add cache[' + board.zobrist.code + ']', obj)
   cacheCount ++;
 }
 

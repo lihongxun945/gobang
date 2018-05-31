@@ -553,92 +553,10 @@ Board.prototype.win = function() {
   return false;
 }
 
-// a点是否在b点的starSpread路线上
-Board.prototype.isStarSpread = function (a, b) {
-  if (!b) return true
-
-  if (! ((a[0] === b[0] || a[1] === b[1] || (Math.abs(a[0]-b[0]) === Math.abs(a[1] - b[1]))) && Math.abs(a[0]-b[0]) <= 3 && Math.abs(a[1]-b[1]) <= 3)) return false;
-  // 同一行
-  if (a[0] === b[0]) {
-    // a 在左边
-    if (a[1] < b[1]) {
-      var empty=0;
-      for(var i=a[1]+1;i<b[1];i++) {
-        if (this.board[a[0]][i] === R.reverse(this.board[b[0]][b[1]])) return false;
-        if (this.board[a[0]][i] === 0) empty++;
-      }
-      return empty <= 1;
-    }
-    // a 在右边
-    if (a[1] > b[1]) {
-      var empty=0;
-      for(var i=a[1]-1;i>b[1];i--) {
-        if (this.board[a[0]][i] === R.reverse(this.board[b[0]][b[1]])) return false;
-        if (this.board[a[0]][i] === 0) empty++;
-      }
-      return empty <= 1;
-    }
-  }
-  // 同一列
-  if (a[1] === b[1]) {
-    // a 在上边
-    if (a[0] < b[0]) {
-      var empty=0;
-      for(var i=a[0]+1;i<b[0];i++) {
-        if (this.board[i][a[1]] === R.reverse(this.board[b[0]][b[1]])) return false;
-        if (this.board[i][a[1]] === 0) empty++;
-      }
-      return empty <= 1;
-    }
-    // a 在下边
-    if (a[0] > b[0]) {
-      var empty=0;
-      for(var i=a[0]-1;i<b[0];i--) {
-        if (this.board[i][a[1]] === R.reverse(this.board[b[0]][b[1]])) return false;
-        if (this.board[i][a[1]] === 0) empty++;
-      }
-      return empty <= 1;
-    }
-  }
-  // a 在左上
-  if (a[0] < b[0] && a[1] < b[1]) {
-    var empty=0;
-    for(var i=1;a[0]+i<b[0];i++) {
-      if (this.board[a[0]+i][a[1]+i] === R.reverse(this.board[b[0]][b[1]])) return false;
-      if (this.board[a[0]+i][a[1]+i] === 0) empty++;
-    }
-    return empty <= 1;
-  }
-  // a 在右下
-  if (a[0] > b[0] && a[1] > b[1]) {
-    var empty=0;
-    for(var i=1;a[0]-i>b[0];i++) {
-      if (this.board[a[0]-i][a[1]-i] === R.reverse(this.board[b[0]][b[1]])) return false;
-      if (this.board[a[0]-i][a[1]-i] === 0) empty++;
-    }
-    return empty <= 1;
-  }
-  // a 在左下
-  if (a[0] > b[0] && a[1] < b[1]) {
-    var empty=0;
-    for(var i=1;a[0]-i>b[0];i++) {
-      if (this.board[a[0]-i][a[1]+i] === R.reverse(this.board[b[0]][b[1]])) return false;
-      if (this.board[a[0]-i][a[1]+i] === 0) empty++;
-    }
-    return empty <= 1;
-  }
-  // a 在右上
-  if (a[0] < b[0] && a[1] > b[1]) {
-    var empty=0;
-    for(var i=1;a[0]+i>b[0];i++) {
-      if (this.board[a[0]+i][a[1]-i] === R.reverse(this.board[b[0]][b[1]])) return false;
-      if (this.board[a[0]+i][a[1]-i] === 0) empty++;
-    }
-    return empty <= 1;
-  }
-
-  return false;
+Board.prototype.toString = function () {
+  return this.board.map(function (d) { return d.join(',') }).join('\n')
 }
+
 
 var board = new Board();
 
