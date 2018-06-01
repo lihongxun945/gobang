@@ -259,7 +259,7 @@ var deeping = function(deep) {
     //})
     //candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
 
-      if (math.greatOrEqualThan(bestScore, SCORE.FIVE)) break; // 能赢了
+      if (math.greatOrEqualThan(bestScore, SCORE.FOUR)) break; // 能赢了
       // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=， 上次层搜到的分数，在更深一层搜索的时候，会因为满足 >= 的条件而把自己剪枝掉
       // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
     }
