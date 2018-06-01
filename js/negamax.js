@@ -131,7 +131,6 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
   //  return v
   //  }
   //}
-    config.debug && console.log('reach end', _e)
     return {
       score: _e,
       step: step,
@@ -165,12 +164,12 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     }
 
     // 单步延伸策略：双三延伸
-    if (_spread <= config.spreadLimit) {
-      if ( (role == R.com && p.scoreCom >= SCORE.THREE * 2) || (role == R.hum && p.scoreHum >= SCORE.THREE*2)) {
-        _deep = deep;
-        _spread ++
-      }
-    }
+  //if (_spread <= config.spreadLimit) {
+  //  if ( (role == R.com && p.scoreCom >= SCORE.THREE * 2) || (role == R.hum && p.scoreHum >= SCORE.THREE*2)) {
+  //    _deep = deep;
+  //    _spread ++
+  //  }
+  //}
 
     var _steps = steps.slice(0);
     _steps.push(p);
