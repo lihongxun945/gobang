@@ -294,6 +294,6 @@ $("#show-nu").change(function () {
 $("#spread").change(function (e) {
   var checked = $(this).is(":checked");
   b.setConfig({
-    spreadLimit: checked ? 2 : 0
+    spreadLimit: checked ? 1 : 0
   })
 })

@@ -144,7 +144,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     steps: steps
   }
   // 双方个下两个子之后，开启star spread 模式
-  var points = board.gen(role, (deepLimit - deep) > 4, (deepLimit - deep) > 4);
+  var points = board.gen(role, step > 4, step > 4);
 
   config.debug && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
   config.debug && console.log('A~B: ' + alpha + '~' + beta)
@@ -157,19 +157,18 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
 
     var _spread = spread;
 
-    // 冲四延伸
-    if ( (role == R.com && p.scoreHum >= SCORE.FIVE) || (role == R.hum && p.scoreCom >= SCORE.FIVE)) {
-      _deep = deep;
-      _spread ++
-    }
-
+    if (_spread <= config.spreadLimit) {
+      // 冲四延伸
+      if ( (role == R.com && p.scoreHum >= SCORE.FIVE) || (role == R.hum && p.scoreCom >= SCORE.FIVE)) {
+        _deep = deep+1;
+        _spread ++;
+      }
     // 单步延伸策略：双三延伸
-  //if (_spread <= config.spreadLimit) {
-  //  if ( (role == R.com && p.scoreCom >= SCORE.THREE * 2) || (role == R.hum && p.scoreHum >= SCORE.THREE*2)) {
-  //    _deep = deep;
-  //    _spread ++
-  //  }
-  //}
+    //if ( (role == R.com && p.scoreCom >= SCORE.THREE * 2) || (role == R.hum && p.scoreHum >= SCORE.THREE*2)) {
+    //  _deep = deep;
+    //  _spread ++
+    //}
+    }
 
     var _steps = steps.slice(0);
     _steps.push(p);
