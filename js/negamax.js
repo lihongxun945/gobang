@@ -160,7 +160,8 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     if (_spread <= config.spreadLimit) {
       // 冲四延伸
       if ( (role == R.com && p.scoreHum >= SCORE.FIVE) || (role == R.hum && p.scoreCom >= SCORE.FIVE)) {
-        _deep = deep+1;
+        // _deep = deep+1;
+        _deep = deep;
         _spread ++;
       }
     // 单步延伸策略：双三延伸
