@@ -454,13 +454,7 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
   if (role === R.com && comfours.length) return comfours;
   if (role === R.hum && humfours.length) return humfours;
 
-  // 对面有活四和冲四，自己连冲四都没有，则只考虑对面的活四，不考虑对面的冲四
-  
-  if (role === R.com && !comfours.length && !comblockedfours.length && humfours.length) return humfours;
-  if (role === R.hum && !humfours.length && !humblockedfours.length && comfours.length) return comfours;
-
   // 对面有活四自己有冲四，则都考虑下
-  
   var fours = role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
   var blockedfours = role === R.com ? comblockedfours.concat(humblockedfours) : humblockedfours.concat(comblockedfours);
   if (fours.length) return fours.concat(blockedfours);
@@ -1321,7 +1315,6 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
   //  return v
   //  }
   //}
-    config.debug && console.log('reach end', _e)
     return {
       score: _e,
       step: step,
@@ -1355,12 +1348,12 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     }
 
     // 单步延伸策略：双三延伸
-    if (_spread <= config.spreadLimit) {
-      if ( (role == R.com && p.scoreCom >= SCORE.THREE * 2) || (role == R.hum && p.scoreHum >= SCORE.THREE*2)) {
-        _deep = deep;
-        _spread ++
-      }
-    }
+  //if (_spread <= config.spreadLimit) {
+  //  if ( (role == R.com && p.scoreCom >= SCORE.THREE * 2) || (role == R.hum && p.scoreHum >= SCORE.THREE*2)) {
+  //    _deep = deep;
+  //    _spread ++
+  //  }
+  //}
 
     var _steps = steps.slice(0);
     _steps.push(p);
