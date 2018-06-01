@@ -228,47 +228,21 @@ var deeping = function(deep) {
   Cache = {}; // 每次开始迭代的时候清空缓存。这里缓存的主要目的是在每一次的时候加快搜索，而不是长期存储。事实证明这样的清空方式对搜索速度的影响非常小（小于10%)
 
   var result;
-  // 期望窗口
-  var windows;
   var bestScore;
-  if (config.window) {
-    windows = [
-      [1000, MAX],
-      [0, 1000],
-      [-1000, 0],
-      [MIN, -1000]
-    ]
-  } else {
-    windows = [
-      [MIN, MAX]
-    ]
-  }
+  for(var i=2; i<=deep; i+=2) {
+    deepLimit = i;
+    console.log(i)
+    bestScore = negamax(i, MIN, MAX);
+  //// 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
+  //// 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
+  //var newCandidates = candidates.filter(function (d) {
+  //  return !d.abcut;
+  //})
+  //candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
 
-  var find = false;
-  for (var j=0; j<windows.length && !find; j++) {
-    //迭代加深
-    var alpha = windows[j][0];
-    var beta = windows[j][1];
-    console.log('window: [' + alpha + '~' + beta + ']')
-    for(var i=2; i<=deep; i+=2) {
-      deepLimit = i;
-      bestScore = negamax(i, alpha, beta);
-    //// 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
-    //// 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
-    //var newCandidates = candidates.filter(function (d) {
-    //  return !d.abcut;
-    //})
-    //candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
-
-      if (math.greatOrEqualThan(bestScore, SCORE.FIVE)) break; // 能赢了
-      // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=， 上次层搜到的分数，在更深一层搜索的时候，会因为满足 >= 的条件而把自己剪枝掉
-      // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
-    }
-    console.log('best score:' + bestScore)
-    if (bestScore > alpha && bestScore <= beta) {
-      find = true;
-      console.log('find!!' + bestScore)
-    }
+    if (math.greatOrEqualThan(bestScore, SCORE.FIVE)) break; // 能赢了
+    // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=， 上次层搜到的分数，在更深一层搜索的时候，会因为满足 >= 的条件而把自己剪枝掉
+    // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
   }
 
   // 美化一下

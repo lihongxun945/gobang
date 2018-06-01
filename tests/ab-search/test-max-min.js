@@ -105,7 +105,7 @@ describe('test maxmin', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    var p = c(6);
+    var p = c();
     console.log("######", p);
     assert.ok(p[0] == 5 || p[0] == 6);
   });
