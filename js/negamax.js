@@ -288,7 +288,7 @@ var deeping = function(deep) {
   config.log && console.log('当前统计：' + count + '个节点, 耗时:' + time.toFixed(2) + 's, NPS:' + Math.floor(count/ time) + 'N/S');
   board.log()
   config.log && console.log("===============统计表===============");
-  statistic.print();
+  statistic.print(candidates);
   return result;
 }
 module.exports = deeping;

@@ -79,7 +79,7 @@ AI.prototype.back = function() {
 }
 module.exports = AI;
 
-},{"./board.js":4,"./config.js":6,"./negamax.js":10,"./opening.js":11,"./role.js":12,"./zobrist.js":15}],3:[function(require,module,exports){
+},{"./board.js":4,"./config.js":6,"./negamax.js":10,"./opening.js":11,"./role.js":12,"./zobrist.js":16}],3:[function(require,module,exports){
 module.exports = {
   create: function (w, h) {
     var r = []
@@ -101,6 +101,7 @@ var R = require("./role.js");
 var S = require("./score.js");
 var config = require("./config.js");
 var array = require("./arrary.js");
+var statistic = require('./statistic.js');
 
 var count = 0;
 var total = 0;
@@ -148,6 +149,7 @@ Board.prototype.init = function(sizeOrBoard) {
       this.board.push(row);
     }
   }
+  statistic.init(size)
 
 
   // 存储双方得分
@@ -210,11 +212,18 @@ Board.prototype.updateScore = function(p) {
       len = this.board.length;
 
   function update(x, y, dir) {
-    role = self.board[x][y];
-    if (role !== R.reverse(R.com)) self.comScore[x][y] = scorePoint(self, [x, y], R.com, dir);
-    else self.comScore[x][y] = 0
-    if (role !== R.reverse(R.hum)) self.humScore[x][y] = scorePoint(self, [x, y], R.hum, dir);
-    else self.humScore[x][y] = 0
+    var role = self.board[x][y];
+    if (role !== R.reverse(R.com)) {
+      var cs = scorePoint(self, [x, y], R.com, dir);
+      self.comScore[x][y] = cs;
+      statistic.table[x][y] += cs;
+    } else self.comScore[x][y] = 0;
+    if (role !== R.reverse(R.hum)) {
+      var hs = scorePoint(self, [x, y], R.hum, dir);
+      self.humScore[x][y] = hs;
+      statistic.table[x][y] += hs;
+    } else self.humScore[x][y] = 0;
+
   }
   // 无论是不是空位 都需要更新
   // -
@@ -648,12 +657,11 @@ Board.prototype.toString = function () {
   return this.board.map(function (d) { return d.join(',') }).join('\n')
 }
 
-
 var board = new Board();
 
 module.exports = board;
 
-},{"./arrary.js":3,"./config.js":6,"./evaluate-point.js":8,"./role.js":12,"./score.js":13,"./zobrist.js":15}],5:[function(require,module,exports){
+},{"./arrary.js":3,"./config.js":6,"./evaluate-point.js":8,"./role.js":12,"./score.js":13,"./statistic.js":14,"./zobrist.js":16}],5:[function(require,module,exports){
 var AI = require("./ai.js");
 var R = require("./role.js");
 var config = require('./config.js');
@@ -1194,6 +1202,7 @@ var vcx = require("./vcx.js");
 var config = require("./config.js");
 var debug = require("./debug.js");
 var board = require("./board.js");
+var statistic = require('./statistic.js');
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
@@ -1411,47 +1420,21 @@ var deeping = function(deep) {
   Cache = {}; // 每次开始迭代的时候清空缓存。这里缓存的主要目的是在每一次的时候加快搜索，而不是长期存储。事实证明这样的清空方式对搜索速度的影响非常小（小于10%)
 
   var result;
-  // 期望窗口
-  var windows;
   var bestScore;
-  if (config.window) {
-    windows = [
-      [1000, MAX],
-      [0, 1000],
-      [-1000, 0],
-      [MIN, -1000]
-    ]
-  } else {
-    windows = [
-      [MIN, MAX]
-    ]
-  }
+  for(var i=2; i<=deep; i+=2) {
+    deepLimit = i;
+    console.log(i)
+    bestScore = negamax(i, MIN, MAX);
+  //// 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
+  //// 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
+  //var newCandidates = candidates.filter(function (d) {
+  //  return !d.abcut;
+  //})
+  //candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
 
-  var find = false;
-  for (var j=0; j<windows.length && !find; j++) {
-    //迭代加深
-    var alpha = windows[j][0];
-    var beta = windows[j][1];
-    console.log('window: [' + alpha + '~' + beta + ']')
-    for(var i=2; i<=deep; i+=2) {
-      deepLimit = i;
-      bestScore = negamax(i, alpha, beta);
-    //// 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
-    //// 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
-    //var newCandidates = candidates.filter(function (d) {
-    //  return !d.abcut;
-    //})
-    //candidates = newCandidates.length ? newCandidates : [candidates[0]]; // 必败了，随便走走
-
-      if (math.greatOrEqualThan(bestScore, SCORE.FIVE)) break; // 能赢了
-      // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=， 上次层搜到的分数，在更深一层搜索的时候，会因为满足 >= 的条件而把自己剪枝掉
-      // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
-    }
-    console.log('best score:' + bestScore)
-    if (bestScore > alpha && bestScore <= beta) {
-      find = true;
-      console.log('find!!' + bestScore)
-    }
+    if (math.greatOrEqualThan(bestScore, SCORE.FIVE)) break; // 能赢了
+    // 下面这样做，会导致上一层的分数，在这一层导致自己被剪枝的bug，因为我们的判断条件是 >=， 上次层搜到的分数，在更深一层搜索的时候，会因为满足 >= 的条件而把自己剪枝掉
+    // if (math.littleThan(bestScore, T.THREE * 2)) bestScore = MIN; // 如果能找到双三以上的棋，则保留bestScore做剪枝，否则直接设置为最小值
   }
 
   // 美化一下
@@ -1496,12 +1479,13 @@ var deeping = function(deep) {
   //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   config.log && console.log('当前统计：' + count + '个节点, 耗时:' + time.toFixed(2) + 's, NPS:' + Math.floor(count/ time) + 'N/S');
   board.log()
-  config.log && console.log("================================");
+  config.log && console.log("===============统计表===============");
+  statistic.print(candidates);
   return result;
 }
 module.exports = deeping;
 
-},{"./board.js":4,"./config.js":6,"./debug.js":7,"./math.js":9,"./role":12,"./score.js":13,"./vcx.js":14}],11:[function(require,module,exports){
+},{"./board.js":4,"./config.js":6,"./debug.js":7,"./math.js":9,"./role":12,"./score.js":13,"./statistic.js":14,"./vcx.js":15}],11:[function(require,module,exports){
 /*
  * 一个简单的开局库，用花月+浦月必胜开局
  */
@@ -1569,6 +1553,33 @@ module.exports = {
 },{}],13:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
 },{"dup":1}],14:[function(require,module,exports){
+var array = require("./arrary.js");
+
+function Statistic() {
+}
+
+Statistic.prototype.init = function (size) {
+  this.table = array.create(size, size);
+}
+
+Statistic.prototype.print = function (candidates) {
+  console.log(this.table.map(function (r) { return r.map(i=>parseInt(Math.sqrt(i/10000))).join(',') }))
+  var max = 0;
+  var p;
+  for (var i=0; i<candidates.length; i++) {
+    var c = candidates[i];
+    var s = this.table[c[0]][c[1]];
+    if (s > max) {
+      max = s;
+      p = [c[0], c[1]];
+    }
+  }
+  console.log('历史表推荐走法:', p);
+}
+
+module.exports = new Statistic()
+
+},{"./arrary.js":3}],15:[function(require,module,exports){
 /*
  * 算杀
  * 算杀的原理和极大极小值搜索是一样的
@@ -1875,7 +1886,7 @@ module.exports = {
 }
 
 
-},{"./SCORE.js":1,"./board.js":4,"./config.js":6,"./debug.js":7,"./role.js":12,"./zobrist.js":15}],15:[function(require,module,exports){
+},{"./SCORE.js":1,"./board.js":4,"./config.js":6,"./debug.js":7,"./role.js":12,"./zobrist.js":16}],16:[function(require,module,exports){
 var R = require("./role.js");
 var Random = require("random-js")();
 
@@ -1909,7 +1920,7 @@ z.init();
 
 module.exports = z;
 
-},{"./role.js":12,"random-js":16}],16:[function(require,module,exports){
+},{"./role.js":12,"random-js":17}],17:[function(require,module,exports){
 /*jshint eqnull:true*/
 (function (root) {
   "use strict";
