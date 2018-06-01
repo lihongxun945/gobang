@@ -3,6 +3,7 @@ var R = require("./role.js");
 var W = require("./win.js");
 var config = require('./config.js'); //readonly
 var messages = require('./messages.js');
+var math = require('./math.js');
 
 var Board = function(container, status) {
   this.container = container;
@@ -36,6 +37,9 @@ var Board = function(container, status) {
   }
   this.setStatus("请点击开始按钮");
   this.print(this.rand(messages.greating));
+  $(".dialog").click(function () {
+    $(".dialog").hide()
+  });
 }
 
 Board.prototype.start = function() {
@@ -190,10 +194,12 @@ Board.prototype.talk = function(d, time) {
   var score = d.score || 0,
       step = d.step;
   var t;
+  var img = '';
   if (this.steps.length <= 3) {
     t = 'opening'
   } else if (score >= S.FIVE * 0.5) {
     t = 'win'
+    img = 'haha.gif';
   } else if (score >= S.THREE * 1.5) {
     t = 'superiority'
   } else if (score >= S.THREE * -1.5) {
@@ -202,9 +208,22 @@ Board.prototype.talk = function(d, time) {
     t = 'inferior'
   } else {
     t = 'failed'
+    img = 'sad.gif';
   }
+
+
   arr = messages[t];
-  this.print(this.rand(arr))
+  var msg = this.rand(arr);
+
+  if (img ) {
+    if (this._lastD) {
+      if (!math.equal(this._lastD.score, d.score)) {
+        this.pop(img, msg)
+      }
+    }
+  }
+  this.print(msg)
+  this._lastD = d;
 }
 
 
@@ -220,6 +239,18 @@ Board.prototype.print = function(m) {
     }
     i ++;
   }, 40)
+}
+Board.prototype.pop = function(img, msg) {
+  var $d = $(".dialog");
+  var $i = $(".dialog img");
+  var $p = $(".dialog p");
+  $i.attr("src", '/avatars/' + img);
+  $p.text(msg);
+  $d.show();
+
+  setTimeout(function () {
+    $d.hide();
+  }, 5000);
 }
 Board.prototype.rand = function(arr) {
   return arr[Math.floor(Math.random()*arr.length)]

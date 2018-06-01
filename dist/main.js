@@ -24,6 +24,7 @@ var R = require("./role.js");
 var W = require("./win.js");
 var config = require('./config.js'); //readonly
 var messages = require('./messages.js');
+var math = require('./math.js');
 
 var Board = function(container, status) {
   this.container = container;
@@ -57,6 +58,9 @@ var Board = function(container, status) {
   }
   this.setStatus("请点击开始按钮");
   this.print(this.rand(messages.greating));
+  $(".dialog").click(function () {
+    $(".dialog").hide()
+  });
 }
 
 Board.prototype.start = function() {
@@ -211,10 +215,12 @@ Board.prototype.talk = function(d, time) {
   var score = d.score || 0,
       step = d.step;
   var t;
+  var img = '';
   if (this.steps.length <= 3) {
     t = 'opening'
   } else if (score >= S.FIVE * 0.5) {
     t = 'win'
+    img = 'haha.gif';
   } else if (score >= S.THREE * 1.5) {
     t = 'superiority'
   } else if (score >= S.THREE * -1.5) {
@@ -223,9 +229,22 @@ Board.prototype.talk = function(d, time) {
     t = 'inferior'
   } else {
     t = 'failed'
+    img = 'sad.gif';
   }
+
+
   arr = messages[t];
-  this.print(this.rand(arr))
+  var msg = this.rand(arr);
+
+  if (img ) {
+    if (this._lastD) {
+      if (!math.equal(this._lastD.score, d.score)) {
+        this.pop(img, msg)
+      }
+    }
+  }
+  this.print(msg)
+  this._lastD = d;
 }
 
 
@@ -241,6 +260,18 @@ Board.prototype.print = function(m) {
     }
     i ++;
   }, 40)
+}
+Board.prototype.pop = function(img, msg) {
+  var $d = $(".dialog");
+  var $i = $(".dialog img");
+  var $p = $(".dialog p");
+  $i.attr("src", '/avatars/' + img);
+  $p.text(msg);
+  $d.show();
+
+  setTimeout(function () {
+    $d.hide();
+  }, 5000);
 }
 Board.prototype.rand = function(arr) {
   return arr[Math.floor(Math.random()*arr.length)]
@@ -319,7 +350,64 @@ $("#spread").change(function (e) {
   })
 })
 
-},{"./config.js":1,"./messages.js":3,"./role.js":4,"./score.js":5,"./win.js":6}],3:[function(require,module,exports){
+},{"./config.js":1,"./math.js":3,"./messages.js":4,"./role.js":5,"./score.js":6,"./win.js":7}],3:[function(require,module,exports){
+var S = require('./score.js');
+var threshold = 1.1;
+
+var equal = function(a, b) {
+  b = b || 0.01
+  return b >= 0 ? ((a >= b / threshold) && (a <= b * threshold))
+          : ((a >= b * threshold) && (a <= b / threshold))
+}
+var greatThan = function(a, b) {
+  return b >= 0 ? (a >= (b+0.1) * threshold) : (a >= (b+0.1) / threshold); // 注意处理b为0的情况，通过加一个0.1 做简单的处理
+}
+var greatOrEqualThan = function(a, b) {
+  return equal(a, b) || greatThan(a, b);
+}
+var littleThan = function(a, b) {
+  return b >= 0 ? (a <= (b-0.1) / threshold) : (a <= (b-0.1) * threshold);
+}
+var littleOrEqualThan = function(a, b) {
+  return equal(a, b) || littleThan(a, b);
+}
+
+var containPoint = function (arrays, p) {
+  for (var i=0;i<arrays.length;i++) {
+    var a = arrays[i];
+    if (a[0] === p[0] && a[1] === p[1]) return true
+  }
+  return false
+}
+
+var pointEqual = function (a, b) {
+  return a[0] === b[0] && a[1] === b[1]
+}
+
+var round = function (score) {
+  var neg = score < 0 ? -1 : 1;
+  var abs = Math.abs(score);
+  if (abs <= S.ONE / 2) return 0;
+  if (abs <= S.TWO / 2 && abs > S.ONE / 2) return neg * S.ONE;
+  if (abs <= S.THREE / 2 && abs > S.TWO / 2) return neg * S.TWO;
+  if (abs <= S.THREE * 1.5 && abs > S.THREE / 2) return neg * S.THREE;
+  if (abs <= S.FOUR / 2 && abs > S.THREE * 1.5) return neg * S.THREE*2;
+  if (abs <= S.FIVE / 2 && abs > S.FOUR / 2) return neg * S.FOUR;
+  return neg * S.FIVE;
+}
+
+module.exports = {
+  equal: equal,
+  greatThan: greatThan,
+  greatOrEqualThan: greatOrEqualThan,
+  littleThan: littleThan,
+  littleOrEqualThan: littleOrEqualThan,
+  containPoint: containPoint,
+  pointEqual: pointEqual,
+  round: round
+}
+
+},{"./score.js":6}],4:[function(require,module,exports){
 module.exports = {
   greating: [
     '你好~我是轩轩~',
@@ -345,6 +433,7 @@ module.exports = {
     '一切尽在掌握之中~',
     '夜观天象，吉星高照~',
     '怕不怕？~~~',
+    'AlphaGO 都不是我对手',
   ],
   balance: [
     '形势很胶着~',
@@ -359,6 +448,19 @@ module.exports = {
     '昨天练了一整晚，好困啊~',
     '功夫再高，也怕菜刀~',
     '我们没有双三禁手哦~',
+    '告诉你一个小技巧:*****.',
+    '给我发红包，我教你怎么下',
+    '跟我下棋要收费的哦~',
+    '你知道长草颜团子吗，萌萌哒',
+    '棋海无涯，回头是岸',
+    '我正在研究神经网络~',
+    '其实代码还有bug，你还有机会赢',
+    '我赢了是实力碾压，你赢了是出bug了',
+    '其实我是个机器人',
+    '别乱调参数哦，可能会卡死的',
+    'CPU速度越快我就越厉害，怕不怕?',
+    '你知道八卦阵么',
+    '手机上玩别切出去，不然思考会暂停的',
   ],
   inferior: [
     '形势不容乐观~',
@@ -373,6 +475,7 @@ module.exports = {
     '这不是真的~~',
     '再来，我要赢!!',
     '既生瑜，何生亮~~~~',
+    '围棋你肯定下不过我',
   ],
   win: [
     '如此轻松随意~',
@@ -392,7 +495,7 @@ module.exports = {
   ]
 }
 
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 module.exports = {
   com: 1,
   hum: 2,
@@ -402,7 +505,7 @@ module.exports = {
   }
 }
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /*
  * 棋型表示
  * 用一个6位数表示棋型，从高位到低位分别表示
@@ -433,7 +536,7 @@ var score = {
   FIVE: 'FIVE', // 连五
 }
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var R = require("./role.js");
 var isFive = function(board, p, role) {
   var len = board.length;
@@ -554,4 +657,4 @@ var w = function(board) {
 
 module.exports = w;
 
-},{"./role.js":4}]},{},[2]);
+},{"./role.js":5}]},{},[2]);
