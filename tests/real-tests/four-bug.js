@@ -6,7 +6,7 @@ var S = require('../../js/score.js');
 
 describe('测试冲四和活四优先级导致的bug', function() {
 
-  it(``, function() {
+  it(`此处是没有杀棋的`, function() {
     b = [
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -25,8 +25,8 @@ describe('测试冲四和活四优先级导致的bug', function() {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    p = c();
-    assert.ok(p.score >= S.FOUR/2);
+    p = c(10);
+    assert.ok(p.score < S.FOUR/2);
   });
 
 });

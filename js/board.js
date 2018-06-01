@@ -357,13 +357,7 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
   if (role === R.com && comfours.length) return comfours;
   if (role === R.hum && humfours.length) return humfours;
 
-  // 对面有活四和冲四，自己连冲四都没有，则只考虑对面的活四，不考虑对面的冲四
-  
-  if (role === R.com && !comfours.length && !comblockedfours.length && humfours.length) return humfours;
-  if (role === R.hum && !humfours.length && !humblockedfours.length && comfours.length) return comfours;
-
   // 对面有活四自己有冲四，则都考虑下
-  
   var fours = role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
   var blockedfours = role === R.com ? comblockedfours.concat(humblockedfours) : humblockedfours.concat(comblockedfours);
   if (fours.length) return fours.concat(blockedfours);
