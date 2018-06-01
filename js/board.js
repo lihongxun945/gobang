@@ -4,6 +4,7 @@ var R = require("./role.js");
 var S = require("./score.js");
 var config = require("./config.js");
 var array = require("./arrary.js");
+var statistic = require('./statistic.js');
 
 var count = 0;
 var total = 0;
@@ -51,6 +52,7 @@ Board.prototype.init = function(sizeOrBoard) {
       this.board.push(row);
     }
   }
+  statistic.init(size)
 
 
   // 存储双方得分
@@ -113,11 +115,18 @@ Board.prototype.updateScore = function(p) {
       len = this.board.length;
 
   function update(x, y, dir) {
-    role = self.board[x][y];
-    if (role !== R.reverse(R.com)) self.comScore[x][y] = scorePoint(self, [x, y], R.com, dir);
-    else self.comScore[x][y] = 0
-    if (role !== R.reverse(R.hum)) self.humScore[x][y] = scorePoint(self, [x, y], R.hum, dir);
-    else self.humScore[x][y] = 0
+    var role = self.board[x][y];
+    if (role !== R.reverse(R.com)) {
+      var cs = scorePoint(self, [x, y], R.com, dir);
+      self.comScore[x][y] = cs;
+      statistic.table[x][y] += cs;
+    } else self.comScore[x][y] = 0;
+    if (role !== R.reverse(R.hum)) {
+      var hs = scorePoint(self, [x, y], R.hum, dir);
+      self.humScore[x][y] = hs;
+      statistic.table[x][y] += hs;
+    } else self.humScore[x][y] = 0;
+
   }
   // 无论是不是空位 都需要更新
   // -
@@ -550,7 +559,6 @@ Board.prototype.win = function() {
 Board.prototype.toString = function () {
   return this.board.map(function (d) { return d.join(',') }).join('\n')
 }
-
 
 var board = new Board();
 

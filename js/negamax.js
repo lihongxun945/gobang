@@ -10,6 +10,7 @@ var vcx = require("./vcx.js");
 var config = require("./config.js");
 var debug = require("./debug.js");
 var board = require("./board.js");
+var statistic = require('./statistic.js');
 
 var MAX = SCORE.FIVE*10;
 var MIN = -1*MAX;
@@ -312,7 +313,8 @@ var deeping = function(deep) {
   //注意，减掉的节点数实际远远不止 ABcut 个，因为减掉的节点的子节点都没算进去。实际 4W个节点的时候，剪掉了大概 16W个节点
   config.log && console.log('当前统计：' + count + '个节点, 耗时:' + time.toFixed(2) + 's, NPS:' + Math.floor(count/ time) + 'N/S');
   board.log()
-  config.log && console.log("================================");
+  config.log && console.log("===============统计表===============");
+  statistic.print();
   return result;
 }
 module.exports = deeping;

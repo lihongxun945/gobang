@@ -107,7 +107,7 @@ describe('test maxmin', function() {
     board.init(b);
     var p = c(6);
     console.log("######", p);
-    assert.ok(p);
+    assert.ok(p[0] == 5 || p[0] == 6);
   });
   it(`attack`, function() {
     //  测试进攻，进攻 [5,6]
@@ -127,7 +127,7 @@ describe('test maxmin', function() {
     board.init(b);
     var p = c(6);
     console.log("######", p);
-    assert.ok(p);
+    assert.ok(p[0] == 5 || p[0] == 6);
   });
 
 });
