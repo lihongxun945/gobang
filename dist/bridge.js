@@ -397,14 +397,12 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
            * 我们假定任何时候，绝大多数情况下进攻的路线都可以按次序连城一条折线，那么每次每一个子，一定都是在上一个己方棋子的八个方向之一。
            * 因为既可能自己进攻，也可能防守对面，所以是最后两个子的米子方向上
            * 那么极少数情况，进攻路线无法连成一条折线呢?很简单，我们对前双方两步不作star限制就好，这样可以 兼容一条折线中间伸出一段的情况
-           *
-           * 另外，这里如果一个点的分数大于等于冲四，就不受star的限制，这样可以通过不断冲四来创造局面
            */
           if (starSpread && config.star) {
             lastPoint1 = this.allSteps[this.allSteps.length-1]
             lastPoint2 = this.allSteps[this.allSteps.length-2]
             if (
-              maxScore >= S.BLOCKED_FOUR ||
+              maxScore >= S.FIVE ||
               (i === lastPoint1[0] || j === lastPoint1[1] || (Math.abs(i-lastPoint1[0]) === Math.abs(j-lastPoint1[1])))
              || (i === lastPoint2[0] || j === lastPoint2[1] || (Math.abs(i-lastPoint2[0]) === Math.abs(j-lastPoint2[1]))) ) {
             } else {
@@ -1335,7 +1333,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     steps: steps
   }
   // 双方个下两个子之后，开启star spread 模式
-  var points = board.gen(role, step > 2, step > 4);
+  var points = board.gen(role, step > 4, step > 4);
 
   config.debug && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
   config.debug && console.log('A~B: ' + alpha + '~' + beta)

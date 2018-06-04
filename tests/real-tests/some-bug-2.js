@@ -29,6 +29,6 @@ describe('要防守对面的攻击', function() {
     var p;
     board.init(b);
     p = c();
-    assert.ok(math.containPoint([ [5,9], [10, 6] ], p));
+    assert.ok(math.containPoint([ [5,9], [10, 6], [7, 4] ], p));
   });
 })
