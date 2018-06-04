@@ -1221,8 +1221,6 @@ var vcxDeep;
 var startTime; // 开始时间，用来计算每一步的时间
 var allBestPoints; // 记录迭代过程中得到的全部最好点
 
-var deepLimit;
-
 /*
  * max min search
  * white is max, black is min
@@ -1292,7 +1290,8 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
 
   count ++;
   // 搜索到底 或者已经胜利
-  if(deep <= 1 || math.greatOrEqualThan(_e, T.FIVE) || math.littleOrEqualThan(_e, -T.FIVE)) {
+  // 注意这里是小于0，而不是1，因为本次直接返回结果并没有下一步棋
+  if(deep <= 0 || math.greatOrEqualThan(_e, T.FIVE) || math.littleOrEqualThan(_e, -T.FIVE)) {
   //// 经过测试，把算杀放在对子节点的搜索之后，比放在前面速度更快一些。
   //// vcf
   //// 自己没有形成活四，对面也没有形成活四，那么先尝试VCF
@@ -1349,11 +1348,11 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
 
     var _spread = spread;
 
-    if (_spread <= config.spreadLimit) {
+    if (_spread < config.spreadLimit) {
       // 冲四延伸
       if ( (role == R.com && p.scoreHum >= SCORE.FIVE) || (role == R.hum && p.scoreCom >= SCORE.FIVE)) {
         // _deep = deep+1;
-        _deep = deep;
+        _deep += 2;
         _spread ++;
       }
     // 单步延伸策略：双三延伸
@@ -1422,8 +1421,6 @@ var deeping = function(deep) {
   var result;
   var bestScore;
   for(var i=2; i<=deep; i+=2) {
-    deepLimit = i;
-    console.log(i)
     bestScore = negamax(i, MIN, MAX);
   //// 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
   //// 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
