@@ -304,6 +304,12 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
           if (starSpread && config.star) {
             lastPoint1 = this.allSteps[this.allSteps.length-1]
             lastPoint2 = this.allSteps[this.allSteps.length-2]
+            // 距离必须在5步以内
+            if ((Math.abs(i-lastPoint1[0]) > 5 || Math.abs(j-lastPoint1[1]) > 5) && (Math.abs(i-lastPoint2[0]) > 5 || Math.abs(j-lastPoint2[1]) > 5)) {
+              count ++;
+              continue;
+            }
+            // 必须在米子方向上
             if (
               maxScore >= S.FIVE ||
               (i === lastPoint1[0] || j === lastPoint1[1] || (Math.abs(i-lastPoint1[0]) === Math.abs(j-lastPoint1[1])))
