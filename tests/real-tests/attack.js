@@ -2,6 +2,7 @@ var c = require("../../js/negamax.js");
 var board = require("../../js/board.js");
 var assert = require('assert');
 var vcx = require('../../js/vcx.js');
+var S = require('../../js/score.js');
 
 describe('test maxmin', function() {
 
@@ -26,11 +27,7 @@ describe('test maxmin', function() {
     ];
     var p
     board.init(b);
-    p = c(6);
-    assert.ok(p[0] !== 2 || p[1] !== 7);
-    //应该不能算出vct杀棋
-    p = vcx.vct(1, 10);
-    console.log(p);
-    assert.ok(!p);
+    p = c(8);
+    assert.ok(p.score < S.THREE);
   });
 })

@@ -27,7 +27,7 @@ describe('测试长路径的算杀，需要好几步才能算出杀棋', functio
     ];
     board.init(b);
     p = c(10); // 10步可以算出杀棋
-    assert.ok(p.score >= S.FOUR/2);
+    assert.ok(p.score >= S.THREE*1.5);
   });
 
 });
