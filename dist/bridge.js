@@ -1333,7 +1333,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     steps: steps
   }
   // 双方个下两个子之后，开启star spread 模式
-  var points = board.gen(role, step > 4, step > 4);
+  var points = board.gen(role, step > 2, step > 4);
 
   config.debug && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
   config.debug && console.log('A~B: ' + alpha + '~' + beta)
