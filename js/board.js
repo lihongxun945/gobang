@@ -279,9 +279,26 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
   var neighbors = [];
 
   var board = this.board;
+  var lastPoint1 = this.allSteps[this.allSteps.length-1]
+  var lastPoint2 = this.allSteps[this.allSteps.length-2]
 
-  for(var i=0;i<board.length;i++) {
-    for(var j=0;j<board[i].length;j++) {
+  // 默认情况下 我们遍历整个棋盘。但是在开启star模式下，我们遍历的范围就会小很多
+  // 只需要遍历以两个点为中心正方形。
+  // 注意除非专门处理重叠区域，否则不要把两个正方形分开算，因为一般情况下这两个正方形会有相当大的重叠面积，别重复计算了
+  var startI = 0, startJ = 0, endI = board.length-1, endJ = board.length-1;
+  if (starSpread && config.star) {
+    startI = Math.min(lastPoint1[0]-5, lastPoint2[0]-5)
+    startJ = Math.min(lastPoint1[1]-5, lastPoint2[1]-5)
+    startI = Math.max(0, startI);
+    startJ = Math.max(0, startJ);
+    endI = Math.max(lastPoint1[0]+5, lastPoint2[0]+5)
+    endJ = Math.max(lastPoint1[1]+5, lastPoint2[1]+5)
+    endI = Math.min(board.length-1, endI);
+    endJ = Math.min(board.length-1, endJ);
+  }
+
+  for(var i=startI;i<=endI;i++) {
+    for(var j=startJ;j<endJ;j++) {
       var p = [i, j];
       if(board[i][j] == R.empty) {
         var neighbor = [2,2];
@@ -302,8 +319,7 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
            * 那么极少数情况，进攻路线无法连成一条折线呢?很简单，我们对前双方两步不作star限制就好，这样可以 兼容一条折线中间伸出一段的情况
            */
           if (starSpread && config.star) {
-            lastPoint1 = this.allSteps[this.allSteps.length-1]
-            lastPoint2 = this.allSteps[this.allSteps.length-2]
+
             // 距离必须在5步以内
             if ((Math.abs(i-lastPoint1[0]) > 5 || Math.abs(j-lastPoint1[1]) > 5) && (Math.abs(i-lastPoint2[0]) > 5 || Math.abs(j-lastPoint2[1]) > 5)) {
               count ++;
