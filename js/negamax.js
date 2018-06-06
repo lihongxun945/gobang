@@ -80,16 +80,16 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
         // 记得clone，因为这个分数会在搜索过程中被修改，会使缓存中的值不正确
         return {
           score: c.score.score,
-          steps: c.score.steps,
+          steps: c.score.steps.slice(0),
           step: c.score.step
         };
       } else {
         // 如果缓存的结果中搜索深度比当前小，那么任何一方出现双三及以上结果的情况下可用
         // TODO: 只有这一个缓存策略是会导致开启缓存后会和以前的结果有一点点区别的，其他几种都是透明的缓存策略
-      //if (math.greatOrEqualThan(c.score, SCORE.THREE * 2) || math.littleOrEqualThan(c.score, SCORE.THREE * -2)) {
-      //  cacheGet ++;
-      //  return c.score;
-      //}
+        if (math.greatOrEqualThan(c.score, SCORE.FOUR) || math.littleOrEqualThan(c.score, -SCORE.FOUR)) {
+          cacheGet ++;
+          return c.score;
+        }
       }
     }
   }
