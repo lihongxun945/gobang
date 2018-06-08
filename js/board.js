@@ -207,7 +207,7 @@ Board.prototype.back = function() {
 
 
 Board.prototype.logSteps = function() {
-  console.log(this.allSteps.map((d) => '['+d[0]+','+d[1]+']').join(','))
+  console.log("steps:" + this.allSteps.map((d) => '['+d[0]+','+d[1]+']').join(','))
 }
 
 //棋面估分
@@ -233,12 +233,10 @@ Board.prototype.evaluate = function(role) {
       }
     }
   }
-  config.debug && console.log(this.comMaxScore, this.humMaxScore)
   // 有冲四延伸了，不需要专门处理冲四活三
   // 不过这里做了这一步，可以减少电脑胡乱冲四的毛病
   this.comMaxScore = fixScore(this.comMaxScore);
   this.humMaxScore = fixScore(this.humMaxScore);
-  config.debug && console.log(this.comMaxScore, this.humMaxScore)
   var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
   // if (config.cache) this.evaluateCache[this.zobrist.code] = result;
 
@@ -386,6 +384,11 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
   if (role === R.com && comfours.length) return comfours;
   if (role === R.hum && humfours.length) return humfours;
 
+  // 对面有活四冲四，自己冲四都没，则只考虑对面活四 （此时对面冲四就不用考虑了)
+  
+  if (role === R.com && humfours.length && !comblockedfours.length) return humfours;
+  if (role === R.hum && comfours.length && !humblockedfours.length) return comfours;
+
   // 对面有活四自己有冲四，则都考虑下
   var fours = role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
   var blockedfours = role === R.com ? comblockedfours.concat(humblockedfours) : humblockedfours.concat(comblockedfours);
@@ -393,26 +396,34 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
 
   var result = [];
   if (role === R.com) {
-    result = comblockedfours
-      .concat(humblockedfours)
-      .concat(comtwothrees)
+    result = 
+      comtwothrees
       .concat(humtwothrees)
+      .concat(comblockedfours)
+      .concat(humblockedfours)
       .concat(comthrees)
       .concat(humthrees)
   }
   if (role === R.hum) {
-    result = humblockedfours
-      .concat(comblockedfours)
-      .concat(humtwothrees)
+    result = 
+      humtwothrees
       .concat(comtwothrees)
+      .concat(humblockedfours)
+      .concat(comblockedfours)
       .concat(humthrees)
       .concat(comthrees)
   }
 
-  result.sort(function(a, b) { return b.score - a.score })
+  // result.sort(function(a, b) { return b.score - a.score })
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
   if(comtwothrees.length || humtwothrees.length) {
+    return result;
+  }
+
+
+  // 只返回大于等于活三的棋
+  if (onlyThrees) {
     return result;
   }
 
@@ -422,12 +433,6 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
   else twos = humtwos.concat(comtwos);
 
   twos.sort(function(a, b) { return b.score - a.score });
-
-  // 只返回大于等于活三的棋
-  // 这里注意，如果没有活三，那么要仍然记得返回一个值，不然在搜索中会因为没有子节点而返回默认的MIN
-  if (onlyThrees) {
-    return result.length ? result : [twos[0]];
-  }
   result = result.concat(twos.length ? twos : neighbors);
 
   //这种分数低的，就不用全部计算了

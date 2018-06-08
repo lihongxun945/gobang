@@ -96,6 +96,12 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
 
   var _e = board.evaluate(role);
 
+  var leaf = {
+    score: _e,
+    step: step,
+    steps: steps
+  }
+
   count ++;
   // 搜索到底 或者已经胜利
   // 注意这里是小于0，而不是1，因为本次直接返回结果并没有下一步棋
@@ -130,11 +136,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
   //  return v
   //  }
   //}
-    return {
-      score: _e,
-      step: step,
-      steps: steps
-    };
+    return leaf;
   }
   
   var best = {
@@ -144,6 +146,8 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
   }
   // 双方个下两个子之后，开启star spread 模式
   var points = board.gen(role, step > 2, step > 4);
+
+  if (!points.length) return leaf;
 
   config.debug && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
   config.debug && console.log('A~B: ' + alpha + '~' + beta)
@@ -216,7 +220,7 @@ var cache = function(deep, score) {
     board: board.toString()
   }
   Cache[board.zobrist.code] = obj
-  config.debug && console.log('add cache[' + board.zobrist.code + ']', obj)
+  // config.debug && console.log('add cache[' + board.zobrist.code + ']', obj)
   cacheCount ++;
 }
 
