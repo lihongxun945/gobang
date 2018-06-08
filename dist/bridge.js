@@ -304,7 +304,7 @@ Board.prototype.back = function() {
 
 
 Board.prototype.logSteps = function() {
-  console.log(this.allSteps.map((d) => '['+d[0]+','+d[1]+']').join(','))
+  console.log("steps:" + this.allSteps.map((d) => '['+d[0]+','+d[1]+']').join(','))
 }
 
 //棋面估分
@@ -330,12 +330,10 @@ Board.prototype.evaluate = function(role) {
       }
     }
   }
-  config.debug && console.log(this.comMaxScore, this.humMaxScore)
   // 有冲四延伸了，不需要专门处理冲四活三
   // 不过这里做了这一步，可以减少电脑胡乱冲四的毛病
   this.comMaxScore = fixScore(this.comMaxScore);
   this.humMaxScore = fixScore(this.humMaxScore);
-  config.debug && console.log(this.comMaxScore, this.humMaxScore)
   var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
   // if (config.cache) this.evaluateCache[this.zobrist.code] = result;
 
@@ -483,6 +481,11 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
   if (role === R.com && comfours.length) return comfours;
   if (role === R.hum && humfours.length) return humfours;
 
+  // 对面有活四冲四，自己冲四都没，则只考虑对面活四 （此时对面冲四就不用考虑了)
+  
+  if (role === R.com && humfours.length && !comblockedfours.length) return humfours;
+  if (role === R.hum && comfours.length && !humblockedfours.length) return comfours;
+
   // 对面有活四自己有冲四，则都考虑下
   var fours = role === R.com ? comfours.concat(humfours) : humfours.concat(comfours);
   var blockedfours = role === R.com ? comblockedfours.concat(humblockedfours) : humblockedfours.concat(comblockedfours);
@@ -490,26 +493,34 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
 
   var result = [];
   if (role === R.com) {
-    result = comblockedfours
-      .concat(humblockedfours)
-      .concat(comtwothrees)
+    result = 
+      comtwothrees
       .concat(humtwothrees)
+      .concat(comblockedfours)
+      .concat(humblockedfours)
       .concat(comthrees)
       .concat(humthrees)
   }
   if (role === R.hum) {
-    result = humblockedfours
-      .concat(comblockedfours)
-      .concat(humtwothrees)
+    result = 
+      humtwothrees
       .concat(comtwothrees)
+      .concat(humblockedfours)
+      .concat(comblockedfours)
       .concat(humthrees)
       .concat(comthrees)
   }
 
-  result.sort(function(a, b) { return b.score - a.score })
+  // result.sort(function(a, b) { return b.score - a.score })
 
   //双三很特殊，因为能形成双三的不一定比一个活三强
   if(comtwothrees.length || humtwothrees.length) {
+    return result;
+  }
+
+
+  // 只返回大于等于活三的棋
+  if (onlyThrees) {
     return result;
   }
 
@@ -519,12 +530,6 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
   else twos = humtwos.concat(comtwos);
 
   twos.sort(function(a, b) { return b.score - a.score });
-
-  // 只返回大于等于活三的棋
-  // 这里注意，如果没有活三，那么要仍然记得返回一个值，不然在搜索中会因为没有子节点而返回默认的MIN
-  if (onlyThrees) {
-    return result.length ? result : [twos[0]];
-  }
   result = result.concat(twos.length ? twos : neighbors);
 
   //这种分数低的，就不用全部计算了
@@ -1292,21 +1297,27 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
         // 记得clone，因为这个分数会在搜索过程中被修改，会使缓存中的值不正确
         return {
           score: c.score.score,
-          steps: c.score.steps,
+          steps: c.score.steps.slice(0),
           step: c.score.step
         };
       } else {
         // 如果缓存的结果中搜索深度比当前小，那么任何一方出现双三及以上结果的情况下可用
         // TODO: 只有这一个缓存策略是会导致开启缓存后会和以前的结果有一点点区别的，其他几种都是透明的缓存策略
-      //if (math.greatOrEqualThan(c.score, SCORE.THREE * 2) || math.littleOrEqualThan(c.score, SCORE.THREE * -2)) {
-      //  cacheGet ++;
-      //  return c.score;
-      //}
+        if (math.greatOrEqualThan(c.score, SCORE.FOUR) || math.littleOrEqualThan(c.score, -SCORE.FOUR)) {
+          cacheGet ++;
+          return c.score;
+        }
       }
     }
   }
 
   var _e = board.evaluate(role);
+
+  var leaf = {
+    score: _e,
+    step: step,
+    steps: steps
+  }
 
   count ++;
   // 搜索到底 或者已经胜利
@@ -1342,11 +1353,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
   //  return v
   //  }
   //}
-    return {
-      score: _e,
-      step: step,
-      steps: steps
-    };
+    return leaf;
   }
   
   var best = {
@@ -1356,6 +1363,8 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
   }
   // 双方个下两个子之后，开启star spread 模式
   var points = board.gen(role, step > 2, step > 4);
+
+  if (!points.length) return leaf;
 
   config.debug && console.log('points:' + points.map((d) => '['+d[0]+','+d[1]+']').join(','))
   config.debug && console.log('A~B: ' + alpha + '~' + beta)
@@ -1428,7 +1437,7 @@ var cache = function(deep, score) {
     board: board.toString()
   }
   Cache[board.zobrist.code] = obj
-  config.debug && console.log('add cache[' + board.zobrist.code + ']', obj)
+  // config.debug && console.log('add cache[' + board.zobrist.code + ']', obj)
   cacheCount ++;
 }
 
