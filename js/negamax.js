@@ -42,7 +42,7 @@ var negamax = function(deep, alpha, beta) {
   for(var i=0;i<candidates.length;i++) {
     var p = candidates[i];
     board.put(p, R.com);
-    var steps = [p];
+    var steps = [p[0], p[1]];
     var v = r(deep-1, -beta, -alpha, R.hum, 1, steps.slice(0), 0);
     v.score *= -1;
     alpha = Math.max(alpha, v.score);
@@ -62,6 +62,7 @@ var negamax = function(deep, alpha, beta) {
       + ',score:' + d.v.score
       + ',step:' + d.v.step
       + ',steps:' + d.v.steps.join(';')
+      + (d.v.c ? ',c:' + [d.v.c.score.steps || [] ].join(";") : '')
       + (d.v.vct ? (',vct:' + d.v.vct.join(';')) : '')
       + (d.v.vcf ? (',vcf:' + d.v.vcf.join(';')) : '')
   }))
@@ -80,8 +81,9 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
         // 记得clone，因为这个分数会在搜索过程中被修改，会使缓存中的值不正确
         return {
           score: c.score.score,
-          steps: c.score.steps.slice(0),
-          step: c.score.step
+          steps: steps,
+          step: step,
+          c: c
         };
       } else {
         // 如果缓存的结果中搜索深度比当前小，那么任何一方出现双三及以上结果的情况下可用
@@ -175,7 +177,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     }
 
     var _steps = steps.slice(0);
-    _steps.push(p);
+    _steps.push([p[0], p[1]]);
     var v = r(_deep, -beta, -alpha, R.reverse(role), step+1, _steps, _spread);
     v.score *= -1;
     board.remove(p);

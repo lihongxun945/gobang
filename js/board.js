@@ -5,6 +5,7 @@ var S = require("./score.js");
 var config = require("./config.js");
 var array = require("./arrary.js");
 var statistic = require('./statistic.js');
+var math = require('./math.js');
 
 var count = 0;
 var total = 0;
@@ -199,10 +200,12 @@ Board.prototype.back = function() {
   this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]]);
   this.board[s[0]][s[1]] = R.empty;
   this.updateScore(s);
+  this.allSteps.pop();
   var s = this.steps.pop();
   this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]]);
   this.board[s[0]][s[1]] = R.empty;
   this.updateScore(s);
+  this.allSteps.pop();
 }
 
 
@@ -307,7 +310,16 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
           var scoreCom = p.scoreCom = this.comScore[i][j];
           var maxScore = Math.max(scoreCom, scoreHum);
           p.score = maxScore
+          p.role = role
 
+          // 标记当前点是为了进攻还是为了防守，后面会用到
+          if (role === R.com) {
+            if (math.greatOrEqualThan(scoreCom, scoreHum)) p.attack = 1; // 进攻点
+            else p.attack = 0 // 防守点
+          } else if (role === R.hum) {
+            if (math.greatOrEqualThan(scoreHum, scoreCom)) p.attack = 1; // 进攻点
+            else p.attack = 0 // 防守点
+          }
 
           total ++;
           /* 双星延伸，以提升性能
@@ -333,15 +345,6 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
               continue;
             }
           }
-
-        //// 结果分级
-        //if (maxScore >= S.THREE) {
-        //  p.level = 1
-        //} else if (maxScore >= S.TWO) {
-        //  p.level = 2
-        //} else {
-        //  p.level = 3
-        //}
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             fives.push(p);

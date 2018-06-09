@@ -1,5 +1,5 @@
 var S = require('./score.js');
-var threshold = 1.1;
+var threshold = 1.15;
 
 var equal = function(a, b) {
   b = b || 0.01
