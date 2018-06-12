@@ -1388,7 +1388,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
   }
   // 双方个下两个子之后，开启star spread 模式
   // 前6步认为是开局，则计算4步非活三，否则只计算两步非活三
-  var points = board.gen(role, step > (this.steps.length > 6 ? 2 : 4), step > 4);
+  var points = board.gen(role, step > (board.steps.length > 6 ? 2 : 4), step > 4);
 
   if (!points.length) return leaf;
 
