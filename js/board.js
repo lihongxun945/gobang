@@ -304,9 +304,9 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
 
     var me = role, you = R.reverse(role);
     if (lp1.attack === you) lastPoint1 = lp1;
-    if (lp3.attack === you) lastPoint1 = lp3;
+    else if (lp3.attack === you) lastPoint1 = lp3;
     if (lp2.attack === me) lastPoint2 = lp2;
-    if (lp4.attack === me) lastPoint2 = lp4;
+    else if (lp4.attack === me) lastPoint2 = lp4;
 
     if (!lastPoint1 && !lastPoint2) {
       lastPoint1 = lp1;
@@ -352,9 +352,11 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
           if (starSpread && config.star) {
 
             // 距离必须在5步以内
-            if ((Math.abs(i-lastPoint1[0]) > 5 || Math.abs(j-lastPoint1[1]) > 5) && (Math.abs(i-lastPoint2[0]) > 5 || Math.abs(j-lastPoint2[1]) > 5)) {
-              count ++;
-              continue;
+            if (maxScore < S.FIVE) {
+              if ((Math.abs(i-lastPoint1[0]) > 5 || Math.abs(j-lastPoint1[1]) > 5) && (Math.abs(i-lastPoint2[0]) > 5 || Math.abs(j-lastPoint2[1]) > 5)) {
+                count ++;
+                continue;
+              }
             }
             // 必须在米子方向上
             if (maxScore >= S.FIVE || starTo(p, lastPoint1) || starTo(p, lastPoint2)) {

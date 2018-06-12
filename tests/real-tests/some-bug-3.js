@@ -30,7 +30,7 @@ describe('测试冲四导致目标转移走的bug', function() {
     board.init(b);
     p = c();
     console.log(p);
-    assert.ok(math.containPoint([[8, 5], [5, 9]], p));
+    assert.ok(math.containPoint([[8, 5], [5, 9], [5, 8]], p));
   });
   it(`进攻啊，可以赢`, function() {
     b = [
