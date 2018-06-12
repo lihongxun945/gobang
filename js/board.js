@@ -280,14 +280,37 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
   var neighbors = [];
 
   var board = this.board;
-  var lastPoint1 = this.allSteps[this.allSteps.length-1]
-  var lastPoint2 = this.allSteps[this.allSteps.length-2]
+  // 找到双方的最后进攻点
+  var lastPoint1 = undefined, lastPoint2 = undefined;
+
 
   // 默认情况下 我们遍历整个棋盘。但是在开启star模式下，我们遍历的范围就会小很多
   // 只需要遍历以两个点为中心正方形。
   // 注意除非专门处理重叠区域，否则不要把两个正方形分开算，因为一般情况下这两个正方形会有相当大的重叠面积，别重复计算了
   var startI = 0, startJ = 0, endI = board.length-1, endJ = board.length-1;
   if (starSpread && config.star) {
+
+    var i = this.allSteps.length - 1;
+    while(!lastPoint1 && i >= 0) {
+      var p = this.allSteps[i];
+      if (p.role !== role && p.attack !== role) lastPoint1 = p;
+      i -= 2;
+    }
+
+    if (!lastPoint1) {
+      lastPoint1 = this.allSteps[0].role !== role ? this.allSteps[0] : this.allSteps[1]
+    }
+
+    var i = this.allSteps.length - 2;
+    while(!lastPoint2 && i >= 0) {
+      var p = this.allSteps[i];
+      if (p.attack === role) lastPoint2 = p;
+      i -= 2;
+    }
+
+    if (!lastPoint2) {
+      lastPoint2 = this.allSteps[0].role === role ? this.allSteps[0] : this.allSteps[1]
+    }
     startI = Math.min(lastPoint1[0]-5, lastPoint2[0]-5)
     startJ = Math.min(lastPoint1[1]-5, lastPoint2[1]-5)
     startI = Math.max(0, startI);
@@ -313,13 +336,8 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
           p.role = role
 
           // 标记当前点是为了进攻还是为了防守，后面会用到
-          if (role === R.com) {
-            if (math.greatOrEqualThan(scoreCom, scoreHum)) p.attack = 1; // 进攻点
-            else p.attack = 0 // 防守点
-          } else if (role === R.hum) {
-            if (math.greatOrEqualThan(scoreHum, scoreCom)) p.attack = 1; // 进攻点
-            else p.attack = 0 // 防守点
-          }
+            if (scoreCom >= scoreHum) p.attack = R.com; // 进攻点
+            else p.attack = R.hum; // 防守点
 
           total ++;
           /* 双星延伸，以提升性能

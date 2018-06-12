@@ -352,7 +352,7 @@ $("#spread").change(function (e) {
 
 },{"./config.js":1,"./math.js":3,"./messages.js":4,"./role.js":5,"./score.js":6,"./win.js":7}],3:[function(require,module,exports){
 var S = require('./score.js');
-var threshold = 1.1;
+var threshold = 1.15;
 
 var equal = function(a, b) {
   b = b || 0.01

@@ -102,6 +102,7 @@ var S = require("./score.js");
 var config = require("./config.js");
 var array = require("./arrary.js");
 var statistic = require('./statistic.js');
+var math = require('./math.js');
 
 var count = 0;
 var total = 0;
@@ -296,10 +297,12 @@ Board.prototype.back = function() {
   this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]]);
   this.board[s[0]][s[1]] = R.empty;
   this.updateScore(s);
+  this.allSteps.pop();
   var s = this.steps.pop();
   this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]]);
   this.board[s[0]][s[1]] = R.empty;
   this.updateScore(s);
+  this.allSteps.pop();
 }
 
 
@@ -374,14 +377,37 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
   var neighbors = [];
 
   var board = this.board;
-  var lastPoint1 = this.allSteps[this.allSteps.length-1]
-  var lastPoint2 = this.allSteps[this.allSteps.length-2]
+  // 找到双方的最后进攻点
+  var lastPoint1 = undefined, lastPoint2 = undefined;
+
 
   // 默认情况下 我们遍历整个棋盘。但是在开启star模式下，我们遍历的范围就会小很多
   // 只需要遍历以两个点为中心正方形。
   // 注意除非专门处理重叠区域，否则不要把两个正方形分开算，因为一般情况下这两个正方形会有相当大的重叠面积，别重复计算了
   var startI = 0, startJ = 0, endI = board.length-1, endJ = board.length-1;
   if (starSpread && config.star) {
+
+    var i = this.allSteps.length - 1;
+    while(!lastPoint1 && i >= 0) {
+      var p = this.allSteps[i];
+      if (p.role !== role && p.attack !== role) lastPoint1 = p;
+      i -= 2;
+    }
+
+    if (!lastPoint1) {
+      lastPoint1 = this.allSteps[0].role !== role ? this.allSteps[0] : this.allSteps[1]
+    }
+
+    var i = this.allSteps.length - 2;
+    while(!lastPoint2 && i >= 0) {
+      var p = this.allSteps[i];
+      if (p.attack === role) lastPoint2 = p;
+      i -= 2;
+    }
+
+    if (!lastPoint2) {
+      lastPoint2 = this.allSteps[0].role === role ? this.allSteps[0] : this.allSteps[1]
+    }
     startI = Math.min(lastPoint1[0]-5, lastPoint2[0]-5)
     startJ = Math.min(lastPoint1[1]-5, lastPoint2[1]-5)
     startI = Math.max(0, startI);
@@ -404,7 +430,11 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
           var scoreCom = p.scoreCom = this.comScore[i][j];
           var maxScore = Math.max(scoreCom, scoreHum);
           p.score = maxScore
+          p.role = role
 
+          // 标记当前点是为了进攻还是为了防守，后面会用到
+            if (scoreCom >= scoreHum) p.attack = R.com; // 进攻点
+            else p.attack = R.hum; // 防守点
 
           total ++;
           /* 双星延伸，以提升性能
@@ -430,15 +460,6 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
               continue;
             }
           }
-
-        //// 结果分级
-        //if (maxScore >= S.THREE) {
-        //  p.level = 1
-        //} else if (maxScore >= S.TWO) {
-        //  p.level = 2
-        //} else {
-        //  p.level = 3
-        //}
 
           if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
             fives.push(p);
@@ -686,7 +707,7 @@ var board = new Board();
 
 module.exports = board;
 
-},{"./arrary.js":3,"./config.js":6,"./evaluate-point.js":8,"./role.js":12,"./score.js":13,"./statistic.js":14,"./zobrist.js":16}],5:[function(require,module,exports){
+},{"./arrary.js":3,"./config.js":6,"./evaluate-point.js":8,"./math.js":9,"./role.js":12,"./score.js":13,"./statistic.js":14,"./zobrist.js":16}],5:[function(require,module,exports){
 var AI = require("./ai.js");
 var R = require("./role.js");
 var config = require('./config.js');
@@ -1159,7 +1180,7 @@ module.exports = s;
 
 },{"./role.js":12,"./score.js":13}],9:[function(require,module,exports){
 var S = require('./score.js');
-var threshold = 1.1;
+var threshold = 1.15;
 
 var equal = function(a, b) {
   b = b || 0.01
@@ -1259,7 +1280,7 @@ var negamax = function(deep, alpha, beta) {
   for(var i=0;i<candidates.length;i++) {
     var p = candidates[i];
     board.put(p, R.com);
-    var steps = [p];
+    var steps = [p[0], p[1]];
     var v = r(deep-1, -beta, -alpha, R.hum, 1, steps.slice(0), 0);
     v.score *= -1;
     alpha = Math.max(alpha, v.score);
@@ -1279,6 +1300,7 @@ var negamax = function(deep, alpha, beta) {
       + ',score:' + d.v.score
       + ',step:' + d.v.step
       + ',steps:' + d.v.steps.join(';')
+      + (d.v.c ? ',c:' + [d.v.c.score.steps || [] ].join(";") : '')
       + (d.v.vct ? (',vct:' + d.v.vct.join(';')) : '')
       + (d.v.vcf ? (',vcf:' + d.v.vcf.join(';')) : '')
   }))
@@ -1297,8 +1319,9 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
         // 记得clone，因为这个分数会在搜索过程中被修改，会使缓存中的值不正确
         return {
           score: c.score.score,
-          steps: c.score.steps.slice(0),
-          step: c.score.step
+          steps: steps,
+          step: step,
+          c: c
         };
       } else {
         // 如果缓存的结果中搜索深度比当前小，那么任何一方出现双三及以上结果的情况下可用
@@ -1392,7 +1415,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     }
 
     var _steps = steps.slice(0);
-    _steps.push(p);
+    _steps.push([p[0], p[1]]);
     var v = r(_deep, -beta, -alpha, R.reverse(role), step+1, _steps, _spread);
     v.score *= -1;
     board.remove(p);
