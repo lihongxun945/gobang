@@ -28,6 +28,11 @@ var fixScore = function(type) {
   return type;
 }
 
+var starTo = function (p1, p2) {
+  if (!p1 || !p2) return false;
+  return p1[0] === p2[0] || p1[1] === p2[1] || Math.abs(p1[0]-p2[0]) === Math.abs(p1[1]-p2[1])
+}
+
 var Board = function() {
 }
 
@@ -290,27 +295,25 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
   var startI = 0, startJ = 0, endI = board.length-1, endJ = board.length-1;
   if (starSpread && config.star) {
 
-    var i = this.allSteps.length - 1;
-    while(!lastPoint1 && i >= 0) {
-      var p = this.allSteps[i];
-      if (p.role !== role && p.attack !== role) lastPoint1 = p;
-      i -= 2;
-    }
+    // 在最近4步内找到双方的进攻点，如果最近4步找不到某一方的进攻点，则认为某一方在单纯防守，可以在搜索的时候忽略掉它
+    var len = this.allSteps.length
+    var lp1 = this.allSteps[len-1],
+        lp2 = this.allSteps[len-2],
+        lp3 = this.allSteps[len-3],
+        lp4 = this.allSteps[len-4];
 
-    if (!lastPoint1) {
-      lastPoint1 = this.allSteps[0].role !== role ? this.allSteps[0] : this.allSteps[1]
-    }
+    var me = role, you = R.reverse(role);
+    if (lp1.attack === you) lastPoint1 = lp1;
+    if (lp3.attack === you) lastPoint1 = lp3;
+    if (lp2.attack === me) lastPoint2 = lp2;
+    if (lp4.attack === me) lastPoint2 = lp4;
 
-    var i = this.allSteps.length - 2;
-    while(!lastPoint2 && i >= 0) {
-      var p = this.allSteps[i];
-      if (p.attack === role) lastPoint2 = p;
-      i -= 2;
-    }
+    if (!lastPoint1 && !lastPoint2) {
+      lastPoint1 = lp1;
+      lastPoint2 = lp2;
+    } else if (!lastPoint1 && lastPoint2) lastPoint1 = lastPoint2;
+    else if (!lastPoint2 && lastPoint1) lastPoint2 = lastPoint1;
 
-    if (!lastPoint2) {
-      lastPoint2 = this.allSteps[0].role === role ? this.allSteps[0] : this.allSteps[1]
-    }
     startI = Math.min(lastPoint1[0]-5, lastPoint2[0]-5)
     startJ = Math.min(lastPoint1[1]-5, lastPoint2[1]-5)
     startI = Math.max(0, startI);
@@ -354,10 +357,7 @@ Board.prototype.gen = function(role, onlyThrees, starSpread) {
               continue;
             }
             // 必须在米子方向上
-            if (
-              maxScore >= S.FIVE ||
-              (i === lastPoint1[0] || j === lastPoint1[1] || (Math.abs(i-lastPoint1[0]) === Math.abs(j-lastPoint1[1])))
-             || (i === lastPoint2[0] || j === lastPoint2[1] || (Math.abs(i-lastPoint2[0]) === Math.abs(j-lastPoint2[1]))) ) {
+            if (maxScore >= S.FIVE || starTo(p, lastPoint1) || starTo(p, lastPoint2)) {
             } else {
               count ++;
               continue;
