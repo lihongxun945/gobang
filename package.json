@@ -22,9 +22,15 @@
     "@vue/cli-service": "^3.0.0-beta.15",
     "@vue/test-utils": "^1.0.0-beta.16",
     "chai": "^4.1.2",
+    "less": "^3.0.4",
+    "less-loader": "^4.1.0",
     "node-sass": "^4.9.0",
     "sass-loader": "^7.0.1",
-    "vue-template-compiler": "^2.5.16"
+    "vue-template-compiler": "^2.5.16",
+    "vux": "^2.9.2",
+    "vux-loader": "^1.2.9",
+    "weui": "^1.1.2",
+    "yaml-loader": "^0.5.0"
   },
   "eslintConfig": {
     "root": true,
