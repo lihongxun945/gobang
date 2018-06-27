@@ -1,6 +1,6 @@
 <template>
   <div class="hello">
-    <h1>{{$t('title')}} {{version}}</h1>
+    <h1>{{$t('settings')}} {{version}}</h1>
 
 
     <div class="weui-flex operations">
@@ -34,6 +34,13 @@
         </div>
       </div>
     </div>
+    <div class="weui-footer">
+      <p class="weui-footer__links">
+        <a href="https://github.com/lihongxun945/gobang" target="_blank" class="weui-footer__link">Github</a>
+        <a href="javascript:void(0);" class="weui-footer__link">@lihongxun</a>
+      </p>
+      <p class="weui-footer__text">Copyright © 2018 </p>
+    </div>
   </div>
 </template>
 
@@ -43,7 +50,7 @@ import { SET_DEEP, SET_LANG } from '@/store/mutations.js'
 import i18n from '../i18n/index.js'
 
 export default {
-  name: 'HelloWorld',
+  name: 'Settings',
   components: {
   },
   computed: {
@@ -82,5 +89,9 @@ h1 {
     margin: 5px;
     height: 46px;
   }
+}
+
+.weui-footer {
+  margin-top: 32px;
 }
 </style>
