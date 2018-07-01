@@ -2,14 +2,6 @@
   <div class="hello">
     <h1>{{$t('settings')}} {{version}}</h1>
 
-
-    <div class="weui-flex operations">
-      <div class="weui-flex__item"><a href="javascript:;" class="weui-btn weui-btn_primary">{{$t('start')}}</a></div>
-      <div class="weui-flex__item"><a href="javascript:;" class="weui-btn weui-btn_warn">{{$t('give')}}</a></div>
-      <div class="weui-flex__item"><a href="javascript:;" class="weui-btn weui-btn_plain-primary">{{$t('forward')}}</a></div>
-      <div class="weui-flex__item"><a href="javascript:;" class="weui-btn weui-btn_plain-primary">{{$t('backward')}}</a></div>
-    </div>
-
     <div class="weui-cells__title">{{$t('settings')}}</div>
     <div class="weui-cells">
       <div class="weui-cell weui-cell_select weui-cell_select-after">
@@ -33,6 +25,14 @@
           </select>
         </div>
       </div>
+      <div class="weui-cell weui-cell_switch">
+        <div class="weui-cell__hd">
+          <label for="" class="weui-label">Show Steps:</label>
+        </div>
+        <div class="weui-cell__bd">
+          <input class="weui-switch" type="checkbox" style="float:right" :checked="showSteps" @input="setShowSteps">
+        </div>
+      </div>
     </div>
     <div class="weui-footer">
       <p class="weui-footer__links">
@@ -46,7 +46,7 @@
 
 <script>
 import { mapState } from 'vuex'
-import { SET_DEEP, SET_LANG } from '@/store/mutations.js'
+import { SET_DEEP, SET_LANG, SET_SHOW_STEPS } from '@/store/mutations.js'
 import i18n from '../i18n/index.js'
 
 export default {
@@ -58,7 +58,8 @@ export default {
       version: 'version',
       lang: state => state.home.lang,
       deep: state => state.home.deep,
-      deepList: state => state.home.deepList
+      deepList: state => state.home.deepList,
+      showSteps: state => state.home.showSteps
     })
   },
   methods: {
@@ -70,6 +71,10 @@ export default {
       let value = e.target.value
       this.$store.dispatch(SET_LANG, value)
       i18n.locale = value
+    },
+    setShowSteps (e) {
+      let value = e.target.checked
+      this.$store.dispatch(SET_SHOW_STEPS, value)
     }
   }
 }

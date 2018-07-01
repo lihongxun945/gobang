@@ -1,5 +1,16 @@
 body {
   font-family: -apple-system-font,Helvetica Neue,Helvetica,sans-serif;
+  font-size: 15px;
+}
+
+html {
+  font-size: 10px;
+}
+
+@media (max-width: 320px) {
+  html {
+    font-size: 9px;
+  }
 }
 
 select {
