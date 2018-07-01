@@ -327,16 +327,16 @@ Board.prototype.evaluate = function(role) {
   for(var i=0;i<board.length;i++) {
     for(var j=0;j<board[i].length;j++) {
       if(board[i][j] == R.com) {
-        this.comMaxScore = Math.max(this.comScore[i][j], this.comMaxScore);
+        this.comMaxScore += fixScore(this.comScore[i][j])
       } else if (board[i][j] == R.hum) {
-        this.humMaxScore = Math.max(this.humScore[i][j], this.humMaxScore);
+        this.humMaxScore += fixScore(this.humScore[i][j])
       }
     }
   }
   // 有冲四延伸了，不需要专门处理冲四活三
   // 不过这里做了这一步，可以减少电脑胡乱冲四的毛病
-  this.comMaxScore = fixScore(this.comMaxScore);
-  this.humMaxScore = fixScore(this.humMaxScore);
+  //this.comMaxScore = fixScore(this.comMaxScore);
+  //this.humMaxScore = fixScore(this.humMaxScore);
   var result = (role == R.com ? 1 : -1) * (this.comMaxScore - this.humMaxScore);
   // if (config.cache) this.evaluateCache[this.zobrist.code] = result;
 
