@@ -33,7 +33,7 @@ var Board = function(container, status) {
     self.lock = false;
     var time = (new Date() - self.time)
     self.setStatus("轩轩用时"+(time/1000)+"秒, 评分 " + d.score + ', 搜索深度 ' + d.step);
-    self.talk(d, time)
+    self.talk(d, time, d.step)
   }
   this.setStatus("请点击开始按钮");
   this.print(this.rand(messages.greating));
@@ -190,7 +190,7 @@ Board.prototype.setConfig = function(c) {
   });
 }
 
-Board.prototype.talk = function(d, time) {
+Board.prototype.talk = function(d, time, step) {
   var score = d.score || 0,
       step = d.step;
   var t;
@@ -215,12 +215,8 @@ Board.prototype.talk = function(d, time) {
   arr = messages[t];
   var msg = this.rand(arr);
 
-  if (img ) {
-    if (this._lastD) {
-      if (!math.equal(this._lastD.score, d.score)) {
-        this.pop(img, msg)
-      }
-    }
+  if (img && step === 3) {
+    this.pop(img, msg)
   }
   this.print(msg)
   this._lastD = d;
