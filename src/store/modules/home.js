@@ -1,9 +1,11 @@
 import { SET_DEEP, SET_LANG,SET_SHOW_STEPS } from '../mutations.js'
+import * as status from '@/status'
 
 const state = {
   lang: 'en',
   deep: 6,
   showSteps: true,
+  status: status.READY,
   deepList: [{
     value: 6,
     title: 'easy'

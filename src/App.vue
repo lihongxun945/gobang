@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <router-view/>
+    <keep-alive>
+      <router-view/>
+    </keep-alive>
     <div class="weui-tabbar">
       <router-link to="/" class="weui-tabbar__item">
         <span style="display: inline-block;position: relative;">

@@ -8,6 +8,18 @@ function resolve(name) {
 // TODO: not work
 module.exports = {
   chainWebpack: config => {
-    config.resolve.alias.set('~', resolve('src'))
+    config
+    // Interact with entry points
+      .entry('ai')
+      .add(resolve('src/ai/bridge.js'))
+      .end()
+    // Modify output settings
+      .output
+      .path(resolve('dist'))
+      .filename('[name].bundle.js')
+      .globalObject('this') //https://github.com/webpack/webpack/issues/6642
+
+    config.
+      devtool(false)
   }
 }

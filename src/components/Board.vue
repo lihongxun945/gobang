@@ -7,11 +7,11 @@
       <div>
         <div v-for="(row, rowIndex) in board" :key="rowIndex">
           <div
-            class="chessman"
             v-for="(c, cIndex) in row"
             v-if="!!c"
             :key="cIndex"
             @click="clickChessman"
+            :class="'chessman ' + (c === 1 ? 'black' : 'white')"
             :style="{
               marginTop: (1.5 + rowIndex*6.5) + '%',
               marginLeft: (1.5 + cIndex*6.5) + '%',
@@ -21,10 +21,10 @@
       </div>
       <div
         v-if="showSteps"
-        class="step"
         v-for="(s, index) in steps"
         :key="index"
         @click="clickChessman"
+        :class="'step ' + (s.role === 1 ? 'black' : 'white')"
         :style="{
           marginTop: (1.5 + s.position[0]*6.5) + '%',
           marginLeft: (1.5 + s.position[1]*6.5) + '%',
@@ -38,9 +38,9 @@
 
 <script>
 import { mapState } from 'vuex'
-import { ADD_CHESSMAN } from '@/store/mutations'
 export default {
   name: 'board',
+  
   computed: {
     ...mapState({
       board: state => state.board.board,
@@ -57,15 +57,11 @@ export default {
           step = width*0.065;
       x = Math.floor((x+offset)/step) - 1
       y = Math.floor((y+offset)/step) - 1
-      this.$store.dispatch(ADD_CHESSMAN, {
-        position: [x, y],
-        role: 1
-      })
+      this.$emit('set', [x, y])
     },
     clickChessman (e) {
       e.preventDefault()
       e.stopPropagation()
-      console.log('click chessman')
     }
   }
 }
@@ -95,6 +91,16 @@ export default {
     top: 0;
     bottom: 0;
     background-color: black;
+
+    &.white {
+      background-color: white;
+    }
+  }
+
+  .step {
+    &.white {
+      color: black;
+    }
   }
 }
 </style>
