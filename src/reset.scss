@@ -1,3 +1,5 @@
+@import './variables.scss';
+
 body {
   font-family: -apple-system-font,Helvetica Neue,Helvetica,sans-serif;
   font-size: 15px;
@@ -15,4 +17,10 @@ html {
 
 select {
   text-align-last: right;
+}
+
+.weui-tabbar__item.router-link-exact-active {
+  i, p {
+    color: $primary-color;
+  }
 }

@@ -39,7 +39,8 @@ h1 {
 }
 
 .operations {
-  margin: 2rem;
+  margin: 2rem auto;
+  max-width: 50rem;
   .weui-btn {
     margin: 5px;
     height: 46px;

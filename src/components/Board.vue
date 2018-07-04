@@ -24,6 +24,7 @@
         class="step"
         v-for="(s, index) in steps"
         :key="index"
+        @click="clickChessman"
         :style="{
           marginTop: (1.5 + s.position[0]*6.5) + '%',
           marginLeft: (1.5 + s.position[1]*6.5) + '%',
@@ -64,6 +65,7 @@ export default {
     clickChessman (e) {
       e.preventDefault()
       e.stopPropagation()
+      console.log('click chessman')
     }
   }
 }
@@ -87,6 +89,7 @@ export default {
     text-align: center;
     border-radius: 50%;
     font-size: 1.2rem;
+    user-select: none;
   }
   .chessman {
     top: 0;

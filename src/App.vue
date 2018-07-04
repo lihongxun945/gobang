@@ -1,10 +1,32 @@
 <template>
   <div id="app">
     <router-view/>
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/settings">Settings</router-link> |
-      <router-link to="/about">About</router-link>
+    <div class="weui-tabbar">
+      <router-link to="/" class="weui-tabbar__item">
+        <span style="display: inline-block;position: relative;">
+          <div alt="" class="weui-tabbar__icon">
+            <i class="iconfont icon-shouye"></i>
+          </div>
+        </span>
+        <p class="weui-tabbar__label">{{$t('home')}}</p>
+      </router-link>
+      <router-link to="/settings" class="weui-tabbar__item">
+        <span style="display: inline-block;position: relative;">
+          <div alt="" class="weui-tabbar__icon">
+            <i class="iconfont icon-shezhi"></i>
+          </div>
+        </span>
+        <p class="weui-tabbar__label">{{$t('settings')}}</p>
+      </router-link>
+      <router-link to="/about" class="weui-tabbar__item">
+        <span style="display: inline-block;position: relative;">
+          <div alt="" class="weui-tabbar__icon">
+            <i class="iconfont icon-xinxi"></i>
+          </div>
+          <span class="weui-badge" style="position: absolute;top: -2px;right: -13px;">1</span>
+        </span>
+        <p class="weui-tabbar__label">{{$t('about')}}</p>
+      </router-link>
     </div>
   </div>
 </template>

@@ -18,6 +18,9 @@ const messages = {
     'give': 'GIVE',
     'forward': 'FWD',
     'backward': 'BWD',
+    'show steps': 'Show Steps',
+    'home': 'Home',
+    'about': 'About'
   },
   zh: {
     'title': '轩轩五子棋',
@@ -31,6 +34,9 @@ const messages = {
     'give': '认输',
     'forward': '前进',
     'backward': '后退',
+    'show steps': '显示序号',
+    'home': '首页',
+    'about': '关于'
   }
 }
 
