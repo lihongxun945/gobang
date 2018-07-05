@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <h1>{{$t('title')}} {{version}}</h1>
-    <board @set="set"></board>
+    <Board @set="set"></Board>
     <div class="status">
       <div class="status-inner">{{statusText}}</div>
     </div>
@@ -10,7 +10,7 @@
         <a
           href="javascript:;"
           :class="'weui-btn weui-btn_primary ' + (status === 'READY' ? '' : 'weui-btn_disabled')"
-          @click="start">
+          @click="showStartDialog">
           {{$t('start')}}
         </a>
       </div>
@@ -18,7 +18,7 @@
         <a
           href="javascript:;"
           :class="'weui-btn weui-btn_warn ' + (status === 'PLAYING' ? '' : 'weui-btn_disabled')"
-          @click="give"
+          @click="showGiveDialog"
           >
           {{$t('give')}}
         </a>
@@ -26,18 +26,34 @@
       <div class="weui-flex__item">
         <a
           href="javascript:;"
-          :class="'weui-btn weui-btn_plain-primary ' + (canForward() ? '' : 'weui-btn_plain-disabled')"
-          @click="forward"
-          >{{$t('forward')}}</a>
+          @click="backward"
+          :class="'weui-btn weui-btn_plain-primary ' + (canBackward() ? '' : 'weui-btn_plain-disabled')"
+          >&lt;&lt;{{$t('backward')}}</a>
       </div>
       <div class="weui-flex__item">
         <a
           href="javascript:;"
-          @click="backward"
-          :class="'weui-btn weui-btn_plain-primary ' + (canBackward() ? '' : 'weui-btn_plain-disabled')"
-          >{{$t('backward')}}</a>
+          :class="'weui-btn weui-btn_plain-primary ' + (canForward() ? '' : 'weui-btn_plain-disabled')"
+          @click="forward"
+          >{{$t('forward')}}&gt;&gt;</a>
       </div>
     </div>
+    <Dialog
+      ref="offensive"
+      :title="$t('dialog.chooseOffensiveTitle')"
+      :body="$t('dialog.chooseOffensiveBody')"
+      >
+      <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" @click="start(2)">{{$t('dialog.me')}}</a>
+      <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" @click="start(1)">{{$t('dialog.xuanxuan')}}</a>
+    </Dialog>
+    <Dialog
+      ref="give"
+      :title="$t('dialog.giveTitle')"
+      :body="$t('dialog.giveBody')"
+      >
+      <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" @click="give">{{$t('dialog.ok')}}</a>
+      <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" @click="$refs.give.close()">{{$t('dialog.cancel')}}</a>
+    </Dialog>
   </div>
 </template>
 
@@ -57,7 +73,7 @@ h1 {
 
 .operations {
   margin: 2rem auto;
-  padding: 0 1rem;
+  padding: 0 2rem;
   max-width: 50rem;
   .weui-btn {
     margin: 5px;

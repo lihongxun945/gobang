@@ -1,11 +1,19 @@
-import { SET_DEEP, SET_LANG,SET_SHOW_STEPS, SET_STATUS } from '../mutations.js'
+import {
+  SET_DEEP,
+  SET_LANG,
+  SET_SHOW_STEPS,
+  SET_STATUS,
+  SET_FIRST
+} from '../mutations.js'
+
 import * as status from '@/status'
 
 const state = {
   lang: 'en',
-  deep: 6,
+  deep: 8,
   showSteps: true,
   status: status.LOADING,
+  first: 1,
   deepList: [{
     value: 4,
     title: 'idiot'
@@ -23,7 +31,8 @@ const getters = {
   deep: state => state.deep,
   deepList: state => state.deepList,
   status: state => state.status,
-  showSteps: state => state.showSteps
+  showSteps: state => state.showSteps,
+  first: state => state.first
 }
 
 const mutations = {
@@ -38,6 +47,9 @@ const mutations = {
   },
   [SET_STATUS] (state, status) {
     state.status = status
+  },
+  [SET_FIRST] (state, first) {
+    state.first = first
   }
 }
 
@@ -53,7 +65,11 @@ const actions = {
   },
   [SET_STATUS] ({commit}, status) {
     commit(SET_STATUS, status)
+  },
+  [SET_FIRST] ({commit}, first) {
+    commit(SET_FIRST, first)
   }
+
 
 }
 

@@ -1,15 +1,19 @@
 // @ is an alias to /src
 import { mapState } from 'vuex'
 import Board from '@/components/Board'
+import Dialog from '@/components/Dialog'
 import {
   ADD_CHESSMAN,
   SET_STATUS,
   RESET_BOARD,
   FORWARD,
-  BACKWARD
+  BACKWARD,
+  SET_FIRST,
+  SET_FIVES
 } from '@/store/mutations'
 import SCORE from '@/ai/score.js'
 import * as STATUS from '@/status.js'
+import win from '@/ai/win.js'
 
 export default {
   name: 'home',
@@ -30,17 +34,18 @@ export default {
       this.$store.dispatch(SET_STATUS, STATUS.PLAYING)
 
       if (score >= SCORE.FIVE/2 && step === 1) {
-        this.$nextTick(()=>window.alert(this.$t('you lose')))
+        this.$store.dispatch(SET_FIVES, win(this.board))
         this.end()
       } else if (score <= - SCORE.FIVE/2 && step === 1) {
-        this.$nextTick(()=>window.alert(this.$t('you win')))
+        this.$store.dispatch(SET_FIVES, win(this.board))
         this.end()
       }
     }
     this.$store.dispatch(SET_STATUS, STATUS.READY)
   },
   components: {
-    Board
+    Board,
+    Dialog
   },
   computed: {
     statusText () {
@@ -72,16 +77,27 @@ export default {
     }
   },
   methods: {
-    start () {
+    showStartDialog () {
       if (this.status !== STATUS.READY) return false
+      this.$refs.offensive.open()
+    },
+    showGiveDialog () {
+      if (this.status !== STATUS.PLAYING) return false
+      this.$refs.give.open()
+    },
+    start (first) {
+      this.$store.dispatch(SET_FIRST, first)
       this.$store.dispatch(RESET_BOARD)
       this.worker.postMessage({
         type: "START"
       });
-      this.worker.postMessage({
-        type: "BEGIN"
-      });
+      if (first === 1) {
+        this.worker.postMessage({
+          type: "BEGIN"
+        });
+      }
       this.$store.dispatch(SET_STATUS, STATUS.PLAYING)
+      this.$refs.offensive.close()
     },
     end () {
       if (this.status !== STATUS.PLAYING) return false
@@ -104,6 +120,8 @@ export default {
       });
     },
     give () {
+      this.end()
+      this.$refs.give.close()
     },
     _set (position, role) {
       this.$store.dispatch(ADD_CHESSMAN, {

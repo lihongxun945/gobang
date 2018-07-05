@@ -22,7 +22,7 @@ var isFive = function(board, p, role) {
     count ++;
   }
 
-  if(count >= 5) return true;
+  if(count >= 5) return 1;
 
   //纵向
   reset();
@@ -46,7 +46,7 @@ var isFive = function(board, p, role) {
   }
 
 
-  if(count >= 5) return true;
+  if(count >= 5) return 2;
   // \\
   reset();
 
@@ -71,7 +71,7 @@ var isFive = function(board, p, role) {
     count ++;
   }
 
-  if(count >= 5) return true;
+  if(count >= 5) return 3;
 
   // \/
   reset();
@@ -96,24 +96,55 @@ var isFive = function(board, p, role) {
     count ++;
   }
 
-  if(count >= 5) return true;
+  if(count >= 5) return 4;
 
-  return false;
+  return 0;
 
 }
 
 
 var w = function(board) {
-  for(var i=0;i<board.length;i++) {
-    for(var j=0;j<board[i].length;j++) {
+  var p, d=0;
+  for(var i=0;i<board.length && !d;i++) {
+    for(var j=0;j<board[i].length && !d;j++) {
       var t = board[i][j];
+      p = [i, j]
       if(t !== R.empty) {
-        var r = isFive(board, [i, j], t);
-        if(r) return t;
+        d = isFive(board, [i, j], t);
+        if(d) break;
       }
     }
   }
-  return false;
+
+  if (!d) return false;
+  if (d === 1) return [
+    p,
+    [p[0], p[0]+1],
+    [p[0], p[0]+2],
+    [p[0], p[0]+3],
+    [p[0], p[0]+4],
+  ]
+  if (d === 2) return [
+    p,
+    [p[0]+1, p[1]],
+    [p[0]+2, p[1]],
+    [p[0]+3, p[1]],
+    [p[0]+4, p[1]],
+  ]
+  if (d === 3) return [
+    p,
+    [p[0]+1, p[1]+1],
+    [p[0]+2, p[1]+2],
+    [p[0]+3, p[1]+3],
+    [p[0]+4, p[1]+4],
+  ]
+  if (d === 4) return [
+    p,
+    [p[0]+1, p[1]-1],
+    [p[0]+2, p[1]-2],
+    [p[0]+3, p[1]-3],
+    [p[0]+4, p[1]-4],
+  ]
 }
 
-export default w;
+export default w

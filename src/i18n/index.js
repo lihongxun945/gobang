@@ -29,7 +29,17 @@ const messages = {
       'playing': 'Score {score}, Step: {step}'
     },
     'you lose': 'You Lose',
-    'you win': 'You Win'
+    'you win': 'You Win',
+    'dialog': {
+      'chooseOffensiveTitle': 'Choose Offensive',
+      'chooseOffensiveBody': 'Who is to go on the offensive?',
+      'me': 'Me',
+      'xuanxuan': 'XuanXuan',
+      'giveTitle': 'Give up?',
+      'giveBody': 'Are you sure to give up?',
+      'ok': 'OK',
+      'cancel': 'Cancel'
+    }
   },
   zh: {
     'title': '轩轩五子棋',
@@ -54,7 +64,17 @@ const messages = {
       'playing': '分数 {score}, 步数: {step}'
     },
     'you lose': '你输了',
-    'you win': '你赢了'
+    'you win': '你赢了',
+    'dialog': {
+      'chooseOffensiveTitle': '选择先手',
+      'chooseOffensiveBody': '谁是先手下子？',
+      'me': '我',
+      'xuanxuan': '轩轩',
+      'giveTitle': '认输?',
+      'giveBody': '你确定认输吗?',
+      'ok': '确认',
+      'cancel': '取消'
+    }
   }
 }
 
