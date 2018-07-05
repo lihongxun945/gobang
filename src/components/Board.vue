@@ -11,10 +11,10 @@
             v-if="!!c"
             :key="cIndex"
             @click="clickChessman"
-            :class="'chessman ' + (c === 1 ? 'black' : 'white')"
+            :class="'chessman ' + (c === 1 ? 'black ' : 'white ') + (isLast([rowIndex, cIndex]) ? ' last-step' : '')"
             :style="{
-              marginTop: (1.5 + rowIndex*6.5) + '%',
-              marginLeft: (1.5 + cIndex*6.5) + '%',
+              marginTop: (1.5 + rowIndex*6.53) + '%',
+              marginLeft: (1.5 + cIndex*6.53) + '%',
               }">
           </div>
         </div>
@@ -26,8 +26,8 @@
         @click="clickChessman"
         :class="'step ' + (s.role === 1 ? 'black' : 'white')"
         :style="{
-          marginTop: (1.5 + s.position[0]*6.5) + '%',
-          marginLeft: (1.5 + s.position[1]*6.5) + '%',
+          marginTop: (1.5 + s.position[0]*6.53) + '%',
+          marginLeft: (1.5 + s.position[1]*6.53) + '%',
           color: s.role == 1 ? 'white' : 'black'
           }">
           {{index+1}}
@@ -62,45 +62,65 @@ export default {
     clickChessman (e) {
       e.preventDefault()
       e.stopPropagation()
+    },
+    isLast (p) {
+      if (!this.steps.length) return false
+      const last = this.steps[this.steps.length-1].position
+      console.log(last, p)
+      return last[0] === p[0] && last[1] === p[1]
     }
   }
 }
 </script>
 
-<style lang="scss">
-.board {
-  .board-inner {
-    width: 35rem;
-    height: 35rem;
-    margin: 0 auto;
-    position: relative;
-    background-image: url("../assets/board.jpg");
-    background-size: 100%;
-  }
-  .chessman, .step {
-    position: absolute;
-    width: 2rem;
-    height: 2rem;
-    line-height: 2rem;
-    text-align: center;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    user-select: none;
-  }
-  .chessman {
-    top: 0;
-    bottom: 0;
-    background-color: black;
+<style lang="scss" scoped>
+.board-inner {
+  width: 35rem;
+  height: 35rem;
+  margin: 0 auto;
+  position: relative;
+  background-image: url("../assets/board.jpg");
+  background-size: 100%;
+}
+.chessman, .step {
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
+  text-align: center;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  user-select: none;
+}
+.chessman {
+  top: 0;
+  bottom: 0;
+  background-color: black;
 
-    &.white {
-      background-color: white;
-    }
+  &.white {
+    background-color: white;
   }
+}
 
-  .step {
-    &.white {
-      color: black;
-    }
+.step {
+  &.white {
+    color: black;
+  }
+}
+.last-step {
+  box-shadow: 0 0 0 .4rem rgba(255, 0, 0, 0.4);
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.8);
+  }
+  70% {
+    box-shadow: 0 0 0 .6rem rgba(255, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
   }
 }
 </style>

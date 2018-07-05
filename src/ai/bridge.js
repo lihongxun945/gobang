@@ -2,21 +2,24 @@ import AI from "./ai.js"
 import R from "./role.js"
 import config from './config.js'
 
-var ai = new AI();
+var ai = new AI()
 
 onmessage = function(e) {
-  var d = e.data;
-  console.log('get message' + d.type)
+  var d = e.data
+  console.log('get message: ')
+  console.log(d)
   if(d.type == "START") {
-    ai.start(15);
+    ai.start(15)
   } else if(d.type == "BEGIN") {
-    var p = ai.begin();
-    postMessage(p);
+    var p = ai.begin()
+    postMessage(p)
   } else if(d.type == "GO") {
-    var p = ai.turn(e.data.x, e.data.y);
-    postMessage(p);
-  } else if(d.type == "BACK") {
-    ai.back();
+    var p = ai.turn(e.data.x, e.data.y)
+    postMessage(p)
+  } else if(d.type == "BACKWARD") {
+    ai.backward()
+  } else if(d.type == "FORWARD") {
+    ai.forward()
   } else if(d.type == "CONFIG") {
     var d = e.data.config
     if (d.searchDeep) config.searchDeep = d.searchDeep

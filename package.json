@@ -22,6 +22,7 @@
     "@vue/cli-service": "^3.0.0-beta.15",
     "@vue/test-utils": "^1.0.0-beta.16",
     "chai": "^4.1.2",
+    "deepcopy": "^1.0.0",
     "less": "^3.0.4",
     "less-loader": "^4.1.0",
     "node-sass": "^4.9.0",
@@ -43,7 +44,9 @@
       "plugin:vue/essential",
       "eslint:recommended"
     ],
-    "rules": {},
+    "rules": {
+      "no-console": "off"
+    },
     "parserOptions": {
       "parser": "babel-eslint"
     }

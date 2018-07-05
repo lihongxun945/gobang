@@ -11,6 +11,7 @@ const messages = {
     'settings': 'Settings',
     'lang': 'Language',
     'search deep': 'Search Deep',
+    'idiot': 'Idiot',
     'easy': 'Easy',
     'normal': 'Normal',
     'hard': 'Hard',
@@ -20,13 +21,22 @@ const messages = {
     'backward': 'BWD',
     'show steps': 'Show Steps',
     'home': 'Home',
-    'about': 'About'
+    'about': 'About',
+    'status': {
+      'loading': 'Loading...',
+      'start': 'Click `Start` Button',
+      'thinking': 'Thinking...',
+      'playing': 'Score {score}, Step: {step}'
+    },
+    'you lose': 'You Lose',
+    'you win': 'You Win'
   },
   zh: {
     'title': '轩轩五子棋',
     'settings': '设置',
     'lang': '语言',
     'search deep': '思考深度',
+    'idiot': '弱智',
     'easy': '简单',
     'normal': '普通',
     'hard': '困难',
@@ -36,7 +46,15 @@ const messages = {
     'backward': '后退',
     'show steps': '显示序号',
     'home': '首页',
-    'about': '关于'
+    'about': '关于',
+    'status': {
+      'loading': '正在加载...',
+      'start': '请点击 `开始` 按钮',
+      'thinking': '正在思考...',
+      'playing': '分数 {score}, 步数: {step}'
+    },
+    'you lose': '你输了',
+    'you win': '你赢了'
   }
 }
 
