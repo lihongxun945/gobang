@@ -4,7 +4,7 @@ import config from './config.js'
 
 var ai = new AI()
 
-onmessage = function(e) {
+self.onmessage = function(e) {
   var d = e.data
   console.log('get message: ')
   console.log(d)

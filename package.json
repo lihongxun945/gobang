@@ -23,6 +23,7 @@
     "@vue/test-utils": "^1.0.0-beta.16",
     "chai": "^4.1.2",
     "deepcopy": "^1.0.0",
+    "html-webpack-exclude-assets-plugin": "0.0.7",
     "less": "^3.0.4",
     "less-loader": "^4.1.0",
     "node-sass": "^4.9.0",

@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <h1>{{$t('title')}} {{version}}</h1>
-    <!--<Board @set="set"></Board>-->
+    <Board @set="set"></Board>
     <div class="status">
       <div class="status-inner">{{statusText}}</div>
     </div>
