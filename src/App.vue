@@ -38,6 +38,7 @@
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding-bottom: 10rem;
 }
 #nav {
   padding: 30px;
@@ -48,5 +49,8 @@
       color: #42b983;
     }
   }
+}
+.weui-tabbar {
+  position: fixed!important;
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <h1>{{$t('title')}} {{version}}</h1>
-    <Board @set="set"></Board>
+    <!--<Board @set="set"></Board>-->
     <div class="status">
       <div class="status-inner">{{statusText}}</div>
     </div>
@@ -28,14 +28,14 @@
           href="javascript:;"
           @click="backward"
           :class="'weui-btn weui-btn_plain-primary ' + (canBackward() ? '' : 'weui-btn_plain-disabled')"
-          >&lt;&lt;{{$t('backward')}}</a>
+          ><i class="iconfont icon-xiangzuojiantou"></i></a>
       </div>
       <div class="weui-flex__item">
         <a
           href="javascript:;"
           :class="'weui-btn weui-btn_plain-primary ' + (canForward() ? '' : 'weui-btn_plain-disabled')"
           @click="forward"
-          >{{$t('forward')}}&gt;&gt;</a>
+          ><i class="iconfont icon-xiangyoujiantou"></i></a>
       </div>
     </div>
     <Dialog
@@ -79,6 +79,10 @@ h1 {
   .weui-btn {
     margin: 5px;
     height: 46px;
+  }
+  .iconfont {
+    font-size: 24px;
+    line-height: 46px;
   }
 }
 
