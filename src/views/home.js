@@ -23,7 +23,8 @@ export default {
     return {
       bigText: '',
       score: 0,
-      step: -1
+      step: -1,
+      startTime: + new Date()
     }
   },
   created () {
@@ -64,7 +65,8 @@ export default {
       } else if (this.status === STATUS.PLAYING) {
         return this.$t('status.playing', {
           score: this.score,
-          step: this.step
+          step: this.step,
+          time: ((new Date() - this.startTime)/1000).toFixed(2)
         })
       } else return this.$t('status.loading')
     },
@@ -74,11 +76,15 @@ export default {
       stepsTail: state => state.board.stepsTail,
       status: state => state.home.status,
       deep: state => state.home.deep,
+      spread: state => state.home.spread,
       version: 'version'
     })
   },
   watch: {
     deep () {
+      this.updateConfig()
+    },
+    spread () {
       this.updateConfig()
     }
   },
@@ -168,6 +174,7 @@ export default {
         y: y
       })
       this.$store.dispatch(SET_STATUS, STATUS.THINKING)
+      this.startTime = + new Date()
     },
 
     canBackward () {
@@ -180,7 +187,8 @@ export default {
       this.worker.postMessage({
         type: 'CONFIG',
         config: {
-          searchDeep: this.deep
+          searchDeep: this.deep,
+          spread: this.spread
         }
       })
     }

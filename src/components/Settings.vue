@@ -14,6 +14,14 @@
           </select>
         </div>
       </div>
+      <div class="weui-cell weui-cell_switch">
+        <div class="weui-cell__hd">
+          <label for="" class="weui-label">{{$t('step spread')}}:</label>
+        </div>
+        <div class="weui-cell__bd">
+          <input class="weui-switch" type="checkbox" style="float:right" :checked="spread" @input="setSpread">
+        </div>
+      </div>
       <div class="weui-cell weui-cell_select weui-cell_select-after">
         <div class="weui-cell__hd">
           <label for="" class="weui-label">{{$t('lang')}}:</label>
@@ -46,7 +54,7 @@
 
 <script>
 import { mapState } from 'vuex'
-import { SET_DEEP, SET_LANG, SET_SHOW_STEPS } from '@/store/mutations.js'
+import { SET_DEEP, SET_LANG, SET_SHOW_STEPS, SET_SPREAD } from '@/store/mutations.js'
 import i18n from '../i18n/index.js'
 
 export default {
@@ -59,7 +67,8 @@ export default {
       lang: state => state.home.lang,
       deep: state => state.home.deep,
       deepList: state => state.home.deepList,
-      showSteps: state => state.home.showSteps
+      showSteps: state => state.home.showSteps,
+      spread: state => state.home.spread
     })
   },
   methods: {
@@ -75,6 +84,10 @@ export default {
     setShowSteps (e) {
       let value = e.target.checked
       this.$store.dispatch(SET_SHOW_STEPS, value)
+    },
+    setSpread (e) {
+      let value = e.target.checked
+      this.$store.dispatch(SET_SPREAD, value)
     }
   }
 }

@@ -26,6 +26,6 @@ self.onmessage = function(e) {
     if (d.countLimit) config.countLimit = d.countLimit
     if (d.vcxDeep) config.vcxDeep = d.vcxDeep
     if (d.timeLimit) config.timeLimit = d.timeLimit
-    if (d.spreadLimit !== undefined) config.spreadLimit = d.spreadLimit
+    if (d.spread !== undefined) config.spreadLimit = d.spread
   }
 }

@@ -20,13 +20,14 @@ const messages = {
     'forward': 'FWD',
     'backward': 'BWD',
     'show steps': 'Show Steps',
+    'step spread': 'Step Spread',
     'home': 'Home',
     'about': 'About',
     'status': {
       'loading': 'Loading...',
       'start': 'Click `Start` Button',
       'thinking': 'Thinking...',
-      'playing': 'Score {score}, Step: {step}'
+      'playing': 'Score {score}, Step: {step}, Time: {time}'
     },
     'you lose': 'You Lose',
     'you win': 'You Win',
@@ -46,7 +47,7 @@ const messages = {
     'settings': '设置',
     'lang': '语言',
     'search deep': '思考深度',
-    'idiot': '弱智',
+    'idiot': '萌新',
     'easy': '简单',
     'normal': '普通',
     'hard': '困难',
@@ -55,13 +56,14 @@ const messages = {
     'forward': '前进',
     'backward': '后退',
     'show steps': '显示序号',
+    'step spread': '单步延伸',
     'home': '首页',
     'about': '关于',
     'status': {
       'loading': '正在加载...',
       'start': '请点击 `开始` 按钮',
       'thinking': '正在思考...',
-      'playing': '分数 {score}, 步数: {step}'
+      'playing': '分数 {score}, 步数: {step}, 时间: {time}'
     },
     'you lose': '你输了',
     'you win': '你赢了',

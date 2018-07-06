@@ -3,7 +3,8 @@ import {
   SET_LANG,
   SET_SHOW_STEPS,
   SET_STATUS,
-  SET_FIRST
+  SET_FIRST,
+  SET_SPREAD
 } from '../mutations.js'
 
 import * as status from '@/status'
@@ -12,6 +13,7 @@ const state = {
   lang: 'en',
   deep: 8,
   showSteps: true,
+  spread: true,
   status: status.LOADING,
   first: 1,
   deepList: [{
@@ -32,6 +34,7 @@ const getters = {
   deepList: state => state.deepList,
   status: state => state.status,
   showSteps: state => state.showSteps,
+  spread: state => state.spread,
   first: state => state.first
 }
 
@@ -44,6 +47,9 @@ const mutations = {
   },
   [SET_SHOW_STEPS] (state, show) {
     state.showSteps = show
+  },
+  [SET_SPREAD] (state, s) {
+    state.spread = s
   },
   [SET_STATUS] (state, status) {
     state.status = status
@@ -62,6 +68,9 @@ const actions = {
   },
   [SET_SHOW_STEPS] ({commit}, show) {
     commit(SET_SHOW_STEPS, show)
+  },
+  [SET_SPREAD] ({commit}, s) {
+    commit(SET_SPREAD, s)
   },
   [SET_STATUS] ({commit}, status) {
     commit(SET_STATUS, status)
