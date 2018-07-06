@@ -54,6 +54,7 @@
       <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_primary" @click="give">{{$t('dialog.ok')}}</a>
       <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" @click="$refs.give.close()">{{$t('dialog.cancel')}}</a>
     </Dialog>
+    <big-text ref="big">{{bigText}}</big-text>
   </div>
 </template>
 

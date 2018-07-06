@@ -119,10 +119,10 @@ var w = function(board) {
   if (!d) return false;
   if (d === 1) return [
     p,
-    [p[0], p[0]+1],
-    [p[0], p[0]+2],
-    [p[0], p[0]+3],
-    [p[0], p[0]+4],
+    [p[0], p[1]+1],
+    [p[0], p[1]+2],
+    [p[0], p[1]+3],
+    [p[0], p[1]+4],
   ]
   if (d === 2) return [
     p,
