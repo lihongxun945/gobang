@@ -37,11 +37,11 @@ export default {
       this._set(position, 1)
       this.$store.dispatch(SET_STATUS, STATUS.PLAYING)
 
-      if (score >= SCORE.FIVE/2 && step === 1) {
+      if (score >= SCORE.FIVE/2 && step <= 2) {
         this.$store.dispatch(SET_FIVES, win(this.board))
         this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
         this.showBigText(this.$t('you lose'), this.end)
-      } else if (score <= - SCORE.FIVE/2 && step === 1) {
+      } else if (score <= - SCORE.FIVE/2 && step <= 2) {
         this.$store.dispatch(SET_FIVES, win(this.board))
         this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
         this.showBigText(this.$t('you win'), this.end)
