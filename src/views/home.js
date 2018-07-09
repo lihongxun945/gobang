@@ -45,6 +45,8 @@ export default {
         this.$store.dispatch(SET_FIVES, win(this.board))
         this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
         this.showBigText(this.$t('you win'), this.end)
+      } else {
+        this.$store.dispatch(SET_FIVES, [])
       }
     }
     this.$store.dispatch(SET_STATUS, STATUS.READY)
