@@ -41,7 +41,7 @@ var negamax = function(deep, alpha, beta) {
     var p = candidates[i]
     board.put(p, R.com)
     var steps = [p[0], p[1]]
-    var v = r(deep-1, -beta, -alpha, R.hum, 1, steps.slice(0), 0)
+    var v = r(deep-1, -beta, -alpha, R.hum, 2, steps.slice(0), 0)
     v.score *= -1
     alpha = Math.max(alpha, v.score)
     board.remove(p)
@@ -145,7 +145,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     steps: steps
   }
   // 双方个下两个子之后，开启star spread 模式
-  var points = board.gen(role, step > 2, step > 4)
+  var points = board.gen(role, step > 2, step > 2)
 
   if (!points.length) return leaf
 
