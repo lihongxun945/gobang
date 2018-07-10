@@ -20,12 +20,20 @@
         </span>
         <p class="weui-tabbar__label">{{$t('settings')}}</p>
       </router-link>
+      <router-link to="/change" class="weui-tabbar__item">
+        <span style="display: inline-block;position: relative;">
+          <div alt="" class="weui-tabbar__icon">
+            <i class="iconfont icon-shijian"></i>
+          </div>
+          <span class="weui-badge" style="position: absolute;top: -2px;right: -13px;">1</span>
+        </span>
+        <p class="weui-tabbar__label">{{$t('changes')}}</p>
+      </router-link>
       <router-link to="/about" class="weui-tabbar__item">
         <span style="display: inline-block;position: relative;">
           <div alt="" class="weui-tabbar__icon">
             <i class="iconfont icon-xinxi"></i>
           </div>
-          <span class="weui-badge" style="position: absolute;top: -2px;right: -13px;">1</span>
         </span>
         <p class="weui-tabbar__label">{{$t('about')}}</p>
       </router-link>

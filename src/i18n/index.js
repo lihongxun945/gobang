@@ -9,6 +9,7 @@ const messages = {
   en: {
     'title': 'Xuanxuan Gobang',
     'settings': 'Settings',
+    'changes': 'Changelog',
     'lang': 'Language',
     'search deep': 'Search Deep',
     'idiot': 'Idiot',
@@ -45,6 +46,7 @@ const messages = {
   zh: {
     'title': '轩轩五子棋',
     'settings': '设置',
+    'changes': '更新日志',
     'lang': '语言',
     'search deep': '思考深度',
     'idiot': '萌新',
