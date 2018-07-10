@@ -337,10 +337,11 @@ class Board {
       endJ = Math.max(lastPoint1[1]+5, lastPoint2[1]+5)
       endI = Math.min(board.length-1, endI)
       endJ = Math.min(board.length-1, endJ)
+
     }
 
     for(var i=startI;i<=endI;i++) {
-      for(var j=startJ;j<endJ;j++) {
+      for(var j=startJ;j<=endJ;j++) {
         var p = [i, j]
         if(board[i][j] == R.empty) {
           var neighbor = [2,2]
