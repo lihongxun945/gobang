@@ -145,7 +145,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     steps: steps
   }
   // 双方个下两个子之后，开启star spread 模式
-  var points = board.gen(role, step > 2, step > 2)
+  var points = board.gen(role, step > 1, step > 1)
 
   if (!points.length) return leaf
 
