@@ -291,6 +291,7 @@ class Board {
     console.log('star: ' + (count/total*100).toFixed(2) + '%, ' + count + '/' + total)
   }
   gen (role, onlyThrees, starSpread) {
+    if (this.allSteps.length === 0) return [[7, 7]]
     var fives = []
     var comfours=[]
     var humfours=[]

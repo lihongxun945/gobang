@@ -8,6 +8,8 @@ import Popover from '@/components/Popover'
 import {
   ADD_CHESSMAN,
   SET_STATUS,
+  SET_BOARD,
+  SET_STEPS,
   RESET_BOARD,
   FORWARD,
   BACKWARD,
@@ -31,31 +33,57 @@ export default {
   created () {
     this.worker = new Worker("./ai.bundle.js?r="+(+new Date()));
     this.worker.onmessage = e => {
-      const d = e.data
-      const score = this.score = d.score
-      const position = [d[0], d[1]]
-      const step = this.step = d.step
-      this._set(position, 1)
-      this.$store.dispatch(SET_STATUS, STATUS.PLAYING)
+      const data = e.data
+      const d = data.data
+      if (data.type === 'put') {
+        const score = this.score = d.score
+        const position = [d[0], d[1]]
+        const step = this.step = d.step
+        this._set(position, 1)
+        this.$store.dispatch(SET_STATUS, STATUS.PLAYING)
 
-      if (score >= SCORE.FIVE/2) {
-        if (step <= 1) {
-          this.$store.dispatch(SET_FIVES, win(this.board))
-          this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
-          this.showBigText(this.$t('you lose'), this.end)
-        } else  if (step <= 6) {
-          this.$refs.winPop.open()
+        if (score >= SCORE.FIVE/2) {
+          if (step <= 1) {
+            this.$store.dispatch(SET_FIVES, win(this.board))
+            this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
+            this.showBigText(this.$t('you lose'), this.end)
+          } else  if (step == 6 || step === 5) {
+            this.$refs.winPop.open()
+          }
+        } else if (score <= - SCORE.FIVE/2) {
+          if (step <= 1) {
+            this.$store.dispatch(SET_FIVES, win(this.board))
+            this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
+            this.showBigText(this.$t('you win'), this.end)
+          } else  if (step == 6 || step === 5) {
+            this.$refs.losePop.open()
+          }
+        } else {
+          this.$store.dispatch(SET_FIVES, []) // reset
         }
-      } else if (score <= - SCORE.FIVE/2) {
-        if (step <= 1) {
-          this.$store.dispatch(SET_FIVES, win(this.board))
-          this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
-          this.showBigText(this.$t('you win'), this.end)
-        } else if (step <= 6) {
-          this.$refs.losePop.open()
+      } else if (data.type === 'board') { // 返回的开局
+        const b = d.board
+        // 说明使用了开局
+        if (b) {
+          this.$store.dispatch(SET_BOARD, b) // reset
+          // 由于开局没有steps，因此自己创建一下
+          const steps = [
+            {position: [7, 7], role: 1}
+          ]
+          let second, third
+          for (var i=0;i<b.length;i++) {
+            for (var j=0;j<b.length;j++) {
+              if (i==7&&j==7) continue
+              const r = b[i][j]
+              if (r === 1) third = { position: [i,j], role: 1 }
+              if (r === 2) second = { position: [i,j], role: 2 }
+            }
+          }
+          steps.push(second)
+          steps.push(third)
+          this.$store.dispatch(SET_STEPS, steps)
+          this.showBigText(b.name)
         }
-      } else {
-        this.$store.dispatch(SET_FIVES, []) // reset
       }
     }
     this.$store.dispatch(SET_STATUS, STATUS.READY)
@@ -90,6 +118,7 @@ export default {
       deep: state => state.home.deep,
       spread: state => state.home.spread,
       first: state => state.home.first,
+      randomOpening: state => state.home.randomOpening,
       version: 'version'
     })
   },
@@ -117,13 +146,14 @@ export default {
       this.$store.dispatch(RESET_BOARD)
       this.showBigText('START!', () => {
         this.worker.postMessage({
-          type: "START"
+          type: "START",
+          random: first === 1
         });
-        if (first === 1) {
-          this.worker.postMessage({
-            type: "BEGIN"
-          });
-        }
+      //if (first === 1 && !this.randomOpening) {
+      //  this.worker.postMessage({
+      //    type: "BEGIN"
+      //  });
+      //}
         this.$store.dispatch(SET_STATUS, STATUS.PLAYING)
       })
     },
@@ -159,10 +189,10 @@ export default {
       this.$refs.big.open()
       setTimeout(() => {
         this.$refs.big.close()
-      }, 2500)
+      }, 1000)
       setTimeout(() => {
         callback && callback.call(this)
-      }, 3000)
+      }, 1500)
     },
     _set (position, role) {
       this.$store.dispatch(ADD_CHESSMAN, {

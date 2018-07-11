@@ -4,25 +4,36 @@ import zobrist from "./zobrist.js"
 import config from "./config.js"
 import board from "./board.js"
 import opening from './opening.js'
+import open26 from './open26.js'
 
 class AI {
 
   //初始化,开始游戏
-  start (size) {
-    board.init(size)
+  start (random) {
+    if (random) {
+      const names = []
+      for (var k in open26) {
+        names.push(k)
+      }
+      const n = names[parseInt(Math.random()*26)]
+      const o = open26[n]
+      board.init(open26[n])
+      return {
+        board: o,
+        name: o.name
+      }
+    } else {
+      board.init(15)
+      return {
+        board: undefined
+      }
+    }
   }
-
 
   //电脑下棋
   begin () {
-    if(board.steps.length === 0) {
-      this.set(7, 7, R.com)
-      return [7, 7]
-    }
-    var p
-    if (config.opening) {
-      p = opening(board)
-    }
+    let p
+    if (board.steps.length > 1) p = opening(board)
     p = p || m(config.searchDeep)
     board.put(p, R.com, true)
     return p

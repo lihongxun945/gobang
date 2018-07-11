@@ -31,11 +31,11 @@ export default {
   color: red;
   position: fixed;
   height: 5rem;
-  width: 20rem;
+  width: 30rem;
   line-height: 5rem;
   top: 22rem;
   left: 50%;
-  margin-left: -10rem;
+  margin-left: -15rem;
   opacity: 1;
   transform: scale(1);
   transform-origin: center;

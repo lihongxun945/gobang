@@ -16,6 +16,7 @@ const state = {
   spread: true,
   status: status.LOADING,
   first: 1,
+  randomOpening: true,
   deepList: [{
     value: 4,
     title: 'idiot'
@@ -35,7 +36,8 @@ const getters = {
   status: state => state.status,
   showSteps: state => state.showSteps,
   spread: state => state.spread,
-  first: state => state.first
+  first: state => state.first,
+  randomOpening: state => state.randomOpening
 }
 
 const mutations = {
