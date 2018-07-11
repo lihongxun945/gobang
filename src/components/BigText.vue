@@ -26,13 +26,14 @@ export default {
 
 <style lang="scss" scoped>
 .big-text {
-  font-size: 3rem;
+  font-size: 5rem;
+  font-weight: bold;
   color: red;
   position: fixed;
   height: 5rem;
   width: 20rem;
   line-height: 5rem;
-  top: 20rem;
+  top: 22rem;
   left: 50%;
   margin-left: -10rem;
   opacity: 1;
