@@ -76,7 +76,6 @@ export default {
       board: state => state.board.board,
       steps: state => state.board.steps,
       stepsTail: state => state.board.stepsTail,
-      showSteps: state => state.home.showSteps,
       status: state => state.home.status,
       deep: state => state.home.deep,
       spread: state => state.home.spread,
@@ -88,10 +87,6 @@ export default {
       this.updateConfig()
     },
     spread () {
-      this.updateConfig()
-    },
-    showSteps () {
-      console.log(1)
       this.updateConfig()
     }
   },
@@ -195,8 +190,7 @@ export default {
         type: 'CONFIG',
         config: {
           searchDeep: this.deep,
-          spread: this.spread,
-          showSteps: this.showSteps
+          spread: this.spread
         }
       })
     }
