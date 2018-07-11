@@ -44,20 +44,24 @@ export default {
         this.$store.dispatch(SET_STATUS, STATUS.PLAYING)
 
         if (score >= SCORE.FIVE/2) {
+          if (this.lastScore < SCORE.FIVE/2) this.shouldPop = true
           if (step <= 1) {
             this.$store.dispatch(SET_FIVES, win(this.board))
             this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
             this.showBigText(this.$t('you lose'), this.end)
-          } else  if (step <= 6 && this.lastScore < SCORE.FIVE/2) {
+          } else  if (step <= 6 && this.shouldPop) {
             this.$refs.winPop.open()
+            this.shouldPop = false
           }
         } else if (score <= - SCORE.FIVE/2) {
+          if (this.lastScore > - SCORE.FIVE/2) this.shouldPop = true
           if (step <= 1) {
             this.$store.dispatch(SET_FIVES, win(this.board))
             this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
             this.showBigText(this.$t('you win'), this.end)
-          } else if (step <= 6 && this.lastScore > - SCORE.FIVE/2) {
+          } else if (step <= 6 && this.shouldPop) {
             this.$refs.losePop.open()
+            this.shouldPop = false
           }
         } else {
           this.$store.dispatch(SET_FIVES, []) // reset
