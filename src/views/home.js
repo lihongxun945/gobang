@@ -27,6 +27,7 @@ export default {
       bigText: '',
       score: 0,
       step: -1,
+      lastScore: 0,
       startTime: + new Date()
     }
   },
@@ -47,7 +48,7 @@ export default {
             this.$store.dispatch(SET_FIVES, win(this.board))
             this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
             this.showBigText(this.$t('you lose'), this.end)
-          } else  if (step == 6 || step === 5) {
+          } else  if (this.lastScore < SCORE.FIVE/2) {
             this.$refs.winPop.open()
           }
         } else if (score <= - SCORE.FIVE/2) {
@@ -55,12 +56,13 @@ export default {
             this.$store.dispatch(SET_FIVES, win(this.board))
             this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
             this.showBigText(this.$t('you win'), this.end)
-          } else  if (step == 6 || step === 5) {
+          } else if (this.lastScore < SCORE.FIVE/2) {
             this.$refs.losePop.open()
           }
         } else {
           this.$store.dispatch(SET_FIVES, []) // reset
         }
+        this.lastScore = score
       } else if (data.type === 'board') { // 返回的开局
         const b = d.board
         // 说明使用了开局
