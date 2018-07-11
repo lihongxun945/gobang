@@ -28,6 +28,13 @@ var fixScore = function(type) {
   return type
 }
 
+var starTo = function (a, b) {
+  // 距离必须在5步以内
+  if ((Math.abs(a[0]-b[0]) > 4 || Math.abs(a[1]-b[1]) > 4)) return false
+  // 必须在米子方向上
+  return a[0] === b[0] || a[1] === b[1] || (Math.abs(a[0]-b[0]) === Math.abs(a[1]-b[1]))
+}
+
 class Board {
 
   init (sizeOrBoard) {
@@ -305,7 +312,6 @@ class Board {
     // 默认情况下 我们遍历整个棋盘。但是在开启star模式下，我们遍历的范围就会小很多
     // 只需要遍历以两个点为中心正方形。
     // 注意除非专门处理重叠区域，否则不要把两个正方形分开算，因为一般情况下这两个正方形会有相当大的重叠面积，别重复计算了
-    var startI = 0, startJ = 0, endI = board.length-1, endJ = board.length-1
     if (starSpread && config.star) {
 
       var i = this.allSteps.length - 1
@@ -329,19 +335,10 @@ class Board {
       if (!lastPoint2) {
         lastPoint2 = this.allSteps[0].role === role ? this.allSteps[0] : this.allSteps[1]
       }
-      startI = Math.min(lastPoint1[0]-5, lastPoint2[0]-5)
-      startJ = Math.min(lastPoint1[1]-5, lastPoint2[1]-5)
-      startI = Math.max(0, startI)
-      startJ = Math.max(0, startJ)
-      endI = Math.max(lastPoint1[0]+5, lastPoint2[0]+5)
-      endJ = Math.max(lastPoint1[1]+5, lastPoint2[1]+5)
-      endI = Math.min(board.length-1, endI)
-      endJ = Math.min(board.length-1, endJ)
-
     }
 
-    for(var i=startI;i<=endI;i++) {
-      for(var j=startJ;j<=endJ;j++) {
+    for(var i=0;i<board.length;i++) {
+      for(var j=0;j<board.length;j++) {
         var p = [i, j]
         if(board[i][j] == R.empty) {
           var neighbor = [2,2]
@@ -368,15 +365,7 @@ class Board {
             if (starSpread && config.star) {
 
               // 距离必须在5步以内
-              if ((Math.abs(i-lastPoint1[0]) > 5 || Math.abs(j-lastPoint1[1]) > 5) && (Math.abs(i-lastPoint2[0]) > 5 || Math.abs(j-lastPoint2[1]) > 5)) {
-                count ++
-                continue
-              }
-              // 必须在米子方向上
-              if (
-                maxScore >= S.FIVE ||
-                (i === lastPoint1[0] || j === lastPoint1[1] || (Math.abs(i-lastPoint1[0]) === Math.abs(j-lastPoint1[1])))
-               || (i === lastPoint2[0] || j === lastPoint2[1] || (Math.abs(i-lastPoint2[0]) === Math.abs(j-lastPoint2[1]))) ) {
+              if (maxScore >= S.FIVE || starTo(p, lastPoint1) || starTo(p, lastPoint2)) {
               } else {
                 count ++
                 continue

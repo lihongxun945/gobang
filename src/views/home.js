@@ -3,6 +3,7 @@ import { mapState } from 'vuex'
 import Board from '@/components/Board'
 import Dialog from '@/components/Dialog'
 import BigText from '@/components/BigText'
+import Popover from '@/components/Popover'
 
 import {
   ADD_CHESSMAN,
@@ -37,16 +38,24 @@ export default {
       this._set(position, 1)
       this.$store.dispatch(SET_STATUS, STATUS.PLAYING)
 
-      if (score >= SCORE.FIVE/2 && step <= 1) {
-        this.$store.dispatch(SET_FIVES, win(this.board))
-        this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
-        this.showBigText(this.$t('you lose'), this.end)
-      } else if (score <= - SCORE.FIVE/2 && step <= 1) {
-        this.$store.dispatch(SET_FIVES, win(this.board))
-        this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
-        this.showBigText(this.$t('you win'), this.end)
+      if (score >= SCORE.FIVE/2) {
+        if (step <= 1) {
+          this.$store.dispatch(SET_FIVES, win(this.board))
+          this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
+          this.showBigText(this.$t('you lose'), this.end)
+        } else  if (step <= 6) {
+          this.$refs.winPop.open()
+        }
+      } else if (score <= - SCORE.FIVE/2) {
+        if (step <= 1) {
+          this.$store.dispatch(SET_FIVES, win(this.board))
+          this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
+          this.showBigText(this.$t('you win'), this.end)
+        } else if (step <= 6) {
+          this.$refs.losePop.open()
+        }
       } else {
-        this.$store.dispatch(SET_FIVES, [])
+        this.$store.dispatch(SET_FIVES, []) // reset
       }
     }
     this.$store.dispatch(SET_STATUS, STATUS.READY)
@@ -54,7 +63,8 @@ export default {
   components: {
     Board,
     Dialog,
-    BigText
+    BigText,
+    Popover
   },
   computed: {
     statusText () {
@@ -79,6 +89,7 @@ export default {
       status: state => state.home.status,
       deep: state => state.home.deep,
       spread: state => state.home.spread,
+      first: state => state.home.first,
       version: 'version'
     })
   },

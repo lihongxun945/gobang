@@ -3,7 +3,7 @@
     <h1>{{$t('title')}} {{version}}</h1>
     <Board @set="set"></Board>
     <div class="status">
-      <div class="status-inner">{{statusText}}</div>
+      <div class="status-inner"><div :class="'chessman '+(first === 1 ? 'black' : 'white')"></div> {{statusText}}</div>
     </div>
     <div class="weui-flex operations">
       <div class="weui-flex__item">
@@ -55,6 +55,8 @@
       <a href="javascript:;" class="weui-dialog__btn weui-dialog__btn_default" @click="$refs.give.close()">{{$t('dialog.cancel')}}</a>
     </Dialog>
     <big-text ref="big">{{bigText}}</big-text>
+    <popover ref="winPop"><img src="../../public/img/haha.gif" /></popover>
+    <popover ref="losePop"><img src="../../public/img/sad.gif" /></popover>
   </div>
 </template>
 
@@ -87,9 +89,26 @@ h1 {
 }
 
 .status {
-  margin: 1rem;
+  margin: 1.5rem 0;
   text-align: center;
 }
 .status-inner {
+  max-width: 30rem;
+  margin: 0 auto;
+  padding: .5rem 0;
+}
+
+.chessman {
+  display: inline-block;
+  height: 1.5rem;
+  width: 1.5rem;
+  background-color: black;
+  border-radius: 50%;
+  vertical-align: -.20rem;
+  margin-right: .5rem;
+
+  &.white {
+    background-color: white;
+  }
 }
 </style>

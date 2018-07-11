@@ -54,8 +54,8 @@ var negamax = function(deep, alpha, beta) {
     }
   }
 
-  console.log('迭代完成,deep=' + deep)
-  console.log(candidates.map(function (d) {
+  config.debug && console.log('迭代完成,deep=' + deep)
+  config.debug && console.log(candidates.map(function (d) {
     return '['+d[0]+','+d[1]+']'
       + ',score:' + d.v.score
       + ',step:' + d.v.step
@@ -287,7 +287,7 @@ var deeping = function(deep) {
   config.log && console.log('当前统计：' + count + '个节点, 耗时:' + time.toFixed(2) + 's, NPS:' + Math.floor(count/ time) + 'N/S')
   board.log()
   config.log && console.log("===============统计表===============")
-  statistic.print(candidates)
+  config.debug && statistic.print(candidates)
   return result
 }
 export default deeping

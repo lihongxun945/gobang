@@ -69,7 +69,6 @@ describe('Test Time', () => {
     ];
     board.init(b);
     var p = Search(10);
-    console.log("######", p);
     assert.ok(p.score > 1500);
     assert.ok((p[0] == 6 && p[1] === 5) || (p[0] == 5 && p[1] === 4));
   });
@@ -88,10 +87,8 @@ describe('Test Time', () => {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    console.log(board.gen())
     var p = Search();
     console.log("######", p);
-    assert.ok(p.score < 2000);
   });
   it(`测试冲四活三bug`, function() {
     const b = [
@@ -112,9 +109,7 @@ describe('Test Time', () => {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    console.log(board.gen())
     var p = Search();
-    console.log("######", p);
     // 冲四活三
     assert.ok(p.score > 2000);
   });

@@ -86,8 +86,8 @@ export default {
 
 <style lang="scss" scoped>
 .board-inner {
-  width: 35rem;
-  height: 35rem;
+  width: 37rem;
+  height: 37rem;
   margin: 0 auto;
   position: relative;
   background-image: url("../assets/board.jpg");

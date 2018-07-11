@@ -15,13 +15,30 @@ body {
   font-size: 15px;
 }
 
+
+// iphone 6/7/8
 html {
   font-size: 10px;
 }
 
-@media (max-width: 320px) {
+// iphone se
+@media (max-width: 374px) {
   html {
-    font-size: 9px;
+    font-size: 8px;
+  }
+}
+
+// iphone 6/7/8 plus
+@media (min-width: 376px) and (max-width: 420px) {
+  html {
+    font-size: 11px;
+  }
+}
+
+// large screen
+@media (min-width: 421px) {
+  html {
+    font-size: 14px;
   }
 }
 
