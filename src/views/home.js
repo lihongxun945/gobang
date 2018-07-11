@@ -48,7 +48,7 @@ export default {
             this.$store.dispatch(SET_FIVES, win(this.board))
             this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
             this.showBigText(this.$t('you lose'), this.end)
-          } else  if (this.lastScore < SCORE.FIVE/2) {
+          } else  if (step <= 6 && this.lastScore < SCORE.FIVE/2) {
             this.$refs.winPop.open()
           }
         } else if (score <= - SCORE.FIVE/2) {
@@ -56,7 +56,7 @@ export default {
             this.$store.dispatch(SET_FIVES, win(this.board))
             this.$store.dispatch(SET_STATUS, STATUS.LOCKED)
             this.showBigText(this.$t('you win'), this.end)
-          } else if (this.lastScore < SCORE.FIVE/2) {
+          } else if (step <= 6 && this.lastScore > - SCORE.FIVE/2) {
             this.$refs.losePop.open()
           }
         } else {
