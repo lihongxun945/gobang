@@ -96,6 +96,8 @@ h1 {
   max-width: 30rem;
   margin: 0 auto;
   padding: .5rem 0;
+  background-color: #aaa;
+  border-radius: 5px;
 }
 
 .chessman {
