@@ -365,8 +365,8 @@ class Board {
               var deRoleScore = role === R.com ? p.scoreHum: p.scoreCom
               if (maxScore >= S.FIVE) {
               } else if (
-                starTo(p, attackPoints) && roleScore >= S.THREE ||
-                starTo(p, defendPoints) && deRoleScore >= S.THREE
+                starTo(p, attackPoints) && roleScore >= deRoleScore ||
+                starTo(p, defendPoints) && deRoleScore >= roleScore
               ) {
               } else {
                 count ++
