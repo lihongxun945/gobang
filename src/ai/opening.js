@@ -42,7 +42,7 @@ var puyue = function (board) {
 }
 
 var match = function (board) {
-  var s = board.steps;
+  var s = board.allSteps;
   if (board.board[s[0][0]][s[0][1]] !== 1) return false
   if (s.length > 2) return false
   if (math.containPoint([[6,7],[7,6],[8,7],[7,8]], s[1])) return huayue(board)

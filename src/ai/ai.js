@@ -33,7 +33,7 @@ class AI {
   //电脑下棋
   begin () {
     let p
-    if (board.steps.length > 1) p = opening(board)
+    if (board.allSteps.length > 1) p = opening(board)
     p = p || m(config.searchDeep)
     board.put(p, R.com, true)
     return p
