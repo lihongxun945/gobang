@@ -15,7 +15,7 @@ class AI {
       for (var k in open26) {
         names.push(k)
       }
-      const n = 'puyue' || names[parseInt(Math.random()*26)]
+      const n = names[parseInt(Math.random()*26)]
       const o = open26[n]
       board.init(open26[n])
       return {
