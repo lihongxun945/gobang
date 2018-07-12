@@ -28,11 +28,17 @@ var fixScore = function(type) {
   return type
 }
 
-var starTo = function (a, b) {
-  // 距离必须在5步以内
-  if ((Math.abs(a[0]-b[0]) > 4 || Math.abs(a[1]-b[1]) > 4)) return false
-  // 必须在米子方向上
-  return a[0] === b[0] || a[1] === b[1] || (Math.abs(a[0]-b[0]) === Math.abs(a[1]-b[1]))
+var starTo = function (point, points) {
+  if (!point || !point.length || !points || !points.length) return true
+  const a = point
+  for (var i=0;i<points.length;i++) {
+    // 距离必须在5步以内
+    const b = points[i]
+    if ((Math.abs(a[0]-b[0]) > 4 || Math.abs(a[1]-b[1]) > 4)) return false
+    // 必须在米子方向上
+    if ( !(a[0] === b[0] || a[1] === b[1] || (Math.abs(a[0]-b[0]) === Math.abs(a[1]-b[1]))) ) return false
+  }
+  return true
 }
 
 class Board {
@@ -295,8 +301,10 @@ class Board {
     var neighbors = []
 
     var board = this.board
+    var reverseRole = R.reverse(role)
     // 找到双方的最后进攻点
-    var lastPoint1 = undefined, lastPoint2 = undefined
+    const attackPoints = [] // 进攻点
+    const defendPoints = [] // 防守点
 
 
     // 默认情况下 我们遍历整个棋盘。但是在开启star模式下，我们遍历的范围就会小很多
@@ -305,26 +313,29 @@ class Board {
     if (starSpread && config.star) {
 
       var i = this.currentSteps.length - 1
-      while(!lastPoint1 && i >= 0) {
+      while(i >= 0) {
         var p = this.currentSteps[i]
-        if (p.role !== role && p.attack !== role) lastPoint1 = p
+        if (reverseRole === R.com && p.scoreCom >= S.THREE
+          || reverseRole === R.hum && p.scoreHum >= S.THREE) {
+          defendPoints.push(p)
+          break
+        }
         i -= 2
-      }
-
-      if (!lastPoint1) {
-        lastPoint1 = this.currentSteps[0].role !== role ? this.currentSteps[0] : this.currentSteps[1]
       }
 
       var i = this.currentSteps.length - 2
-      while(!lastPoint2 && i >= 0) {
+      while(i >= 0) {
         var p = this.currentSteps[i]
-        if (p.attack === role) lastPoint2 = p
+        if (role === R.com && p.scoreCom >= S.THREE
+          || role === R.hum && p.scoreHum >= S.THREE) {
+          attackPoints.push(p)
+          break;
+        }
         i -= 2
       }
 
-      if (!lastPoint2) {
-        lastPoint2 = this.currentSteps[0].role === role ? this.currentSteps[0] : this.currentSteps[1]
-      }
+    //if (!attackPoints.length) attackPoints.push(this.currentSteps[0].role !== role ? this.currentSteps[0] : this.currentSteps[1])
+    //if (!defendPoints.length) defendPoints.push(this.currentSteps[0].role !== reverseRole? this.currentSteps[0] : this.currentSteps[1])
     }
 
     for(var i=0;i<board.length;i++) {
@@ -341,9 +352,6 @@ class Board {
             p.score = maxScore
             p.role = role
 
-            // 标记当前点是为了进攻还是为了防守，后面会用到
-              if (scoreCom >= scoreHum) p.attack = R.com // 进攻点
-              else p.attack = R.hum // 防守点
 
             total ++
             /* 双星延伸，以提升性能
@@ -353,9 +361,13 @@ class Board {
              * 那么极少数情况，进攻路线无法连成一条折线呢?很简单，我们对前双方两步不作star限制就好，这样可以 兼容一条折线中间伸出一段的情况
              */
             if (starSpread && config.star) {
-
-              // 距离必须在5步以内
-              if (maxScore >= S.FIVE || starTo(p, lastPoint1) || starTo(p, lastPoint2)) {
+              var roleScore = role === R.com ? p.scoreCom : p.scoreHum
+              var deRoleScore = role === R.com ? p.scoreHum: p.scoreCom
+              if (maxScore >= S.FIVE) {
+              } else if (
+                starTo(p, attackPoints) && roleScore >= S.THREE ||
+                starTo(p, defendPoints) && deRoleScore >= S.THREE
+              ) {
               } else {
                 count ++
                 continue
