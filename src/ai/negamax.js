@@ -36,6 +36,7 @@ var negamax = function(deep, alpha, beta) {
   count = 0
   ABcut = 0
   PVcut = 0
+  board.currentSteps = []
 
   for(var i=0;i<candidates.length;i++) {
     var p = candidates[i]
@@ -54,8 +55,8 @@ var negamax = function(deep, alpha, beta) {
     }
   }
 
-  config.debug && console.log('迭代完成,deep=' + deep)
-  config.debug && console.log(candidates.map(function (d) {
+  config.log && console.log('迭代完成,deep=' + deep)
+  config.log && console.log(candidates.map(function (d) {
     return '['+d[0]+','+d[1]+']'
       + ',score:' + d.v.score
       + ',step:' + d.v.step

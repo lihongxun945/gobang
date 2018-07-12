@@ -69,7 +69,7 @@ describe('Test Time', () => {
     ];
     board.init(b);
     var p = Search(10);
-    assert.ok(p.score > 1500);
+    assert.ok(p.score > SCORE.THREE);
     assert.ok((p[0] == 6 && p[1] === 5) || (p[0] == 5 && p[1] === 4));
   });
   it(`测试vct bug，此处应该没有杀棋`, function() {
@@ -88,7 +88,7 @@ describe('Test Time', () => {
     ];
     board.init(b);
     var p = Search();
-    console.log("######", p);
+    assert.ok(p.score < SCORE.FIVE/2)
   });
   it(`测试冲四活三bug`, function() {
     const b = [
@@ -111,6 +111,6 @@ describe('Test Time', () => {
     board.init(b);
     var p = Search();
     // 冲四活三
-    assert.ok(p.score > 2000);
+    assert.ok(p.score > SCORE.FOUR);
   });
 })

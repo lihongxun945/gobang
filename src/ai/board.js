@@ -39,16 +39,18 @@ class Board {
 
   init (sizeOrBoard) {
     this.evaluateCache = {}
-    this.steps = []
+    this.currentSteps = [] // 当前一次思考的步骤
     this.allSteps = []
     this.stepsTail = []
     this.zobrist = zobrist
     zobrist.init() // 注意重新初始化
     this._last = [false, false] // 记录最后一步
+    this.count = 0;// chessman count
     var size
     if(sizeOrBoard.length) {
       this.board = sizeOrBoard
       size = this.board.length
+      for (var i=0;i<this.board.length;i++) this.count += this.board[i].filter(d=>d>0).length
     } else {
       size = sizeOrBoard
       this.board = []
@@ -173,23 +175,16 @@ class Board {
   }
 
   //下子
-  put (p, role, record) {
+  put (p, role) {
     p.role = role
     config.debug && console.log('put [' + p + ']' + ' ' + role)
     this.board[p[0]][p[1]] = role
     this.zobrist.go(p[0], p[1], role)
-    if (record) this.steps.push(p)
     this.updateScore(p)
     this.allSteps.push(p)
+    this.currentSteps.push(p)
     this.stepsTail = []
-  }
-  // 最后一次下子位置
-  last (role) {
-    for(var i=this.allSteps.length-1;i>=0;i--) {
-      var p = this.allSteps[i]
-      if(this.board[p[0]][p[1]] === role) return p
-    }
-    return false
+    this.count ++
   }
 
   //移除棋子
@@ -200,19 +195,17 @@ class Board {
     this.board[p[0]][p[1]] = R.empty
     this.updateScore(p)
     this.allSteps.pop()
+    this.currentSteps.pop()
+    this.count --
   }
 
   //悔棋
   backward () {
-    if(this.steps.length < 2) return
+    if(this.allSteps.length < 2) return
     var i =0;
     while(i<2) {
-      var s = this.steps.pop()
-      this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]])
-      this.board[s[0]][s[1]] = R.empty
-      this.updateScore(s)
-      this.allSteps.pop()
-
+      var s = this.allSteps[this.allSteps.length-1]
+      this.remove(s)
       this.stepsTail.push(s)
       i++
     }
@@ -224,11 +217,7 @@ class Board {
     var i =0;
     while(i<2) {
       var s = this.stepsTail.pop()
-      this.zobrist.go(s[0], s[1], this.board[s[0]][s[1]])
-      this.board[s[0]][s[1]] = s.role
-      this.updateScore(s)
-      this.steps.push(s)
-      this.allSteps.push(s)
+      this.put(s, s.role)
       i++
     }
   }
@@ -291,7 +280,7 @@ class Board {
     console.log('star: ' + (count/total*100).toFixed(2) + '%, ' + count + '/' + total)
   }
   gen (role, onlyThrees, starSpread) {
-    if (this.allSteps.length === 0) return [[7, 7]]
+    if (this.count <= 0) return [7, 7]
     var fives = []
     var comfours=[]
     var humfours=[]
@@ -315,26 +304,26 @@ class Board {
     // 注意除非专门处理重叠区域，否则不要把两个正方形分开算，因为一般情况下这两个正方形会有相当大的重叠面积，别重复计算了
     if (starSpread && config.star) {
 
-      var i = this.allSteps.length - 1
+      var i = this.currentSteps.length - 1
       while(!lastPoint1 && i >= 0) {
-        var p = this.allSteps[i]
+        var p = this.currentSteps[i]
         if (p.role !== role && p.attack !== role) lastPoint1 = p
         i -= 2
       }
 
       if (!lastPoint1) {
-        lastPoint1 = this.allSteps[0].role !== role ? this.allSteps[0] : this.allSteps[1]
+        lastPoint1 = this.currentSteps[0].role !== role ? this.currentSteps[0] : this.currentSteps[1]
       }
 
-      var i = this.allSteps.length - 2
+      var i = this.currentSteps.length - 2
       while(!lastPoint2 && i >= 0) {
-        var p = this.allSteps[i]
+        var p = this.currentSteps[i]
         if (p.attack === role) lastPoint2 = p
         i -= 2
       }
 
       if (!lastPoint2) {
-        lastPoint2 = this.allSteps[0].role === role ? this.allSteps[0] : this.allSteps[1]
+        lastPoint2 = this.currentSteps[0].role === role ? this.currentSteps[0] : this.currentSteps[1]
       }
     }
 
@@ -343,7 +332,7 @@ class Board {
         var p = [i, j]
         if(board[i][j] == R.empty) {
           var neighbor = [2,2]
-          if(this.steps.length < 6) neighbor = [1, 1]
+          if(this.allSteps.length < 6) neighbor = [1, 1]
           if(this.hasNeighbor([i, j], neighbor[0], neighbor[1])) { //必须是有邻居的才行
 
             var scoreHum = p.scoreHum = this.humScore[i][j]
