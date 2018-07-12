@@ -29,7 +29,7 @@ var fixScore = function(type) {
 }
 
 var starTo = function (point, points) {
-  if (!point || !point.length || !points || !points.length) return true
+  if (!points || !points.length) return false
   const a = point
   for (var i=0;i<points.length;i++) {
     // 距离必须在5步以内
@@ -283,7 +283,7 @@ class Board {
 
 
   log () {
-    console.log('star: ' + (count/total*100).toFixed(2) + '%, ' + count + '/' + total)
+    config.log&&console.log('star: ' + (count/total*100).toFixed(2) + '%, ' + count + '/' + total)
   }
   gen (role, onlyThrees, starSpread) {
     if (this.count <= 0) return [7, 7]
@@ -365,8 +365,7 @@ class Board {
               var deRoleScore = role === R.com ? p.scoreHum: p.scoreCom
               if (maxScore >= S.FIVE) {
               } else if (
-                starTo(p, attackPoints) && roleScore >= deRoleScore ||
-                starTo(p, defendPoints) && deRoleScore >= roleScore
+                starTo(p, attackPoints) || starTo(p, defendPoints) 
               ) {
               } else {
                 count ++

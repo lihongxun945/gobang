@@ -21,8 +21,6 @@ var count=0,  //每次思考的节点数
     cacheCount=0, //zobrist缓存节点数
     cacheGet=0 //zobrist缓存命中数量
 
-var candidates 
-
 var Cache = {}
 
 var start
@@ -31,7 +29,7 @@ var start
  * max min search
  * white is max, black is min
  */
-var negamax = function(deep, alpha, beta) {
+var negamax = function(candidates, role, deep, alpha, beta) {
 
   count = 0
   ABcut = 0
@@ -40,9 +38,9 @@ var negamax = function(deep, alpha, beta) {
 
   for(var i=0;i<candidates.length;i++) {
     var p = candidates[i]
-    board.put(p, R.com)
-    var steps = [p[0], p[1]]
-    var v = r(deep-1, -beta, -alpha, R.hum, 1, steps.slice(0), 0)
+    board.put(p, role)
+    var steps = [p]
+    var v = r(deep-1, -beta, -alpha, R.reverse(role), 1, steps.slice(0), 0)
     v.score *= -1
     alpha = Math.max(alpha, v.score)
     board.remove(p)
@@ -176,7 +174,7 @@ var r = function(deep, alpha, beta, role, step, steps, spread) {
     }
 
     var _steps = steps.slice(0)
-    _steps.push([p[0], p[1]])
+    _steps.push(p)
     var v = r(_deep, -beta, -alpha, R.reverse(role), step+1, _steps, _spread)
     v.score *= -1
     board.remove(p)
@@ -225,15 +223,13 @@ var cache = function(deep, score) {
   cacheCount ++
 }
 
-var deeping = function(deep) {
-  candidates = board.gen(R.com)
+var deeping = function(candidates, role, deep) {
   start = (+ new Date())
-  deep = deep === undefined ? config.searchDeep : deep
   Cache = {} // 每次开始迭代的时候清空缓存。这里缓存的主要目的是在每一次的时候加快搜索，而不是长期存储。事实证明这样的清空方式对搜索速度的影响非常小（小于10%)
 
   var bestScore
   for(var i=2; i<=deep; i+=2) {
-    bestScore = negamax(i, MIN, MAX)
+    bestScore = negamax(candidates, role, i, MIN, MAX)
   //// 每次迭代剔除必败点，直到没有必败点或者只剩最后一个点
   //// 实际上，由于必败点几乎都会被AB剪枝剪掉，因此这段代码几乎不会生效
   //var newCandidates = candidates.filter(function (d) {
@@ -251,6 +247,7 @@ var deeping = function(deep) {
     var r = [d[0], d[1]]
     r.score = d.v.score
     r.step = d.v.step
+    r.steps = d.v.steps
     if (d.v.vct) r.vct = d.v.vct
     if (d.v.vcf) r.vcf = d.v.vcf
     return r
@@ -274,13 +271,9 @@ var deeping = function(deep) {
     else return (b.score - a.score)
   })
 
-  var best = candidates[0]
-  var bestPoints = candidates.filter(function (p) {
-    return math.greatOrEqualThan(p.score, best.score) && p.step === best.step
-  })
   var result = candidates[0]
-  config.log && console.log("可选节点：" + bestPoints.join(';'))
-  config.log && console.log("选择节点：" + candidates[0] + ", 分数:"+result.score.toFixed(3)+", 步数:" + result.step)
+  result.min = Math.min.apply(Math, result.steps.map(d => d.score))
+  config.log && console.log("选择节点：" + candidates[0] + ", 分数:"+result.score.toFixed(3)+", 步数:" + result.step + ', 最小值：' + result.min)
   var time = (new Date() - start)/1000
   config.log && console.log('搜索节点数:'+ count+ ',AB剪枝次数:'+ABcut + ', PV剪枝次数:' + PVcut)
   config.log && console.log('搜索缓存:' + '总数 ' + cacheCount + ', 命中率 ' + (cacheGet / cacheCount * 100).toFixed(3) + '%, ' + cacheGet + '/' + cacheCount)
@@ -291,4 +284,47 @@ var deeping = function(deep) {
   config.debug && statistic.print(candidates)
   return result
 }
-export default deeping
+
+var deepAll = function (role, deep) {
+  role = role || R.com
+  deep = deep === undefined ? config.searchDeep : deep
+  const candidates = board.gen(role)
+  console.log(candidates)
+  const attackPoints = candidates.filter((p) => {
+    return role === R.com ? (p.scoreCom >= T.TWO) : (p.scoreHum >= T.TWO)
+  })
+  const defendPoints = candidates.filter((p) => {
+    return role === R.hum ? (p.scoreCom >= T.TWO) : (p.scoreHum >= T.TWO)
+  })
+  let attack, defend
+  if (attackPoints.length) {
+    console.log('compute attack...')
+    console.log(attackPoints)
+    attack = deeping(attackPoints, role, deep)
+    console.log(attack)
+  }
+  if (defendPoints.length) {
+    console.log('compute defend...')
+    console.log(defendPoints)
+    defend = deeping(defendPoints, R.reverse(role), deep)
+    console.log(attack)
+  }
+
+  let result
+  //进攻优先，只要对面不能成活三，就不防守
+  if (!defend || defend.min < T.THREE) result = attack
+  else if (!attack) result = defend
+  // 如果双方都有可以赢的点
+  // 注意处理冲四和活四的关系，活四分比冲四高，但是注意他的优先级和活四是一样的
+  else {
+    if (attack.min > T.BLOCKED_FOUR / 2 && attack.min < T.BLOCKED_FOUR *2) attack.min = T.FOUR
+    if (defend.min > T.BLOCKED_FOUR / 2 && defend.min < T.BLOCKED_FOUR *2) defend.min = T.FOUR
+    result = ((defend.min > attack.min*2) ? defend : attack)
+  }
+
+  console.log('############# 最终结果 ################')
+  console.log(result)
+  defend.score = 0 // 守住了，别返回一个很大的数
+  return result
+}
+export default deepAll

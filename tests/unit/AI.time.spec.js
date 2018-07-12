@@ -66,7 +66,7 @@ describe('Test Time', () => {
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     ];
     board.init(b);
-    var p = Search(10);
+    var p = Search(1, 10);
     assert.ok(p.score > SCORE.THREE);
     assert.ok((p[0] == 6 && p[1] === 5) || (p[0] == 5 && p[1] === 4));
   });
