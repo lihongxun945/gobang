@@ -15,7 +15,7 @@ class AI {
       for (var k in open26) {
         names.push(k)
       }
-      const n = names[parseInt(Math.random()*26)]
+      const n = 'puyue' || names[parseInt(Math.random()*26)]
       const o = open26[n]
       board.init(open26[n])
       return {
@@ -34,7 +34,7 @@ class AI {
   begin () {
     let p
     if (board.allSteps.length > 1) p = opening(board)
-    p = p || m(config.searchDeep)
+    p = p || m(undefined, config.searchDeep)
     board.put(p, R.com, true)
     return p
   }
