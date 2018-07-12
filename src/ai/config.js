@@ -14,5 +14,5 @@ export default {
   window: false, // 启用期望窗口，由于用的模糊比较，所以和期望窗口是有冲突的
 
   // 调试
-  debug: false, // 打印详细的debug信息
+  debug: true, // 打印详细的debug信息
 }
