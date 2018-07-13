@@ -290,6 +290,7 @@ var deepAll = function (role, deep) {
   deep = deep === undefined ? config.searchDeep : deep
   const candidates = board.gen(role)
   console.log(candidates)
+
   const attackPoints = candidates.filter((p) => {
     return role === R.com ? (p.scoreCom >= T.TWO) : (p.scoreHum >= T.TWO)
   })

@@ -334,8 +334,8 @@ class Board {
         i -= 2
       }
 
-    //if (!attackPoints.length) attackPoints.push(this.currentSteps[0].role !== role ? this.currentSteps[0] : this.currentSteps[1])
-    //if (!defendPoints.length) defendPoints.push(this.currentSteps[0].role !== reverseRole? this.currentSteps[0] : this.currentSteps[1])
+      if (!attackPoints.length) attackPoints.push(this.currentSteps[0].role === role ? this.currentSteps[0] : this.currentSteps[1])
+      if (!defendPoints.length) defendPoints.push(this.currentSteps[0].role === reverseRole? this.currentSteps[0] : this.currentSteps[1])
     }
 
     for(var i=0;i<board.length;i++) {
