@@ -8,8 +8,6 @@ import math from '@/ai/math.js'
 
 import config from '@/ai/config.js'
 
-config.log = true
-
 describe('测试Star路径的bug', () => {
   it('应该是冲四活三必胜却没有发现?', () => {
     const b = [
@@ -80,6 +78,7 @@ describe('测试Star路径的bug', () => {
     board.init(b)
 
     const p = Search()
+    console.log(p)
     expect(p.score < SCORE.FIVE/2).to.be.true
   })
   it('[6, 4] 能赢', () => {

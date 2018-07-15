@@ -5,7 +5,7 @@ export default {
   timeLimit: 100, // 时间限制，秒
   vcxDeep:  5,  //算杀深度
   random: false,// 在分数差不多的时候是不是随机选择一个走
-  log: true,
+  log: false,
   // 下面几个设置都是用来提升搜索速度的
   spreadLimit: 1,// 单步延伸 长度限制
   star: true, // 是否开启 starspread

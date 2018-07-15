@@ -289,7 +289,6 @@ var deepAll = function (role, deep) {
   role = role || R.com
   deep = deep === undefined ? config.searchDeep : deep
   const candidates = board.gen(role)
-  console.log(candidates)
   return deeping(candidates, role, deep)
 
   const attackPoints = candidates.filter((p) => {

@@ -363,7 +363,10 @@ class Board {
             if (starSpread && config.star) {
               var roleScore = role === R.com ? p.scoreCom : p.scoreHum
               var deRoleScore = role === R.com ? p.scoreHum: p.scoreCom
-              if (maxScore >= S.FIVE) {
+
+              if (maxScore >= S.FOUR) {
+              } else if (maxScore >= S.BLOCKED_FOUR && starTo(this.currentSteps[this.currentSteps.length-1]) ) {
+                //star 路径不是很准，所以考虑冲四防守对手最后一步的棋
               } else if (
                 starTo(p, attackPoints) || starTo(p, defendPoints) 
               ) {
