@@ -12,7 +12,7 @@ export default new Vuex.Store({
     board
   },
   state: {
-    version: "V3.0.0-beta.2"
+    version: "V3.0.0-beta.3"
   },
   mutations: {
   },

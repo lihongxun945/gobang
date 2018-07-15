@@ -4,6 +4,14 @@
       <h1>更新日志</h1>
       <section>
         <section>
+          <h3>V3.0.0-beta.3 2018-07-15</h3>
+          <p>
+            <ul>
+              <li>修复了有时候会忽略冲四和活四导致的bug</li>
+            </ul>
+          </p>
+        </section>
+        <section>
           <h3>V3.0.0-beta.2 2018-07-10</h3>
           <p>
             <ul>
