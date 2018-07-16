@@ -291,41 +291,41 @@ var deepAll = function (role, deep) {
   const candidates = board.gen(role)
   return deeping(candidates, role, deep)
 
-  const attackPoints = candidates.filter((p) => {
-    return role === R.com ? (p.scoreCom >= T.TWO) : (p.scoreHum >= T.TWO)
-  })
-  const defendPoints = candidates.filter((p) => {
-    return role === R.hum ? (p.scoreCom >= T.TWO) : (p.scoreHum >= T.TWO)
-  })
-  let attack, defend
-  if (attackPoints.length) {
-    console.log('compute attack...')
-    console.log(attackPoints)
-    attack = deeping(attackPoints, role, deep)
-    console.log(attack)
-  }
-  if (defendPoints.length) {
-    console.log('compute defend...')
-    console.log(defendPoints)
-    defend = deeping(defendPoints, R.reverse(role), deep)
-    console.log(attack)
-  }
+//const attackPoints = candidates.filter((p) => {
+//  return role === R.com ? (p.scoreCom >= T.TWO) : (p.scoreHum >= T.TWO)
+//})
+//const defendPoints = candidates.filter((p) => {
+//  return role === R.hum ? (p.scoreCom >= T.TWO) : (p.scoreHum >= T.TWO)
+//})
+//let attack, defend
+//if (attackPoints.length) {
+//  console.log('compute attack...')
+//  console.log(attackPoints)
+//  attack = deeping(attackPoints, role, deep)
+//  console.log(attack)
+//}
+//if (defendPoints.length) {
+//  console.log('compute defend...')
+//  console.log(defendPoints)
+//  defend = deeping(defendPoints, R.reverse(role), deep)
+//  console.log(attack)
+//}
 
-  let result
-  //进攻优先，只要对面不能成活三，就不防守
-  if (!defend || defend.min < T.THREE) result = attack
-  else if (!attack) result = defend
-  // 如果双方都有可以赢的点
-  // 注意处理冲四和活四的关系，活四分比冲四高，但是注意他的优先级和活四是一样的
-  else {
-    if (attack.min > T.BLOCKED_FOUR / 2 && attack.min < T.BLOCKED_FOUR *2) attack.min = T.FOUR
-    if (defend.min > T.BLOCKED_FOUR / 2 && defend.min < T.BLOCKED_FOUR *2) defend.min = T.FOUR
-    result = ((defend.min > attack.min*2) ? defend : attack)
-  }
+//let result
+////进攻优先，只要对面不能成活三，就不防守
+//if (!defend || defend.min < T.THREE) result = attack
+//else if (!attack) result = defend
+//// 如果双方都有可以赢的点
+//// 注意处理冲四和活四的关系，活四分比冲四高，但是注意他的优先级和活四是一样的
+//else {
+//  if (attack.min > T.BLOCKED_FOUR / 2 && attack.min < T.BLOCKED_FOUR *2) attack.min = T.FOUR
+//  if (defend.min > T.BLOCKED_FOUR / 2 && defend.min < T.BLOCKED_FOUR *2) defend.min = T.FOUR
+//  result = ((defend.min > attack.min*2) ? defend : attack)
+//}
 
-  console.log('############# 最终结果 ################')
-  console.log(result)
-  defend.score = 0 // 守住了，别返回一个很大的数
-  return result
+//console.log('############# 最终结果 ################')
+//console.log(result)
+//defend.score = 0 // 守住了，别返回一个很大的数
+//return result
 }
 export default deepAll
