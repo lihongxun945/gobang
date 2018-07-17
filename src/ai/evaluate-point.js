@@ -10,7 +10,7 @@ import score from "./score.js"
  * 为了性能考虑，增加了一个dir参数，如果没有传入则默认计算所有四个方向，如果传入值，则只计算其中一个方向的值
  */
 
-var s = function(b, p, role, dir) {
+var s = function(b, px, py, role, dir) {
   var board = b.board
   var result = 0,
     radius = 8,
@@ -32,14 +32,14 @@ var s = function(b, p, role, dir) {
 
     // -
 
-    for(var i=p[1]+1;true;i++) {
+    for(var i=py+1;true;i++) {
       if(i>=len) {
         block ++
         break
       }
-      var t = board[p[0]][i]
+      var t = board[px][i]
       if(t === R.empty) {
-        if(empty == -1 && i<len-1 && board[p[0]][i+1] == role) {
+        if(empty == -1 && i<len-1 && board[px][i+1] == role) {
           empty = count
           continue
         } else {
@@ -56,14 +56,14 @@ var s = function(b, p, role, dir) {
     }
 
 
-    for(var i=p[1]-1;true;i--) {
+    for(var i=py-1;true;i--) {
       if(i<0) {
         block ++
         break
       }
-      var t = board[p[0]][i]
+      var t = board[px][i]
       if(t === R.empty) {
-        if(empty == -1 && i>0 && board[p[0]][i-1] == role) {
+        if(empty == -1 && i>0 && board[px][i-1] == role) {
           empty = 0  //注意这里是0，因为是从右往左走的
           continue
         } else {
@@ -82,23 +82,23 @@ var s = function(b, p, role, dir) {
 
     count+= secondCount
 
-    b.scoreCache[role][0][p[0]][p[1]] = countToScore(count, block, empty)
+    b.scoreCache[role][0][px][py] = countToScore(count, block, empty)
   }
-  result += b.scoreCache[role][0][p[0]][p[1]]
+  result += b.scoreCache[role][0][px][py]
 
   if (dir === undefined || dir === 1) {
 
     // |
     reset()
 
-    for(var i=p[0]+1;true;i++) {
+    for(var i=px+1;true;i++) {
       if(i>=len) {
         block ++
         break
       }
-      var t = board[i][p[1]]
+      var t = board[i][py]
       if(t === R.empty) {
-        if(empty == -1 && i<len-1 && board[i+1][p[1]] == role) {
+        if(empty == -1 && i<len-1 && board[i+1][py] == role) {
           empty = count
           continue
         } else {
@@ -114,14 +114,14 @@ var s = function(b, p, role, dir) {
       }
     }
 
-    for(var i=p[0]-1;true;i--) {
+    for(var i=px-1;true;i--) {
       if(i<0) {
         block ++
         break
       }
-      var t = board[i][p[1]]
+      var t = board[i][py]
       if(t === R.empty) {
-        if(empty == -1 && i>0 && board[i-1][p[1]] == role) {
+        if(empty == -1 && i>0 && board[i-1][py] == role) {
           empty = 0
           continue
         } else {
@@ -140,9 +140,9 @@ var s = function(b, p, role, dir) {
 
     count += secondCount
 
-    b.scoreCache[role][1][p[0]][p[1]] = countToScore(count, block, empty)
+    b.scoreCache[role][1][px][py] = countToScore(count, block, empty)
   } 
-  result += b.scoreCache[role][1][p[0]][p[1]]
+  result += b.scoreCache[role][1][px][py]
 
 
   // \
@@ -150,7 +150,7 @@ var s = function(b, p, role, dir) {
     reset()
 
     for(var i=1;true;i++) {
-      var x = p[0]+i, y = p[1]+i
+      var x = px+i, y = py+i
       if(x>=len || y>=len) {
         block ++
         break
@@ -174,7 +174,7 @@ var s = function(b, p, role, dir) {
     }
 
     for(var i=1;true;i++) {
-      var x = p[0]-i, y = p[1]-i
+      var x = px-i, y = py-i
       if(x<0||y<0) {
         block ++
         break
@@ -200,9 +200,9 @@ var s = function(b, p, role, dir) {
 
     count+= secondCount
 
-    b.scoreCache[role][2][p[0]][p[1]] = countToScore(count, block, empty)
+    b.scoreCache[role][2][px][py] = countToScore(count, block, empty)
   }
-  result += b.scoreCache[role][2][p[0]][p[1]]
+  result += b.scoreCache[role][2][px][py]
 
 
   // /
@@ -210,7 +210,7 @@ var s = function(b, p, role, dir) {
     reset()
 
     for(var i=1; true;i++) {
-      var x = p[0]+i, y = p[1]-i
+      var x = px+i, y = py-i
       if(x<0||y<0||x>=len||y>=len) {
         block ++
         break
@@ -234,7 +234,7 @@ var s = function(b, p, role, dir) {
     }
 
     for(var i=1;true;i++) {
-      var x = p[0]-i, y = p[1]+i
+      var x = px-i, y = py+i
       if(x<0||y<0||x>=len||y>=len) {
         block ++
         break
@@ -260,9 +260,9 @@ var s = function(b, p, role, dir) {
 
     count += secondCount
 
-    b.scoreCache[role][3][p[0]][p[1]] = countToScore(count, block, empty)
+    b.scoreCache[role][3][px][py] = countToScore(count, block, empty)
   }
-  result += b.scoreCache[role][3][p[0]][p[1]]
+  result += b.scoreCache[role][3][px][py]
 
   return result
 }
