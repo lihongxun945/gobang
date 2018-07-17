@@ -104,7 +104,7 @@ class Board {
       for(var j=0;j<board[i].length;j++) {
         // 空位，对双方都打分
         if(board[i][j] == R.empty) {
-          if(this.hasNeighbor([i, j], 2, 2)) { //必须是有邻居的才行
+          if(this.hasNeighbor(i, j, 2, 2)) { //必须是有邻居的才行
             var cs = scorePoint(this, i, j, R.com)
             var hs = scorePoint(this, i, j, R.hum)
             this.comScore[i][j] = cs
@@ -342,11 +342,14 @@ class Board {
       for(var j=0;j<board.length;j++) {
         if(board[i][j] == R.empty) {
 
+          if(this.allSteps.length < 6 && !this.hasNeighbor(i, j, 1, 1)) continue
+          else if (!this.hasNeighbor(i, j, 2, 2)) continue
+
           var scoreHum = this.humScore[i][j]
           var scoreCom = this.comScore[i][j]
           var maxScore = Math.max(scoreCom, scoreHum)
 
-          if (maxScore < S.TWO) continue
+          if (onlyThrees && maxScore < S.THREE) continue
 
           var p = [i, j]
           p.scoreHum = scoreHum
@@ -474,18 +477,18 @@ class Board {
     return result
   }
 
-  hasNeighbor (point, distance, count) {
+  hasNeighbor (x, y, distance, count) {
     var board = this.board
     var len = board.length
-    var startX = point[0]-distance
-    var endX = point[0]+distance
-    var startY = point[1]-distance
-    var endY = point[1]+distance
+    var startX = x-distance
+    var endX = x+distance
+    var startY = y-distance
+    var endY = y+distance
     for(var i=startX;i<=endX;i++) {
       if(i<0||i>=len) continue
       for(var j=startY;j<=endY;j++) {
         if(j<0||j>=len) continue
-        if(i==point[0] && j==point[1]) continue
+        if(i==x && j==y) continue
         if(board[i][j] != R.empty) {
           count --
           if(count <= 0) return true
