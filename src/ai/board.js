@@ -342,8 +342,9 @@ class Board {
       for(var j=0;j<board.length;j++) {
         if(board[i][j] == R.empty) {
 
-          if(this.allSteps.length < 6 && !this.hasNeighbor(i, j, 1, 1)) continue
-          else if (!this.hasNeighbor(i, j, 2, 2)) continue
+          if(this.allSteps.length < 6) {
+            if( !this.hasNeighbor(i, j, 1, 1)) continue
+          } else if (!this.hasNeighbor(i, j, 2, 2)) continue
 
           var scoreHum = this.humScore[i][j]
           var scoreCom = this.comScore[i][j]
@@ -406,7 +407,7 @@ class Board {
             comtwos.unshift(p)
           } else if(scoreHum >= S.TWO) {
             humtwos.unshift(p)
-          }
+          } else neighbors.push(p)
         }
       }
     }
@@ -467,7 +468,7 @@ class Board {
     else twos = humtwos.concat(comtwos)
 
     twos.sort(function(a, b) { return b.score - a.score })
-    result = result.concat(twos)
+    result = result.concat(twos.length ? twos : neighbors)
 
     //这种分数低的，就不用全部计算了
     if(result.length>config.countLimit) {
