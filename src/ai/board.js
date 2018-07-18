@@ -146,37 +146,16 @@ class Board {
     }
     // 无论是不是空位 都需要更新
     // -
-    for(var i=-radius;i<=radius;i++) {
-      var x = p[0], y = p[1]+i
-      if(y<0) continue
-      if(y>=len) break
-      update(x, y, 0)
-    }
+    update(p[0], p[1], 0)
 
     // |
-    for(var i=-radius;i<=radius;i++) {
-      var x = p[0]+i, y = p[1]
-      if(x<0) continue
-      if(x>=len) break
-      update(x, y, 1)
-    }
+    update(p[0], p[1], 1)
 
     // \
-    for(var i=-radius;i<=radius;i++) {
-      var x = p[0]+i, y = p[1]+i
-      if(x<0 || y<0) continue
-      if(x>=len || y>=len) break
-      update(x, y, 2)
-    }
+    update(p[0], p[1], 2)
 
     // /
-    for(var i=-radius;i<=radius;i++) {
-      var x = p[0]+i, y = p[1]-i
-      if(x<0 || y<0) continue
-      if(x>=len || y>=len) continue
-      update(x, y, 3)
-    }
-
+    update(p[0], p[1], 3)
 
   }
 

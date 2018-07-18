@@ -13,8 +13,10 @@ import score from "./score.js"
 var s = function(b, px, py, role, dir) {
   var board = b.board
   var result = 0,
-    radius = 8,
-    empty = 0
+    radius = 5,
+    empty = 0,
+    start=0, // 棋型的起始点和结束点
+    end=0
   var count = 0, block = 0, secondCount = 0  //另一个方向的count
 
   var len = board.length
@@ -55,6 +57,8 @@ var s = function(b, px, py, role, dir) {
       }
     }
 
+    end = i-1
+
 
     for(var i=py-1;true;i--) {
       if(i<0) {
@@ -80,9 +84,15 @@ var s = function(b, px, py, role, dir) {
       }
     }
 
+    start = i+1
+
     count+= secondCount
 
-    b.scoreCache[role][0][px][py] = countToScore(count, block, empty)
+    var _score = countToScore(count, block, empty)
+
+    for (var i=start;i<=end;i++) {
+      b.scoreCache[role][0][px][i] = _score
+    }
   }
   result += b.scoreCache[role][0][px][py]
 
@@ -114,6 +124,8 @@ var s = function(b, px, py, role, dir) {
       }
     }
 
+    end = i-1
+
     for(var i=px-1;true;i--) {
       if(i<0) {
         block ++
@@ -138,9 +150,14 @@ var s = function(b, px, py, role, dir) {
       }
     }
 
+    start=i+1
+
     count += secondCount
 
-    b.scoreCache[role][1][px][py] = countToScore(count, block, empty)
+    var _score = countToScore(count, block, empty)
+    for (var i=start;i<=end;i++) {
+      b.scoreCache[role][1][i][py] =_score 
+    }
   } 
   result += b.scoreCache[role][1][px][py]
 
@@ -173,6 +190,8 @@ var s = function(b, px, py, role, dir) {
       }
     }
 
+    end = i-1
+
     for(var i=1;true;i++) {
       var x = px-i, y = py-i
       if(x<0||y<0) {
@@ -198,9 +217,14 @@ var s = function(b, px, py, role, dir) {
       }
     }
 
+    start = -i+1
+
     count+= secondCount
 
-    b.scoreCache[role][2][px][py] = countToScore(count, block, empty)
+    var _score = countToScore(count, block, empty)
+    for (var i=start;i<=end;i++) {
+      b.scoreCache[role][2][px+i][py+i] = _score
+    }
   }
   result += b.scoreCache[role][2][px][py]
 
@@ -233,6 +257,8 @@ var s = function(b, px, py, role, dir) {
       }
     }
 
+    start = i-1
+
     for(var i=1;true;i++) {
       var x = px-i, y = py+i
       if(x<0||y<0||x>=len||y>=len) {
@@ -258,9 +284,14 @@ var s = function(b, px, py, role, dir) {
       }
     }
 
+    end=-i+1
+
     count += secondCount
 
-    b.scoreCache[role][3][px][py] = countToScore(count, block, empty)
+    var _score = countToScore(count, block, empty)
+    for (var i=start;i<=end;i++) {
+      b.scoreCache[role][3][px+i][py-i] = _score
+    }
   }
   result += b.scoreCache[role][3][px][py]
 
