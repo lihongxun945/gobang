@@ -295,6 +295,27 @@ var s = function(b, px, py, role, dir) {
   }
   result += b.scoreCache[role][3][px][py]
 
+  var scores = role === R.com ? b.comScore : b.humScore
+
+  if (dir === 0) {
+    for (var i=start;i<=end;i++) {
+      scores[px][i] = result
+    }
+  } else if (dir === 1) {
+    for (var i=start;i<=end;i++) {
+      scores[i][py] = result
+    }
+  } else if (dir === 2) {
+    for (var i=start;i<=end;i++) {
+      scores[px+i][py+i] = result
+    }
+  } else if (dir === 3) {
+    for (var i=start;i<=end;i++) {
+      scores[px+i][py-i] = result
+    }
+  }
+
+
   return result
 }
 
