@@ -104,18 +104,18 @@ class Board {
       for(var j=0;j<board[i].length;j++) {
         // 空位，对双方都打分
         if(board[i][j] == R.empty) {
-          if(this.hasNeighbor([i, j], 2, 2)) { //必须是有邻居的才行
-            var cs = scorePoint(this, [i, j], R.com)
-            var hs = scorePoint(this, [i, j], R.hum)
+          if(this.hasNeighbor(i, j, 2, 2)) { //必须是有邻居的才行
+            var cs = scorePoint(this, i, j, R.com)
+            var hs = scorePoint(this, i, j, R.hum)
             this.comScore[i][j] = cs
             this.humScore[i][j] = hs
           }
 
         } else if (board[i][j] == R.com) { // 对电脑打分，玩家此位置分数为0
-          this.comScore[i][j] = scorePoint(this, [i, j], R.com)
+          this.comScore[i][j] = scorePoint(this, i, j, R.com)
           this.humScore[i][j] = 0
         } else if (board[i][j] == R.hum) { // 对玩家打分，电脑位置分数为0
-          this.humScore[i][j] = scorePoint(this, [i, j], R.hum)
+          this.humScore[i][j] = scorePoint(this, i, j, R.hum)
           this.comScore[i][j] = 0
         }
       }
@@ -125,7 +125,7 @@ class Board {
   //只更新一个点附近的分数
   // 参见 evaluate point 中的代码，为了优化性能，在更新分数的时候可以指定只更新某一个方向的分数
   updateScore (p) {
-    var radius = 6,
+    var radius = 4,
         board = this.board,
         self = this,
         len = this.board.length
@@ -133,12 +133,12 @@ class Board {
     function update(x, y, dir) {
       var role = self.board[x][y]
       if (role !== R.reverse(R.com)) {
-        var cs = scorePoint(self, [x, y], R.com, dir)
+        var cs = scorePoint(self, x, y, R.com, dir)
         self.comScore[x][y] = cs
         statistic.table[x][y] += cs
       } else self.comScore[x][y] = 0
       if (role !== R.reverse(R.hum)) {
-        var hs = scorePoint(self, [x, y], R.hum, dir)
+        var hs = scorePoint(self, x, y, R.hum, dir)
         self.humScore[x][y] = hs
         statistic.table[x][y] += hs
       } else self.humScore[x][y] = 0
@@ -146,7 +146,7 @@ class Board {
     }
     // 无论是不是空位 都需要更新
     // -
-    for(var i=-radius;i<radius;i++) {
+    for(var i=-radius;i<=radius;i++) {
       var x = p[0], y = p[1]+i
       if(y<0) continue
       if(y>=len) break
@@ -154,7 +154,7 @@ class Board {
     }
 
     // |
-    for(var i=-radius;i<radius;i++) {
+    for(var i=-radius;i<=radius;i++) {
       var x = p[0]+i, y = p[1]
       if(x<0) continue
       if(x>=len) break
@@ -162,7 +162,7 @@ class Board {
     }
 
     // \
-    for(var i=-radius;i<radius;i++) {
+    for(var i=-radius;i<=radius;i++) {
       var x = p[0]+i, y = p[1]+i
       if(x<0 || y<0) continue
       if(x>=len || y>=len) break
@@ -170,7 +170,7 @@ class Board {
     }
 
     // /
-    for(var i=-radius;i<radius;i++) {
+    for(var i=-radius;i<=radius;i++) {
       var x = p[0]+i, y = p[1]-i
       if(x<0 || y<0) continue
       if(x>=len || y>=len) continue
@@ -340,72 +340,74 @@ class Board {
 
     for(var i=0;i<board.length;i++) {
       for(var j=0;j<board.length;j++) {
-        var p = [i, j]
         if(board[i][j] == R.empty) {
-          var neighbor = [2,2]
-          if(this.allSteps.length < 6) neighbor = [1, 1]
-          if(this.hasNeighbor([i, j], neighbor[0], neighbor[1])) { //必须是有邻居的才行
 
-            var scoreHum = p.scoreHum = this.humScore[i][j]
-            var scoreCom = p.scoreCom = this.comScore[i][j]
-            var maxScore = Math.max(scoreCom, scoreHum)
-            p.score = maxScore
-            p.role = role
+          if(this.allSteps.length < 6) {
+            if( !this.hasNeighbor(i, j, 1, 1)) continue
+          } else if (!this.hasNeighbor(i, j, 2, 2)) continue
 
+          var scoreHum = this.humScore[i][j]
+          var scoreCom = this.comScore[i][j]
+          var maxScore = Math.max(scoreCom, scoreHum)
 
-            total ++
-            /* 双星延伸，以提升性能
-             * 思路：每次下的子，只可能是自己进攻，或者防守对面（也就是对面进攻点）
-             * 我们假定任何时候，绝大多数情况下进攻的路线都可以按次序连城一条折线，那么每次每一个子，一定都是在上一个己方棋子的八个方向之一。
-             * 因为既可能自己进攻，也可能防守对面，所以是最后两个子的米子方向上
-             * 那么极少数情况，进攻路线无法连成一条折线呢?很简单，我们对前双方两步不作star限制就好，这样可以 兼容一条折线中间伸出一段的情况
-             */
-            if (starSpread && config.star) {
-              var roleScore = role === R.com ? p.scoreCom : p.scoreHum
-              var deRoleScore = role === R.com ? p.scoreHum: p.scoreCom
+          if (onlyThrees && maxScore < S.THREE) continue
 
-              if (maxScore >= S.FOUR) {
-              } else if (maxScore >= S.BLOCKED_FOUR && starTo(this.currentSteps[this.currentSteps.length-1]) ) {
-                //star 路径不是很准，所以考虑冲四防守对手最后一步的棋
-              } else if (
-                starTo(p, attackPoints) || starTo(p, defendPoints) 
-              ) {
-              } else {
-                count ++
-                continue
-              }
-            }
+          var p = [i, j]
+          p.scoreHum = scoreHum
+          p.scoreCom = scoreCom
+          p.score = maxScore
+          p.role = role
 
-            if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
-              fives.push(p)
-            } else if(scoreHum >= S.FIVE) {//再看玩家能不能连成5
-              //别急着返回，因为遍历还没完成，说不定电脑自己能成五。
-              fives.push(p)
-            } else if(scoreCom >= S.FOUR) {
-              comfours.push(p)
-            } else if(scoreHum >= S.FOUR) {
-              humfours.push(p)
-            } else if(scoreCom >= S.BLOCKED_FOUR) {
-              comblockedfours.push(p)
-            } else if(scoreHum >= S.BLOCKED_FOUR) {
-              humblockedfours.push(p)
-            } else if(scoreCom >= 2*S.THREE) {
-              //能成双三也行
-              comtwothrees.push(p)
-            } else if(scoreHum >= 2*S.THREE) {
-              humtwothrees.push(p)
-            } else if(scoreCom >= S.THREE) {
-              comthrees.push(p)
-            } else if(scoreHum >= S.THREE) {
-              humthrees.push(p)
-            } else if(scoreCom >= S.TWO) {
-              comtwos.unshift(p)
-            } else if(scoreHum >= S.TWO) {
-              humtwos.unshift(p)
+          total ++
+          /* 双星延伸，以提升性能
+           * 思路：每次下的子，只可能是自己进攻，或者防守对面（也就是对面进攻点）
+           * 我们假定任何时候，绝大多数情况下进攻的路线都可以按次序连城一条折线，那么每次每一个子，一定都是在上一个己方棋子的八个方向之一。
+           * 因为既可能自己进攻，也可能防守对面，所以是最后两个子的米子方向上
+           * 那么极少数情况，进攻路线无法连成一条折线呢?很简单，我们对前双方两步不作star限制就好，这样可以 兼容一条折线中间伸出一段的情况
+           */
+          if (starSpread && config.star) {
+            var roleScore = role === R.com ? p.scoreCom : p.scoreHum
+            var deRoleScore = role === R.com ? p.scoreHum: p.scoreCom
+
+            if (maxScore >= S.FOUR) {
+            } else if (maxScore >= S.BLOCKED_FOUR && starTo(this.currentSteps[this.currentSteps.length-1]) ) {
+              //star 路径不是很准，所以考虑冲四防守对手最后一步的棋
+            } else if (
+              starTo(p, attackPoints) || starTo(p, defendPoints) 
+            ) {
             } else {
-              neighbors.push(p)
+              count ++
+              continue
             }
           }
+
+          if(scoreCom >= S.FIVE) {//先看电脑能不能连成5
+            fives.push(p)
+          } else if(scoreHum >= S.FIVE) {//再看玩家能不能连成5
+            //别急着返回，因为遍历还没完成，说不定电脑自己能成五。
+            fives.push(p)
+          } else if(scoreCom >= S.FOUR) {
+            comfours.push(p)
+          } else if(scoreHum >= S.FOUR) {
+            humfours.push(p)
+          } else if(scoreCom >= S.BLOCKED_FOUR) {
+            comblockedfours.push(p)
+          } else if(scoreHum >= S.BLOCKED_FOUR) {
+            humblockedfours.push(p)
+          } else if(scoreCom >= 2*S.THREE) {
+            //能成双三也行
+            comtwothrees.push(p)
+          } else if(scoreHum >= 2*S.THREE) {
+            humtwothrees.push(p)
+          } else if(scoreCom >= S.THREE) {
+            comthrees.push(p)
+          } else if(scoreHum >= S.THREE) {
+            humthrees.push(p)
+          } else if(scoreCom >= S.TWO) {
+            comtwos.unshift(p)
+          } else if(scoreHum >= S.TWO) {
+            humtwos.unshift(p)
+          } else neighbors.push(p)
         }
       }
     }
@@ -476,18 +478,18 @@ class Board {
     return result
   }
 
-  hasNeighbor (point, distance, count) {
+  hasNeighbor (x, y, distance, count) {
     var board = this.board
     var len = board.length
-    var startX = point[0]-distance
-    var endX = point[0]+distance
-    var startY = point[1]-distance
-    var endY = point[1]+distance
+    var startX = x-distance
+    var endX = x+distance
+    var startY = y-distance
+    var endY = y+distance
     for(var i=startX;i<=endX;i++) {
       if(i<0||i>=len) continue
       for(var j=startY;j<=endY;j++) {
         if(j<0||j>=len) continue
-        if(i==point[0] && j==point[1]) continue
+        if(i==x && j==y) continue
         if(board[i][j] != R.empty) {
           count --
           if(count <= 0) return true
