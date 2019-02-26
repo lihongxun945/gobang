@@ -16,7 +16,7 @@
               <li>
                 源码在这里: <a href="https://github.com/lihongxun945/gobang" target="_blank">lihongxun945/gobang</a>
               </li>
-              <li>有一个手把手的详细教程教你怎么写五子棋AI，版本比较旧，但是仍然值得一看 <a href="https://blog.csdn.net/lihongxun945/article/category/6089493">五子棋AI算法-言川的博客</a></li>
+              <li>有一个手把手的详细教程教你怎么写五子棋AI，涵盖了五子棋AI开发的各个知识点  <a href="https://github.com/lihongxun945/myblog">五子棋AI算法</a></li>
             </ul>
           </p>
         </section>
