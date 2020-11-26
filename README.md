@@ -1,6 +1,7 @@
 # 五子棋AI
 
 ***网站已修复，可以愉快玩耍了***
+
 ![截图](./images/ss.png)
 
 极大极小值算法的五子棋AI实现。 打开此页面可以直接体验 [http://gobang.light7.cn/](http://gobang.light7.cn/)
