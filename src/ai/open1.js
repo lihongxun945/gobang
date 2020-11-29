@@ -16,4 +16,4 @@ const board = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ]
 
-module.exports = board;
+export default board;

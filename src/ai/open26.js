@@ -170,4 +170,4 @@ open26.huiyue = getBoard()
 open26.huiyue[9][5] = 1
 open26.huiyue.name = '慧月'
 
-module.exports = open26
+export default open26
