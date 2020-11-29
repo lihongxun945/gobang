@@ -5,22 +5,32 @@ import config from "./config.js"
 import board from "./board.js"
 import opening from './opening.js'
 import open26 from './open26.js'
+import open1 from './open1.js'
 
 class AI {
 
   //初始化,开始游戏
-  start (random) {
-    if (random) {
-      const names = []
-      for (var k in open26) {
-        names.push(k)
-      }
-      const n = names[parseInt(Math.random()*26)]
-      const o = open26[n]
-      board.init(open26[n])
-      return {
-        board: o,
-        name: o.name
+  // first 是否电脑先手
+  // randomOpening 是否随机开局库，不随机的话电脑会直接下中间
+  start (first, randomOpening) {
+    if (first) {
+      if (randomOpening) {
+        const names = []
+        for (var k in open26) {
+          names.push(k)
+        }
+        const n = names[parseInt(Math.random()*26)]
+        const o = open26[n]
+        board.init(open26[n])
+        return {
+          board: o,
+          name: o.name
+        }
+      } else {
+        board.init(open1);
+        return {
+          board: open1
+        }
       }
     } else {
       board.init(15)

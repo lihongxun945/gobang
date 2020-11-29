@@ -5,6 +5,7 @@ export const SET_SHOW_STEPS = "SET_SHOW_STEPS"
 
 export const SET_STATUS = 'SET_STATUS'
 export const SET_FIRST = 'SET_FIRST'
+export const SET_RANDOM = 'SET_RANDOM'
 
 // Board
 export const SET_BOARD = 'SET_BOARD'

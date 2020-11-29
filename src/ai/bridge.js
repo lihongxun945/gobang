@@ -9,7 +9,7 @@ self.onmessage = function(e) {
   console.log('get message: ')
   console.log(d)
   if(d.type == "START") {
-    const open = ai.start(d.random)
+    const open = ai.start(d.first, d.randomOpening)
     postMessage({
       type: 'board',
       data: open

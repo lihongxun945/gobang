@@ -85,8 +85,8 @@ export default {
               if (r === 2) second = { position: [i,j], role: 2 }
             }
           }
-          steps.push(second)
-          steps.push(third)
+          second && steps.push(second)
+          third && steps.push(third)
           this.$store.dispatch(SET_STEPS, steps)
           this.showBigText(b.name)
         }
@@ -153,7 +153,8 @@ export default {
       this.showBigText('START!', () => {
         this.worker.postMessage({
           type: "START",
-          random: first === 1
+          first: first === 1,
+          randomOpening: this.randomOpening
         });
       //if (first === 1 && !this.randomOpening) {
       //  this.worker.postMessage({

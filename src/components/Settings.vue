@@ -22,6 +22,14 @@
           <input class="weui-switch" type="checkbox" style="float:right" :checked="spread" @input="setSpread">
         </div>
       </div>
+      <div class="weui-cell weui-cell_switch">
+        <div class="weui-cell__hd">
+          <label for="" class="weui-label">{{$t('random')}}:</label>
+        </div>
+        <div class="weui-cell__bd">
+          <input class="weui-switch" type="checkbox" style="float:right" :checked="spread" @input="setRandom">
+        </div>
+      </div>
       <div class="weui-cell weui-cell_select weui-cell_select-after">
         <div class="weui-cell__hd">
           <label for="" class="weui-label">{{$t('lang')}}:</label>
@@ -54,7 +62,7 @@
 
 <script>
 import { mapState } from 'vuex'
-import { SET_DEEP, SET_LANG, SET_SHOW_STEPS, SET_SPREAD } from '@/store/mutations.js'
+import { SET_DEEP, SET_LANG, SET_SHOW_STEPS, SET_SPREAD, SET_RANDOM } from '@/store/mutations.js'
 import i18n from '../i18n/index.js'
 
 export default {
@@ -88,6 +96,10 @@ export default {
     setSpread (e) {
       let value = e.target.checked
       this.$store.dispatch(SET_SPREAD, value)
+    },
+    setRandom(e) {
+      let value = e.target.checked
+      this.$store.dispatch(SET_RANDOM, value)
     }
   }
 }

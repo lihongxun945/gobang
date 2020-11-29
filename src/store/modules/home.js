@@ -4,19 +4,20 @@ import {
   SET_SHOW_STEPS,
   SET_STATUS,
   SET_FIRST,
-  SET_SPREAD
+  SET_SPREAD,
+  SET_RANDOM
 } from '../mutations.js'
 
 import * as status from '@/status'
 
 const state = {
-  lang: 'en',
+  lang: 'zh',
   deep: 8,
   showSteps: true,
   spread: true,
   status: status.LOADING,
   first: 1,
-  randomOpening: true,
+  randomOpening: false,
   deepList: [{
     value: 4,
     title: 'idiot'
@@ -58,6 +59,9 @@ const mutations = {
   },
   [SET_FIRST] (state, first) {
     state.first = first
+  },
+  [SET_RANDOM] (state, random) {
+    state.randomOpening = random
   }
 }
 
@@ -79,9 +83,10 @@ const actions = {
   },
   [SET_FIRST] ({commit}, first) {
     commit(SET_FIRST, first)
+  },
+  [SET_RANDOM] ({commit}, s) {
+    commit(SET_RANDOM, s)
   }
-
-
 }
 
 export default {

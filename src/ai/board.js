@@ -44,6 +44,7 @@ var starTo = function (point, points) {
 class Board {
 
   init (sizeOrBoard) {
+    console.log('initboard')
     this.evaluateCache = {}
     this.currentSteps = [] // 当前一次思考的步骤
     this.allSteps = []

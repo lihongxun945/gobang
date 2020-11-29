@@ -22,6 +22,7 @@ const messages = {
     'backward': 'BWD',
     'show steps': 'Show Steps',
     'step spread': 'Step Spread',
+    'random': 'Random Opening',
     'home': 'Home',
     'about': 'About',
     'status': {
@@ -59,6 +60,7 @@ const messages = {
     'backward': '后退',
     'show steps': '显示序号',
     'step spread': '单步延伸',
+    'random': '随机开局',
     'home': '首页',
     'about': '关于',
     'status': {
