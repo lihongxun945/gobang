@@ -217,7 +217,7 @@ var s = function(b, px, py, role, dir) {
       }
       var t = board[x][y]
       if(t === R.empty) {
-        if(empty == -1 && (x<len-1 && y<len-1) && board[x+1][y-1] == role) {
+        if(empty == -1 && (x<len-1 && y>0) && board[x+1][y-1] == role) {
           empty = count
           continue
         } else {
@@ -241,7 +241,7 @@ var s = function(b, px, py, role, dir) {
       }
       var t = board[x][y]
       if(t === R.empty) {
-        if(empty == -1 && (x>0 && y>0) && board[x-1][y+1] == role) {
+        if(empty == -1 && (x>0 && y<len-1) && board[x-1][y+1] == role) {
           empty = 0
           continue
         } else {
