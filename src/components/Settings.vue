@@ -27,7 +27,7 @@
           <label for="" class="weui-label">{{$t('random')}}:</label>
         </div>
         <div class="weui-cell__bd">
-          <input class="weui-switch" type="checkbox" style="float:right" :checked="spread" @input="setRandom">
+          <input class="weui-switch" type="checkbox" style="float:right" :checked="randomOpening" @input="setRandom">
         </div>
       </div>
       <div class="weui-cell weui-cell_select weui-cell_select-after">
@@ -76,7 +76,8 @@ export default {
       deep: state => state.home.deep,
       deepList: state => state.home.deepList,
       showSteps: state => state.home.showSteps,
-      spread: state => state.home.spread
+      spread: state => state.home.spread,
+      randomOpening: state => state.home.randomOpening
     })
   },
   methods: {
