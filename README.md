@@ -7,7 +7,7 @@
 ![二维码](./images/gobang.png)
 
 极大极小值算法的五子棋AI实现。 扫描上方二维码，或者打开此页面可以直接体验 [http://gobang.light7.cn/](http://gobang.light7.cn/)
-
+备用地址 [http://8.136.130.62/#/](http://8.136.130.62/#/)
 
 ![截图](./images/ss.png)
 
