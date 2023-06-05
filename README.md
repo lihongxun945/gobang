@@ -1,6 +1,6 @@
 ## 五子棋AI
 
-基于Alpha Zero原理的 [alpha-zero-gobang] 正在开发中，Tensorflow2.x实现，有兴趣的可以关注交流。
+基于Alpha Zero原理的 [alpha-zero-gobang](https://github.com/lihongxun945/alpha-zero-gobang) 正在开发中，Tensorflow2.x实现，有兴趣的可以关注交流。
 
 ***本仓库代码仅供个人业余研究AI用，代码有很多不完善的地方，精力和专业所限请谅解***
 
