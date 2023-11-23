@@ -12,6 +12,8 @@
 
 如果你对机器学习、神经网络有兴趣，这里有一个基于Alpha Zero原理的AI [alpha-zero-gobang](https://github.com/lihongxun945/alpha-zero-gobang) 正在开发中，Tensorflow2.x实现，有兴趣的可以关注交流。
 
+需要交流的同学可以加QQ群 `622613966`,进群验证信息请填写 `gobang`
+
 ## 更新日志
 
 - 2023/11/23 更新：V3版本重写了所有代码，现在代码更加简洁易懂，并修复了之前存在的AI可能会偶尔走错棋的问题，棋力更加稳定。
