@@ -1,34 +1,38 @@
-import R from "./role.js"
-import Random from "random-js"
-
-var Zobrist = function(size) {
-  this.size = size || 15;
-}
-
-Zobrist.prototype.init = function() {
-  this.com = [];
-  this.hum = [];
-  for(var i=0;i<this.size*this.size;i++) {
-    this.com.push(this._rand());
-    this.hum.push(this._rand());
+/* global BigInt */
+export default class ZobristCache {
+  constructor(size) {
+    this.size = size;
+    this.zobristTable = this.initializeZobristTable(size);
+    this.hash = BigInt(0);
   }
 
-  this.code = this._rand();
+  initializeZobristTable(size) {
+    let table = [];
+    for (let i = 0; i < size; i++) {
+      table[i] = [];
+      for (let j = 0; j < size; j++) {
+        table[i][j] = {
+          "1": BigInt(this.randomBitString(64)), // black
+          "-1": BigInt(this.randomBitString(64))  // white
+        };
+      }
+    }
+    return table;
+  }
+
+  randomBitString(length) {
+    let str = "0b";
+    for (let i = 0; i < length; i++) {
+      str += Math.round(Math.random()).toString();
+    }
+    return str;
+  }
+
+  togglePiece(x, y, role) {
+    this.hash ^= this.zobristTable[x][y][role];
+  }
+
+  getHash() {
+    return this.hash;
+  }
 }
-
-var engine = Random.engines.mt19937().autoSeed()
-
-Zobrist.prototype._rand = function() {
-  return Random.integer(1, 1000000000)(engine);  //再多一位就溢出了。。
-}
-
-Zobrist.prototype.go = function(x, y, role) {
-  var index = this.size * x + y;
-  this.code ^= (role == R.com ? this.com[index] : this.hum[index]);
-  return this.code;
-}
-
-var z = new Zobrist();
-z.init();
-
-export default z;

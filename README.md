@@ -1,18 +1,19 @@
 ## 五子棋AI
 
-基于Alpha Zero原理的 [alpha-zero-gobang](https://github.com/lihongxun945/alpha-zero-gobang) 正在开发中，Tensorflow2.x实现，有兴趣的可以关注交流。
+***本仓库代码仅供个人业余研究AI用，代码肯定存在有很多不完善的地方，精力和专业所限请谅解***
 
-***本仓库代码仅供个人业余研究AI用，代码有很多不完善的地方，精力和专业所限请谅解***
+![二维码](./images/gobang2.png)
 
-***2020/11/29 更新，修复了评分的明显bug，随机开局库可配置，网站已修复，可以愉快玩耍了***
-
-![二维码](./images/gobang.png)
-
-极大极小值算法的五子棋AI实现。 扫描上方二维码，或者打开此页面可以直接体验 [http://gobang.light7.cn/](http://gobang.light7.cn/)
-备用地址 [http://8.136.130.62/#/](http://8.136.130.62/#/)
+极小化极大算法的五子棋AI实现。 扫描上方二维码，或者打开此页面可以直接体验 [http://gobang2.light7.cn/](http://gobang2.light7.cn/)
 
 ![截图](./images/ss.png)
 
+如果你对机器学习、神经网络有兴趣，这里有一个基于Alpha Zero原理的AI [alpha-zero-gobang](https://github.com/lihongxun945/alpha-zero-gobang) 正在开发中，Tensorflow2.x实现，有兴趣的可以关注交流。
+
+## 更新日志
+
+- 2023/11/23 更新：V3版本重写了所有代码，现在代码更加简洁易懂，并修复了之前存在的AI可能会偶尔走错棋的问题，棋力更加稳定。
+- 2020/11/29 更新: 修复了评分的明显bug，随机开局库可配置，网站已修复，可以愉快玩耍了
 
 ## 教程
 我写了非常详细的中文教程，教你如何一步步编写自己的五子棋AI：
@@ -26,6 +27,8 @@
 - [五子棋AI设计教程第二版七：Zobrist缓存](https://github.com/lihongxun945/myblog/issues/17)
 - [五子棋AI设计教程第二版八：算杀](https://github.com/lihongxun945/myblog/issues/18)
 - [五子棋AI设计教程第二版九：性能优化](https://github.com/lihongxun945/myblog/issues/19)
+
+注意教程中的代码与代码仓库的有一定区别，但原理是一样的。
 
 
 ## 安装依赖
@@ -45,4 +48,5 @@
 - 启发式评估函数
 - Zobrist缓存
 - 迭代加深
+- 算杀 VCT
 - ...

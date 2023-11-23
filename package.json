@@ -1,65 +1,47 @@
 {
-  "name": "gobang-v2",
-  "version": "0.1.0",
+  "name": "gobang-v3",
+  "version": "3.0.0-beta.1",
   "private": true,
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "test": "vue-cli-service test:unit"
-  },
   "dependencies": {
-    "register-service-worker": "^1.0.0",
-    "vue": "^2.5.16",
-    "vue-router": "^3.0.1",
-    "vuex": "^3.0.1"
+    "@reduxjs/toolkit": "^1.9.5",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "antd": "^5.8.3",
+    "axios": "^1.4.0",
+    "lodash": "^4.17.21",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.1.2",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
   },
-  "devDependencies": {
-    "@vue/cli-plugin-babel": "^3.0.0-beta.15",
-    "@vue/cli-plugin-eslint": "^3.0.0-beta.15",
-    "@vue/cli-plugin-pwa": "^3.0.0-beta.15",
-    "@vue/cli-plugin-unit-mocha": "^3.0.0-beta.15",
-    "@vue/cli-service": "^3.0.0-beta.15",
-    "@vue/test-utils": "^1.0.0-beta.16",
-    "chai": "^4.1.2",
-    "deepcopy": "^1.0.0",
-    "html-webpack-exclude-assets-plugin": "0.0.7",
-    "less": "^3.0.4",
-    "less-loader": "^4.1.0",
-    "node-sass": "^4.9.0",
-    "random-js": "^1.0.8",
-    "sass-loader": "^7.0.1",
-    "vue-i18n": "^7.8.1",
-    "vue-template-compiler": "^2.5.16",
-    "vux": "^2.9.2",
-    "vux-loader": "^1.2.9",
-    "weui": "^1.1.2",
-    "yaml-loader": "^0.5.0"
+  "scripts": {
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject"
   },
   "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
     "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
     ],
-    "rules": {
-      "no-console": "off"
-    },
-    "parserOptions": {
-      "parser": "babel-eslint"
-    }
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
-  "postcss": {
-    "plugins": {
-      "autoprefixer": {}
-    }
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8"
-  ]
+  "devDependencies": {
+    "react-app-rewired": "^2.2.1",
+    "worker-loader": "^3.0.8"
+  }
 }

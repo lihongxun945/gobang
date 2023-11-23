@@ -1,0 +1,85 @@
+.board {
+  display: flex;
+  margin: 10px auto;
+  flex-direction: column;
+  position: relative;
+  height: 375px;
+  width: 375px;
+  max-width: 600px;
+  max-height: 600px;
+  background-size: cover;
+}
+
+.board-row {
+  display: flex;
+}
+
+.cell {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cell::before,
+.cell::after {
+  content: "";
+  position: absolute;
+  background: #000;
+}
+
+.cell::before {
+  left: 50%;
+  height: 100%;
+  width: 1px;
+}
+
+.cell::after {
+  top: 50%;
+  width: 100%;
+  height: 1px;
+}
+
+.cell.top::before {
+  top: 50%;
+}
+.cell.bottom::before {
+  bottom: 50%;
+}
+.cell.left::after {
+  left: 50%;
+}
+.cell.right::after {
+  right: 50%;
+}
+
+
+.piece {
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  position: relative;
+  z-index: 10;
+  font-size: 13px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.piece.black {
+  background: #000;
+  color: white;
+}
+
+.piece.white {
+  background: #fff;
+  color: black;
+}
+
+.last {
+  width: 80%;
+  height: 80%;
+  border: 1px solid red;
+  z-index: 100;
+  position: absolute;
+}
