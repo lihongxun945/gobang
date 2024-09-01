@@ -6,7 +6,7 @@
 
 ![二维码](./images/gobang2.png)
 
-极小化极大算法的五子棋AI实现。 扫描上方二维码，或者打开此页面可以直接体验 [http://gobang2.light7.cn/](http://gobang2.light7.cn/)
+极小化极大算法的五子棋AI实现。 扫描上方二维码，或者打开此页面可以直接体验 [https://gobang2.light7.cn/](https://gobang2.light7.cn/) 如果 `http` 协议无法打开，可以用这个http的链接 [http://gobang2.light7.cn/](http://gobang2.light7.cn/)
 
 ![截图](./images/ss.png)
 
