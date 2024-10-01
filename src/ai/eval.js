@@ -464,7 +464,7 @@ export default class Evaluate {
     const blockthrees = points[shapes.BLOCK_THREE];
     const two_twos = points[shapes.TWO_TWO];
     const twos = points[shapes.TWO];
-    const res = new Set([...blockfours, ...threes, ...blockthrees, ...two_twos, ...twos].slice(0, 20));
+    const res = new Set([...blockfours, ...threes, ...blockthrees, ...two_twos, ...twos].slice(0, config.pointsLimit));
     return res;
   }
   display() {

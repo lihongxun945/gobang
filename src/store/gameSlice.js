@@ -41,6 +41,7 @@ const initialState = {
   score: 0,
   path: [],
   currentDepth: 0,
+  debug: false, // 显示调试面板
 };
 
 export const gameSlice = createSlice({
@@ -64,6 +65,9 @@ export const gameSlice = createSlice({
     },
     setIndex: (state, action) => {
       state.index = action.payload;
+    },
+    setDebug: (state, action) => {
+      state.debug = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -113,10 +117,21 @@ export const gameSlice = createSlice({
         state.currentDepth = action.payload.currentDepth;
         state.loading = false;
       })
-      .addCase(endGame.fulfilled, () => {
-        return initialState;
+      .addCase(endGame.fulfilled, (state) => {
+        state.board = initialState.board;
+        state.currentPlayer = initialState.currentPlayer;
+        state.winner = initialState.winner;
+        state.history = initialState.history;
+        state.status = initialState.status;
+        state.sessionId = initialState.sessionId;
+        state.size = initialState.size;
+        state.loading = initialState.loading;
+        state.depth = initialState.depth;
+        state.score = initialState.score;
+        state.path = initialState.path;
+        state.currentDepth = initialState.currentDepth;
       });
   },
 });
-export const { tempMove, setAiFirst, setDepth, setIndex } = gameSlice.actions;
+export const { tempMove, setAiFirst, setDepth, setIndex, setDebug } = gameSlice.actions;
 export default gameSlice.reducer;

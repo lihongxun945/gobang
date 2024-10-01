@@ -82,7 +82,12 @@ const Board = () => {
             )
           })}
         </div>
-      ))}
+      ))} 
+      {
+        loading && <div className="loading">
+          <div className="loading-text">AI思考中...</div>
+        </div>
+      }
     </div>
   );
 };

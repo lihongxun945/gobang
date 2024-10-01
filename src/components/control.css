@@ -2,7 +2,14 @@
   margin: 0 10px;
 }
 .setting {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   margin: 10px 0;
+}
+.setting-row {
+  margin-bottom: 5px;
   display: flex;
   flex-direction: row;
   align-items: center;

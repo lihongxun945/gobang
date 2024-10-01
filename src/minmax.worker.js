@@ -61,7 +61,6 @@ export const start = (board_size, aiFirst = true, depth = 4) => {
 };
 
 export const move = (position, depth) => {
-  console.log('move', board_size, depth);
   try {
     board.put(position[0], position[1]);
   } catch (e) {
