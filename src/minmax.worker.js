@@ -1,5 +1,5 @@
 import Board from './ai/board';
-import { minmax } from './ai/minmax';
+import { minmax } from './ai/candidate/minmax';
 import { board_size } from './config';
 
 // @ts-ignore

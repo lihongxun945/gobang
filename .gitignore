@@ -1,6 +1,9 @@
 .DS_Store
 node_modules
 /dist
+/build
+/.ai-build
+*.orig
 
 # local env files
 .env.local
