@@ -2,6 +2,8 @@ import Zobrist from './zobrist';
 import Cache from './cache';
 // import { evaluate } from './evaluate';
 import Evaluate, { FIVE } from './eval';
+const WIN_DIRECTIONS = [[1, 0], [0, 1], [1, 1], [1, -1]];
+const WIN_SIGNS = [-1, 1];
 
 class Board {
   constructor(size = 15, firstRole = 1) {
@@ -10,6 +12,8 @@ class Board {
     this.firstRole = firstRole;  // 1 for black, -1 for white
     this.role = firstRole;  // 1 for black, -1 for white
     this.history = [];
+    this.emptyCount = size * size;
+    this.winner = 0;
     this.zobrist = new Zobrist(this.size);
     this.winnerCache = new Cache();
     this.gameoverCache = new Cache();
@@ -20,58 +24,30 @@ class Board {
   }
 
   isGameOver() {
-    const hash = this.hash();
-    if (this.gameoverCache.get(hash)) {
-      return this.gameoverCache.get(hash);
-    }
-    if (this.getWinner() !== 0) {
-      this.gameoverCache.put(hash, true);
-      return true;  // Someone has won
-    }
-    // Game is over when there is no empty space on the board or someone has won
-    for (let i = 0; i < this.size; i++) {
-      for (let j = 0; j < this.size; j++) {
-        if (this.board[i][j] === 0) {
-          this.gameoverCache.put(hash, false);
-          return false;
-        }
-      }
-    }
-    this.gameoverCache.put(hash, true);
-    return true;
+    return this.winner !== 0 || this.emptyCount === 0;
   }
 
   getWinner() {
-    const hash = this.hash();
-    if (this.winnerCache.get(hash)) {
-      return this.winnerCache.get(hash);
-    }
-    let directions = [[1, 0], [0, 1], [1, 1], [1, -1]];  // Horizontal, Vertical, Diagonal
-    for (let i = 0; i < this.size; i++) {
-      for (let j = 0; j < this.size; j++) {
-        if (this.board[i][j] === 0) continue;
-        for (let direction of directions) {
-          let count = 0;
-          while (
-            i + direction[0] * count >= 0 &&
-            i + direction[0] * count < this.size &&
-            j + direction[1] * count >= 0 &&
-            j + direction[1] * count < this.size &&
-            this.board[i + direction[0] * count][j + direction[1] * count] === this.board[i][j]
-          ) {
-            count++;
-          }
-          if (count >= 5) {
-            this.winnerCache.put(hash, this.board[i][j]);
-            return this.board[i][j];
-          }
-        }
-      }
-    }
-    this.winnerCache.put(hash, 0);
-    return 0;
+    return this.winner;
   }
 
+  hasFiveAt(i, j, role) {
+    for (let direction = 0; direction < WIN_DIRECTIONS.length; direction += 1) {
+      const [di, dj] = WIN_DIRECTIONS[direction];
+      let count = 1;
+      for (let side = 0; side < WIN_SIGNS.length; side += 1) {
+        const sign = WIN_SIGNS[side];
+        for (let step = 1; step < 5; step += 1) {
+          const x = i + sign * step * di;
+          const y = j + sign * step * dj;
+          if (x < 0 || x >= this.size || y < 0 || y >= this.size || this.board[x][y] !== role) break;
+          count += 1;
+        }
+      }
+      if (count >= 5) return true;
+    }
+    return false;
+  }
 
   getValidMoves() {
     let moves = [];
@@ -101,6 +77,8 @@ class Board {
     this.history.push({ i, j, role });
     this.zobrist.togglePiece(i, j, role);
     this.evaluator.move(i, j, role);
+    this.emptyCount -= 1;
+    this.winner = this.hasFiveAt(i, j, role) ? role : 0;
     this.role *= -1;  // Switch role
     return true;
   }
@@ -116,6 +94,8 @@ class Board {
     this.role = lastMove.role;  // Switch back to the previous player
     this.zobrist.togglePiece(lastMove.i, lastMove.j, lastMove.role);
     this.evaluator.undo(lastMove.i, lastMove.j);
+    this.emptyCount += 1;
+    this.winner = 0;
     return true;
   }
 

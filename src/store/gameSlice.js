@@ -9,7 +9,7 @@ export const startGame = createAsyncThunk('game/start', async ({ board_size, aiF
   return data;
 });
 
-export const movePiece = createAsyncThunk('game/move', async ({ position, depth = 4 }) => {
+export const movePiece = createAsyncThunk('game/move', async ({ position, depth = 6 }) => {
   const data = await move(position, depth);
   return data;
 });
@@ -36,7 +36,7 @@ const initialState = {
   sessionId: null,
   size: 15,
   loading: false,
-  depth: 4, // 搜索深度
+  depth: 6, // 搜索深度
   index: false, // 是否显示序号
   score: 0,
   path: [],

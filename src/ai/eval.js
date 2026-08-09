@@ -347,6 +347,7 @@ export default class Evaluate {
     // Temporarily place the piece
     this.board[x + 1][y + 1] = role;
 
+
     let directions = []
     if (direction) {
       directions.push(direction);
@@ -360,43 +361,30 @@ export default class Evaluate {
       shapeCache[direction2index(ox, oy)][x][y] = shapes.NONE;
     }
 
+    for (let [ox, oy] of directions) {
+      const intDirection = direction2index(ox, oy);
+      const [shape] = getShapeFast(this.board, x, y, ox, oy, role);
+      shapeCache[intDirection][x][y] = shape || shapes.NONE;
+    }
+
+    // Point score must be a pure function of the final four direction shapes.
+    // Otherwise partial direction updates make the score depend on move order.
     let score = 0;
     let blockfourCount = 0;
     let threeCount = 0;
     let twoCount = 0;
-    // 再计算已有得分
     for (let intDirection of [0, 1, 2, 3]) {
-      const shape = shapeCache[intDirection][x][y];
-      if (shape > shapes.NONE) {
-        score += getRealShapeScore(shape);
-        if (shape === shapes.BLOCK_FOUR) blockfourCount += 1;
-        if (shape === shapes.THREE) threeCount += 1;
-        if (shape === shapes.TWO) twoCount += 1;
-      }
-    }
-    for (let [ox, oy] of directions) {
-      const intDirection = direction2index(ox, oy);
-      let [shape, selfCount] = getShapeFast(this.board, x, y, ox, oy, role);
+      let shape = shapeCache[intDirection][x][y];
       if (!shape) continue;
-      if (shape) {
-        // 注意只缓存单个的形状，双三等复合形状不要缓存，因为这种缓存起来其实依赖两个形状，太复杂，所以在这里直接根据缓存的单个形状来计算双三等复合形状
-        shapeCache[intDirection][x][y] = shape;
-        if (shape === shapes.BLOCK_FOUR) blockfourCount += 1;
-        if (shape === shapes.THREE) threeCount += 1;
-        if (shape === shapes.TWO) twoCount += 1;
-        if (blockfourCount >= 2) {
-          shape = shapes.FOUR_FOUR;
-        } else if (blockfourCount && threeCount) {
-          shape = shapes.FOUR_THREE;
-        } else if (threeCount >= 2) {
-          shape = shapes.THREE_THREE;
-        } else if (twoCount >= 2) {
-          shape = shapes.TWO_TWO;
-        }
-        score += getRealShapeScore(shape);
-      }
+      if (shape === shapes.BLOCK_FOUR) blockfourCount += 1;
+      else if (shape === shapes.THREE) threeCount += 1;
+      else if (shape === shapes.TWO) twoCount += 1;
+      if (blockfourCount >= 2) shape = shapes.FOUR_FOUR;
+      else if (blockfourCount && threeCount) shape = shapes.FOUR_THREE;
+      else if (threeCount >= 2) shape = shapes.THREE_THREE;
+      else if (twoCount >= 2) shape = shapes.TWO_TWO;
+      score += getRealShapeScore(shape);
     }
-
 
     this.board[x + 1][y + 1] = 0;  // Remove the temporary piece
 
@@ -413,18 +401,17 @@ export default class Evaluate {
   evaluate(role) {
     let blackScore = 0;
     let whiteScore = 0;
-    for (let i = 0; i < this.blackScores.length; i++) {
-      for (let j = 0; j < this.blackScores[i].length; j++) {
+    for (let i = 0; i < this.blackScores.length; i += 1) {
+      for (let j = 0; j < this.blackScores[i].length; j += 1) {
         blackScore += this.blackScores[i][j];
       }
     }
-    for (let i = 0; i < this.whiteScores.length; i++) {
-      for (let j = 0; j < this.whiteScores[i].length; j++) {
+    for (let i = 0; i < this.whiteScores.length; i += 1) {
+      for (let j = 0; j < this.whiteScores[i].length; j += 1) {
         whiteScore += this.whiteScores[i][j];
       }
     }
-    const score = role == 1 ? blackScore - whiteScore : whiteScore - blackScore;
-    return score;
+    return role === 1 ? blackScore - whiteScore : whiteScore - blackScore;
   }
 
   /**
