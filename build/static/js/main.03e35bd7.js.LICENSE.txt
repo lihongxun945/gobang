@@ -4,7 +4,7 @@
 	http://jedwatson.github.io/classnames
 */
 
-/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/facebook/regenerator/blob/main/LICENSE */
+/*! regenerator-runtime -- Copyright (c) 2014-present, Facebook, Inc. -- license (MIT): https://github.com/babel/babel/blob/main/packages/babel-helpers/LICENSE */
 
 /**
  * @license React
@@ -58,9 +58,9 @@
 
 /**
  * @license React
- * use-sync-external-store-shim.production.min.js
+ * use-sync-external-store-shim.production.js
  *
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
@@ -68,9 +68,9 @@
 
 /**
  * @license React
- * use-sync-external-store-shim/with-selector.production.min.js
+ * use-sync-external-store-shim/with-selector.production.js
  *
- * Copyright (c) Facebook, Inc. and its affiliates.
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
