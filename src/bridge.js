@@ -1,7 +1,7 @@
 import MinmaxWorker from './minmax.worker';
 
 const worker = new MinmaxWorker();
-export const start = async (board_size, aiFirst, depth) => {
+export const start = async (board_size, aiFirst, depth, openingBook, openingBookMode) => {
   return new Promise((resolve, reject) => {
     worker.postMessage({
       action: 'start',
@@ -9,6 +9,8 @@ export const start = async (board_size, aiFirst, depth) => {
         board_size,
         aiFirst,
         depth,
+        openingBook,
+        openingBookMode,
       },
     });
     worker.onmessage = (event) => {
@@ -20,13 +22,15 @@ export const start = async (board_size, aiFirst, depth) => {
   })
 };
 
-export const move = async (position, depth) => {
+export const move = async (position, depth, openingBook, openingBookMode) => {
   return new Promise((resolve, reject) => {
     worker.postMessage({
       action: 'move',
       payload: {
         position,
         depth,
+        openingBook,
+        openingBookMode,
       },
     });
     worker.onmessage = (event) => {

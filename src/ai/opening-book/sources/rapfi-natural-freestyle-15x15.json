@@ -1,0 +1,181 @@
+{
+  "id": "rapfi-natural-freestyle-15x15",
+  "name": "Rapfi natural freestyle 15x15 opening replies",
+  "source": "https://github.com/dhbloo/rapfi/releases/tag/250615",
+  "rules": "freestyle",
+  "size": 15,
+  "coordinateSystem": "board-row-column",
+  "verification": {
+    "engine": "Rapfi",
+    "version": "250615",
+    "timePerPositionMs": 3000,
+    "rounds": 2,
+    "stableReplies": "10/10",
+    "nodes": "0.9M-1.9M",
+    "principalDepth": "17-22"
+  },
+  "openings": [
+    {
+      "id": "rapfi-natural-center-white",
+      "minPrefixLength": 1,
+      "coordinates": [
+        [
+          7,
+          7
+        ],
+        [
+          6,
+          6
+        ]
+      ]
+    },
+    {
+      "id": "rapfi-natural-center-orthogonal",
+      "minPrefixLength": 2,
+      "coordinates": [
+        [
+          7,
+          7
+        ],
+        [
+          7,
+          8
+        ],
+        [
+          6,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "rapfi-natural-center-diagonal",
+      "minPrefixLength": 2,
+      "coordinates": [
+        [
+          7,
+          7
+        ],
+        [
+          8,
+          8
+        ],
+        [
+          8,
+          9
+        ]
+      ]
+    },
+    {
+      "id": "rapfi-natural-center-knight",
+      "minPrefixLength": 2,
+      "coordinates": [
+        [
+          7,
+          7
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          6,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "rapfi-natural-center-distance2-diagonal",
+      "minPrefixLength": 2,
+      "coordinates": [
+        [
+          7,
+          7
+        ],
+        [
+          9,
+          9
+        ],
+        [
+          6,
+          8
+        ]
+      ]
+    },
+    {
+      "id": "rapfi-natural-first-offset1-orthogonal",
+      "minPrefixLength": 1,
+      "coordinates": [
+        [
+          6,
+          7
+        ],
+        [
+          5,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "rapfi-natural-first-offset1-diagonal",
+      "minPrefixLength": 1,
+      "coordinates": [
+        [
+          6,
+          6
+        ],
+        [
+          6,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "rapfi-natural-first-offset2-orthogonal",
+      "minPrefixLength": 1,
+      "coordinates": [
+        [
+          5,
+          7
+        ],
+        [
+          6,
+          7
+        ]
+      ]
+    },
+    {
+      "id": "rapfi-natural-first-offset2-diagonal",
+      "minPrefixLength": 1,
+      "coordinates": [
+        [
+          5,
+          5
+        ],
+        [
+          4,
+          6
+        ]
+      ]
+    }
+  ],
+  "rejected": [
+    {
+      "id": "rapfi-natural-center-distance2-orthogonal",
+      "coordinates": [
+        [
+          7,
+          7
+        ],
+        [
+          7,
+          9
+        ],
+        [
+          7,
+          5
+        ]
+      ],
+      "reason": "Rejected by depth-4 paired self-play: control won and book move lost."
+    }
+  ]
+}

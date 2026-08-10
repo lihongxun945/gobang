@@ -1,6 +1,8 @@
 import './control.css';
 import { useDispatch, useSelector } from 'react-redux';
-import { startGame, endGame, undoMove, setAiFirst, setDepth, setIndex, setDebug } from '../store/gameSlice';
+import {
+  startGame, endGame, undoMove, setAiFirst, setDepth, setIndex, setDebug, setOpeningBook,
+} from '../store/gameSlice';
 import { board_size } from '../config';
 import { Button, Switch, Select } from 'antd';
 import { STATUS } from '../status';
@@ -8,10 +10,13 @@ import { useCallback } from 'react';
 
 function Control() {
   const dispatch = useDispatch();
-  const { loading, winner, status, history, aiFirst, depth, index, score, path, currentDepth, debug } = useSelector((state) => state.game);
+  const {
+    loading, winner, status, history, aiFirst, depth, index, score, path,
+    currentDepth, debug, openingBook, openingBookDebug,
+  } = useSelector((state) => state.game);
   const start = useCallback(() => {
-    dispatch(startGame({board_size, aiFirst, depth}));
-  }, [dispatch, board_size, aiFirst, depth]);
+    dispatch(startGame({ board_size, aiFirst, depth, openingBook }));
+  }, [dispatch, aiFirst, depth, openingBook]);
   const end = useCallback(() => {
     dispatch(endGame());
   }, [dispatch]);
@@ -29,6 +34,9 @@ function Control() {
   }, [dispatch]);
   const onDebugChange = useCallback((checked) => {
     dispatch(setDebug(checked));
+  }, [dispatch]);
+  const onOpeningBookChange = useCallback((checked) => {
+    dispatch(setOpeningBook(checked));
   }, [dispatch]);
   return (
     <div className="control">
@@ -63,7 +71,10 @@ function Control() {
             序号: <Switch defaultChecked={index} onChange={onIndexChange} />
           </div>
           <div className="setting-item">
-            调试: <Switch defaultChecked={debug} onChange={onDebugChange} disabled={loading} />
+            调试: <Switch checked={debug} onChange={onDebugChange} disabled={loading} />
+          </div>
+          <div className="setting-item">
+            开局库: <Switch checked={openingBook} onChange={onOpeningBookChange} disabled={loading} />
           </div>
         </div>
       </div>
@@ -73,6 +84,21 @@ function Control() {
           <div className="status-item">深度: {path?.length || 0}</div>
           <div className="status-item">思考: {JSON.stringify(path)}</div>
           <div className="status-item">历史: {JSON.stringify(history.map(h => [h.i, h.j]))}</div>
+          <div className="status-item">开局库: {openingBookDebug?.enabled ? '已启用' : '已关闭'}</div>
+          <div className="status-item">开局命中: {openingBookDebug?.hit ? '是' : '否'}</div>
+          <div className="status-item">采用开局着法: {openingBookDebug?.adopted ? '是' : '否'}</div>
+          {openingBookDebug?.adopted && (
+            <div className="status-item">
+              采用着法: {JSON.stringify(openingBookDebug.selectedMove)}
+            </div>
+          )}
+          {openingBookDebug?.hit && (
+            <div className="status-item">
+              开局候选: {openingBookDebug.candidates.map(({ move, weight, sources }) => (
+                `${move[0]},${move[1]}（权重 ${weight}，来源 ${sources.join(', ')}）`
+              )).join('；')}
+            </div>
+          )}
         </div>
       }
     </div>

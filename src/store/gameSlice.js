@@ -4,13 +4,13 @@ import { board_size } from '../config';
 import { STATUS } from '../status';
 import { start, end, move, undo } from '../bridge';
 
-export const startGame = createAsyncThunk('game/start', async ({ board_size, aiFirst, depth }) => {
-  const data = await start(board_size, aiFirst, depth);
+export const startGame = createAsyncThunk('game/start', async ({ board_size, aiFirst, depth, openingBook }) => {
+  const data = await start(board_size, aiFirst, depth, openingBook, 'strength');
   return data;
 });
 
-export const movePiece = createAsyncThunk('game/move', async ({ position, depth = 6 }) => {
-  const data = await move(position, depth);
+export const movePiece = createAsyncThunk('game/move', async ({ position, depth = 6, openingBook }) => {
+  const data = await move(position, depth, openingBook, 'strength');
   return data;
 });
 
@@ -42,6 +42,10 @@ const initialState = {
   path: [],
   currentDepth: 0,
   debug: false, // 显示调试面板
+  openingBook: true, // 启用开局库
+  openingBookDebug: {
+    enabled: true, hit: false, adopted: false, selectedMove: null, candidates: [],
+  },
 };
 
 export const gameSlice = createSlice({
@@ -69,6 +73,9 @@ export const gameSlice = createSlice({
     setDebug: (state, action) => {
       state.debug = action.payload;
     },
+    setOpeningBook: (state, action) => {
+      state.openingBook = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -86,6 +93,7 @@ export const gameSlice = createSlice({
         state.score = action.payload.score;
         state.path = action.payload.bestPath;
         state.currentDepth = action.payload.currentDepth;
+        state.openingBookDebug = action.payload.openingBookDebug;
         state.loading = false;
       })
       .addCase(movePiece.pending, (state, action) => {
@@ -99,6 +107,7 @@ export const gameSlice = createSlice({
         state.score = action.payload.score;
         state.path = action.payload.bestPath;
         state.currentDepth = action.payload.currentDepth;
+        state.openingBookDebug = action.payload.openingBookDebug;
         state.loading = false;
         if (action.payload.winner !== 0) {
           state.status = STATUS.IDLE;
@@ -115,6 +124,7 @@ export const gameSlice = createSlice({
         state.score = action.payload.score;
         state.path = action.payload.bestPath;
         state.currentDepth = action.payload.currentDepth;
+        state.openingBookDebug = action.payload.openingBookDebug;
         state.loading = false;
       })
       .addCase(endGame.fulfilled, (state) => {
@@ -130,8 +140,11 @@ export const gameSlice = createSlice({
         state.score = initialState.score;
         state.path = initialState.path;
         state.currentDepth = initialState.currentDepth;
+        state.openingBookDebug = initialState.openingBookDebug;
       });
   },
 });
-export const { tempMove, setAiFirst, setDepth, setIndex, setDebug } = gameSlice.actions;
+export const {
+  tempMove, setAiFirst, setDepth, setIndex, setDebug, setOpeningBook,
+} = gameSlice.actions;
 export default gameSlice.reducer;
