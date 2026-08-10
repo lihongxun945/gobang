@@ -15,13 +15,16 @@ import { STATUS } from '../status';
 
 const Board = () => {
   const dispatch = useDispatch();
-  const { board, currentPlayer, history, status, size, loading, winner, depth, index } = useSelector((state) => state.game);
+  const {
+    board, currentPlayer, history, status, size, loading, winner, depth, index,
+    openingBook,
+  } = useSelector((state) => state.game);
 
   const handleClick = (i, j) => {
     if (loading || status !== STATUS.GAMING) return;
     if (board[i][j] === 0) {
       dispatch(tempMove([i, j]))
-      dispatch(movePiece({ position: [i, j], depth }));
+      dispatch(movePiece({ position: [i, j], depth, openingBook }));
     }
   };
 

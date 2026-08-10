@@ -1,5 +1,6 @@
 import Cache from '../cache';
 import { BLOCK_FOUR, FIVE, THREE } from '../eval';
+import { getOpeningBookMoves } from '../openingBook';
 
 const MAX = 1000000000;
 const onlyThreeThreshold = 6;
@@ -7,7 +8,7 @@ const QUIESCENCE_DEPTH = 2;
 const SEARCH_TIMEOUT = Symbol('search-timeout');
 
 export const TT_FLAG = { EXACT: 'exact', LOWER: 'lower', UPPER: 'upper' };
-export const searchStats = { nodes: 0, stores: 0, hits: 0 };
+export const searchStats = { nodes: 0, stores: 0, hits: 0, bookHits: 0, openingBook: null };
 
 let boardTables = new WeakMap();
 const getTable = (board) => {
@@ -28,6 +29,8 @@ export const resetSearchStats = () => {
   searchStats.nodes = 0;
   searchStats.stores = 0;
   searchStats.hits = 0;
+  searchStats.bookHits = 0;
+  searchStats.openingBook = null;
 };
 
 const modeKey = (onlyThree, onlyFour) => `${onlyThree ? 1 : 0}:${onlyFour ? 1 : 0}`;
@@ -60,6 +63,12 @@ const sameMove = (left, right) => (
 );
 
 const moveIndex = (size, [x, y]) => x * size + y;
+
+const compareBookMoves = (context, board, ply, left, right) => {
+  if (ply !== 0 || !context.openingBookRanks) return 0;
+  return context.openingBookRanks[moveIndex(board.size, right)]
+    - context.openingBookRanks[moveIndex(board.size, left)];
+};
 
 const orderingBonus = (context, ply, point, size) => {
   const index = moveIndex(size, point);
@@ -185,17 +194,24 @@ const factory = (onlyThree = false, onlyFour = false) => {
       points.sort((left, right) => {
         if (sameMove(left, previous?.move)) return -1;
         if (sameMove(right, previous?.move)) return 1;
-        const leftScore = pointScore(board, role, left) * 1024
-          + orderingBonus(context, ply, left, board.size);
-        const rightScore = pointScore(board, role, right) * 1024
-          + orderingBonus(context, ply, right, board.size);
-        return rightScore - leftScore;
+        const leftScore = pointScore(board, role, left);
+        const rightScore = pointScore(board, role, right);
+        if (leftScore !== rightScore) return rightScore - leftScore;
+        const bookOrder = compareBookMoves(context, board, ply, left, right);
+        if (bookOrder) return bookOrder;
+        return orderingBonus(context, ply, right, board.size)
+          - orderingBonus(context, ply, left, board.size);
       });
     } else {
       points.sort((left, right) => {
         if (sameMove(left, previous?.move)) return -1;
         if (sameMove(right, previous?.move)) return 1;
-        return pointScore(board, role, right) - pointScore(board, role, left);
+        const leftScore = pointScore(board, role, left);
+        const rightScore = pointScore(board, role, right);
+        if (leftScore !== rightScore) return rightScore - leftScore;
+        const bookOrder = compareBookMoves(context, board, ply, left, right);
+        if (bookOrder) return bookOrder;
+        return 0;
       });
     }
 
@@ -303,6 +319,21 @@ const factory = (onlyThree = false, onlyFour = false) => {
     const moveOrderingMode = options.experimentalMoveOrderingMode
       || (options.experimentalMoveOrdering === true
         ? 'combined' : options.disableMoveOrdering === true ? null : 'killer');
+    const bookMoves = !onlyThree && !onlyFour && options.disableOpeningBook !== true
+      ? getOpeningBookMoves(board, options.openingBookMode) : [];
+    const openingBookRanks = bookMoves.length
+      ? new Uint16Array(board.size * board.size) : null;
+    bookMoves.forEach(({ move }, index) => {
+      openingBookRanks[moveIndex(board.size, move)] = bookMoves.length - index;
+    });
+    if (bookMoves.length) {
+      searchStats.bookHits += 1;
+      searchStats.openingBook = {
+        adopted: false,
+        selectedMove: null,
+        candidates: bookMoves.map(({ move, weight, sources }) => ({ move, weight, sources })),
+      };
+    }
     const context = {
       deadline: options.deadline || (options.timeLimitMs ? performance.now() + options.timeLimitMs : 0),
       experimentalPvs: options.experimentalPvs === true && !onlyThree && !onlyFour,
@@ -320,6 +351,7 @@ const factory = (onlyThree = false, onlyFour = false) => {
       killers: moveOrderingMode ? [] : null,
       history: moveOrderingMode
         ? new Uint16Array(board.size * board.size) : null,
+      openingBookRanks,
     };
     const firstDepth = maxDepth < 2 ? maxDepth : 2;
     for (let depth = firstDepth; depth <= maxDepth; depth += 2) {
@@ -349,6 +381,19 @@ export const candidateVct = factory(true);
 export const candidateVcf = factory(false, true);
 
 export const candidateMinmax = (board, role, depth = 4, enableVCT = true, options = {}) => {
+  if (options.disableOpeningBook !== true && !hasThreatAtLeast(board, THREE)) {
+    const bookMoves = getOpeningBookMoves(board, options.openingBookMode);
+    if (bookMoves.length) {
+      const selected = bookMoves[0];
+      searchStats.bookHits += 1;
+      searchStats.openingBook = {
+        adopted: true,
+        selectedMove: selected.move,
+        candidates: bookMoves.map(({ move, weight, sources }) => ({ move, weight, sources })),
+      };
+      return [board.evaluate(role), selected.move, [selected.move], 0];
+    }
+  }
   if (!enableVCT || !hasThreatAtLeast(board, THREE)) return normal(board, role, depth, options);
   const startedAt = performance.now();
   const timeLimitMs = Number(options.timeLimitMs) || 0;
