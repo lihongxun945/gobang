@@ -19,7 +19,13 @@ const build = childProcess.spawnSync('node', ['scripts/build-ai.cjs'], {
 });
 if (build.status !== 0) process.exit(build.status || 1);
 
-const run = childProcess.spawnSync('node', [path.join(outputDir, outputFile), ...process.argv.slice(2)], {
+const allowedArgPattern = /^[\w\-=.,:/]+$/;
+const extraArgs = process.argv.slice(2);
+if (extraArgs.some(arg => !allowedArgPattern.test(arg))) {
+  process.stderr.write('Error: Invalid argument detected\n');
+  process.exit(1);
+}
+const run = childProcess.spawnSync('node', [path.join(outputDir, outputFile), ...extraArgs], {
   cwd: root,
   stdio: 'inherit',
 });
