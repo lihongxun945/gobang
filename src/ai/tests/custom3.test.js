@@ -1,6 +1,6 @@
-import Board from './board';
-import { minmax, cache_hits } from './minmax';
-import { FOUR } from './eval';
+import Board from '../board';
+import { minmax, cache_hits } from '../minmax';
+import { FOUR } from '../eval';
 import { min } from 'lodash';
 
 // 问题：冲四之后形成了可以连五的位置，被评价分很高，电脑会尽力防止冲四，甚至不管活三

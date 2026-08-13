@@ -14,7 +14,7 @@ export const isLine = function (a, b, size) {
   const [x1, y1] = position2Coordinate(a, size);
   const [x2, y2] = position2Coordinate(b, size);
   return (
-    (x1 === x2 && Math.abs(y1 - y1) < maxDistance) ||
+    (x1 === x2 && Math.abs(y1 - y2) < maxDistance) ||
     (y1 === y2 && Math.abs(x1 - x2) < maxDistance) ||
     (Math.abs(x1 - x2) === Math.abs(y1 - y2) && Math.abs(x1 - x2) < maxDistance)
   );

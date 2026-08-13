@@ -45,6 +45,7 @@ const play = (position, useBook, mode, depth) => {
     const result = candidateMinmax(board, role, depth, false, {
       disableOpeningBook: !(useBook && role === initialRole),
       openingBookMode: mode,
+      disablePvs: process.env.AI_DISABLE_PVS === '1',
     });
     const elapsedMs = performance.now() - startedAt;
     if (useBook && role === initialRole) {

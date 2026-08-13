@@ -65,6 +65,40 @@ const allDirections = [
   [1, -1]  // Diagonal /
 ];
 
+const createShapePoints = () => {
+  const points = {};
+  Object.keys(shapes).forEach((key) => {
+    points[shapes[key]] = new Set();
+  });
+  return points;
+};
+
+const selectTopPoints = (values, limit, getScore) => {
+  const points = [];
+  const scores = [];
+  for (const point of values) {
+    const score = getScore(point);
+    let low = 0;
+    let high = scores.length;
+    while (low < high) {
+      const middle = (low + high) >> 1;
+      if (scores[middle] > score || (scores[middle] === score && points[middle] < point)) {
+        low = middle + 1;
+      } else {
+        high = middle;
+      }
+    }
+    if (low >= limit) continue;
+    points.splice(low, 0, point);
+    scores.splice(low, 0, score);
+    if (points.length > limit) {
+      points.pop();
+      scores.pop();
+    }
+  }
+  return points;
+};
+
 const direction2index = (ox, oy) => {
   if (ox === 0) return 0; // |
   if (oy === 0) return 1; // -
@@ -111,6 +145,9 @@ export default class Evaluate {
       this.shapeCache[role][d][x][y] = 0;
       this.shapeCache[-role][d][x][y] = 0;
     }
+    const position = coordinate2Position(x, y, this.size);
+    this.activePoints[role].delete(position);
+    this.activePoints[-role].delete(position);
     this.blackScores[x][y] = 0;
     this.whiteScores[x][y] = 0;
 
@@ -139,6 +176,7 @@ export default class Evaluate {
     // 缓存每个形状对应的点位
     // 结构： pointsCache[role][shape] = Set(direction1, direction2);
     this.pointsCache = {}
+    this.activePoints = { 1: new Set(), [-1]: new Set() };
     for (let role of [1, -1]) {
       this.pointsCache[role] = {};
       for (let key of Object.keys(shapes)) {
@@ -153,11 +191,8 @@ export default class Evaluate {
   // 1. 因为己方可能会由于防守暂时离开原来的线，这样就会导致己方被中断，只能增加最后几步的长度，比如不是取最后一步，而不是最后3步
   // 2. 如果不是取最后1步，取的步数太多了，反而还不如直接返回所有点位。
   getPointsInLine(role) {
-    let pointsInLine = {}; // 在一条线上的点位
+    const pointsInLine = createShapePoints();
     let hasPointsInLine = false;
-    Object.keys(shapes).forEach((key) => {
-      pointsInLine[shapes[key]] = new Set();
-    });
     let last2Points = this.history.slice(-config.inlineCount).map(([position, role]) => position);
     const processed = {}; // 已经处理过的点位
     // 在last2Points中查找是否有点位在一条线上
@@ -183,7 +218,8 @@ export default class Evaluate {
                 const shape = this.shapeCache[r][direction][nx][ny];
                 // 到达边界停止，但是注意到达对方棋子不能停止
                 if (shape) {
-                  pointsInLine[shape].add(coordinate2Position(nx, ny, this.size));
+                  const candidate = coordinate2Position(nx, ny, this.size);
+                  pointsInLine[shape].add(candidate);
                   hasPointsInLine = true;
                 }
               }
@@ -210,21 +246,18 @@ export default class Evaluate {
       }
     }
 
-    let points = {}; // 全部点位
-    Object.keys(shapes).forEach((key) => {
-      points[shapes[key]] = new Set();
-    });
+    const points = createShapePoints();
 
     const lastPoints = this.history.slice(-4).map(([position, role]) => position);
     // const last2Points = this.history.slice(-2).map(([position, role]) => position);
 
-    // 在 shapeCache中查找对应的 shape
+    // 只遍历增量维护的有效空点，避免每个搜索节点扫描整张棋盘。
     for (let r of [role, -role]) {
-      for (let i = 0; i < this.size; i++) {
-        for (let j = 0; j < this.size; j++) {
-          let fourCount = 0, blockFourCount = 0, threeCount = 0;
-          for (let direction of [0, 1, 2, 3]) {
-            if (this.board[i + 1][j + 1] !== 0) continue;
+      for (const activePoint of this.activePoints[r]) {
+        const i = Math.floor(activePoint / this.size);
+        const j = activePoint % this.size;
+        let fourCount = 0, blockFourCount = 0, threeCount = 0;
+        for (let direction of [0, 1, 2, 3]) {
             const shape = this.shapeCache[r][direction][i][j];
             if (!shape) continue;
             // const scores = r === 1 ? this.blackScores : this.whiteScores;
@@ -233,7 +266,7 @@ export default class Evaluate {
               if (r === first && !isFour(shape) && !isFive(shape)) continue;
               if (r === -first && isFive(shape)) continue
             }
-            const point = i * this.size + j;
+            const point = activePoint;
             if (vct) {
               // 自己只进攻, 只考虑自己的活三，自己和对面的冲四、活四
               if (depth % 2 === 0) {
@@ -281,7 +314,6 @@ export default class Evaluate {
             if (unionShape) {
               points[unionShape].add(point);
             }
-          }
         }
       }
     }
@@ -388,6 +420,13 @@ export default class Evaluate {
 
     this.board[x + 1][y + 1] = 0;  // Remove the temporary piece
 
+    const position = coordinate2Position(x, y, this.size);
+    const hasShape = [0, 1, 2, 3].some((intDirection) => (
+      shapeCache[intDirection][x][y] !== shapes.NONE
+    ));
+    if (hasShape) this.activePoints[role].add(position);
+    else this.activePoints[role].delete(position);
+
     if (role === 1) {
       this.blackScores[x][y] = score;
     } else {
@@ -414,6 +453,18 @@ export default class Evaluate {
     return role === 1 ? blackScore - whiteScore : whiteScore - blackScore;
   }
 
+  hasThreatAtLeast(threshold) {
+    for (const role of [1, -1]) {
+      const scores = role === 1 ? this.blackScores : this.whiteScores;
+      for (const point of this.activePoints[role]) {
+        const x = Math.floor(point / this.size);
+        const y = point % this.size;
+        if (scores[x][y] >= threshold) return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * 获取有价值的点位
    * @param {*} role 当前角色
@@ -427,32 +478,118 @@ export default class Evaluate {
   }
   _getMoves(role, depth, onlyThree = false, onlyFour = false) {
     const points = this.getPoints(role, depth, onlyThree, onlyFour);
-    const fives = points[shapes.FIVE];
-    const blockFives = points[shapes.BLOCK_FIVE];
-    if (fives?.size || blockFives?.size) return new Set([...fives, ...blockFives]);
-    const fours = points[shapes.FOUR];
-    const blockfours = points[shapes.BLOCK_FOUR]; // 冲四比较特殊，在活四的时候要考虑，在活三的时候也要考虑
-    if (onlyFour || fours?.size) {
-      return new Set([...fours, ...blockfours]);
+    const selfScores = role === 1 ? this.blackScores : this.whiteScores;
+    const opponentScores = role === 1 ? this.whiteScores : this.blackScores;
+    const pointScore = (point) => {
+      const x = Math.floor(point / this.size);
+      const y = point % this.size;
+      return selfScores[x][y] * 2 + opponentScores[x][y];
+    };
+    const sortPoints = (values) => [...values].sort((left, right) => (
+      pointScore(right) - pointScore(left) || left - right
+    ));
+    const orderedSet = (...groups) => new Set(groups.flatMap(sortPoints));
+    const shapesAt = (point, targetRole) => {
+      const x = Math.floor(point / this.size);
+      const y = point % this.size;
+      return [0, 1, 2, 3].map((direction) => (
+        this.shapeCache[targetRole][direction][x][y]
+      ));
+    };
+    const hasShape = (point, targetRole, targetShape) => {
+      const pointShapes = shapesAt(point, targetRole);
+      if (targetShape === shapes.FIVE) return pointShapes.some(isFive);
+      if (targetShape === shapes.FOUR_FOUR) {
+        return pointShapes.filter((shape) => shape === shapes.FOUR).length >= 2;
+      }
+      if (targetShape === shapes.FOUR_THREE) {
+        return pointShapes.includes(shapes.BLOCK_FOUR) && pointShapes.includes(shapes.THREE);
+      }
+      if (targetShape === shapes.THREE_THREE) {
+        return pointShapes.filter((shape) => shape === shapes.THREE).length >= 2;
+      }
+      return pointShapes.includes(targetShape);
+    };
+    const forRole = (values, targetRole, targetShape) => [...values].filter((point) => (
+      hasShape(point, targetRole, targetShape)
+    ));
+    const bySide = (values, targetShape) => [
+      forRole(values, role, targetShape), forRole(values, -role, targetShape),
+    ];
+
+    const fives = new Set([...points[shapes.FIVE], ...points[shapes.BLOCK_FIVE]]);
+    if (fives.size) {
+      const [selfFives, opponentFives] = bySide(fives, shapes.FIVE);
+      return orderedSet(selfFives, opponentFives);
     }
-    const four_fours = points[shapes.FOUR_FOUR];
-    if (four_fours.size) return new Set([...four_fours, ...blockfours]);
 
-    // 双三和活三
+    const fours = points[shapes.FOUR];
+    const blockFours = points[shapes.BLOCK_FOUR];
+    if (onlyFour || fours.size) {
+      const [selfFours, opponentFours] = bySide(fours, shapes.FOUR);
+      const [selfBlockFours, opponentBlockFours] = bySide(
+        blockFours, shapes.BLOCK_FOUR,
+      );
+      return orderedSet(selfFours, opponentFours, selfBlockFours, opponentBlockFours);
+    }
+
+    const fourFours = points[shapes.FOUR_FOUR];
+    if (fourFours.size) {
+      const [selfFourFours, opponentFourFours] = bySide(fourFours, shapes.FOUR_FOUR);
+      const [selfBlockFours, opponentBlockFours] = bySide(
+        blockFours, shapes.BLOCK_FOUR,
+      );
+      return orderedSet(
+        selfFourFours, opponentFourFours, selfBlockFours, opponentBlockFours,
+      );
+    }
+
     const threes = points[shapes.THREE];
-    const four_threes = points[shapes.FOUR_THREE];
-    if (four_threes?.size) return new Set([...four_threes, ...blockfours, ...threes]);
-    const three_threes = points[shapes.THREE_THREE];
-    if (three_threes?.size) return new Set([...three_threes, ...blockfours, ...threes]);
+    const fourThrees = points[shapes.FOUR_THREE];
+    if (fourThrees.size) {
+      const [selfFourThrees, opponentFourThrees] = bySide(
+        fourThrees, shapes.FOUR_THREE,
+      );
+      const [selfBlockFours, opponentBlockFours] = bySide(
+        blockFours, shapes.BLOCK_FOUR,
+      );
+      const [selfThrees, opponentThrees] = bySide(threes, shapes.THREE);
+      return orderedSet(
+        selfFourThrees, opponentFourThrees,
+        selfBlockFours, opponentBlockFours, selfThrees, opponentThrees,
+      );
+    }
 
+    const threeThrees = points[shapes.THREE_THREE];
+    if (threeThrees.size) {
+      const [selfThreeThrees, opponentThreeThrees] = bySide(
+        threeThrees, shapes.THREE_THREE,
+      );
+      const [selfBlockFours, opponentBlockFours] = bySide(
+        blockFours, shapes.BLOCK_FOUR,
+      );
+      const [selfThrees, opponentThrees] = bySide(threes, shapes.THREE);
+      return orderedSet(
+        selfThreeThrees, opponentThreeThrees,
+        selfBlockFours, opponentBlockFours, selfThrees, opponentThrees,
+      );
+    }
 
-    if (onlyThree) return new Set([...blockfours, ...threes]);
+    if (onlyThree) {
+      const [selfBlockFours, opponentBlockFours] = bySide(
+        blockFours, shapes.BLOCK_FOUR,
+      );
+      const [selfThrees, opponentThrees] = bySide(threes, shapes.THREE);
+      return orderedSet(selfBlockFours, opponentBlockFours, selfThrees, opponentThrees);
+    }
 
-    const blockthrees = points[shapes.BLOCK_THREE];
-    const two_twos = points[shapes.TWO_TWO];
-    const twos = points[shapes.TWO];
-    const res = new Set([...blockfours, ...threes, ...blockthrees, ...two_twos, ...twos].slice(0, config.pointsLimit));
-    return res;
+    const candidates = new Set([
+      ...points[shapes.BLOCK_FOUR], ...points[shapes.THREE],
+      ...points[shapes.BLOCK_THREE], ...points[shapes.TWO_TWO], ...points[shapes.TWO],
+    ]);
+    const limit = depth === 0
+      ? config.rootPointsLimit : depth >= 3 ? config.deepPointsLimit : config.pointsLimit;
+    return new Set(selectTopPoints(candidates, limit, pointScore));
   }
   display() {
     let result = '';

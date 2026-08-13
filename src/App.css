@@ -40,3 +40,10 @@
 .button {
   margin: 0 10px;
 }
+
+.app-version {
+  margin: 14px 0 18px;
+  color: #8c8c8c;
+  font-size: 12px;
+  line-height: 20px;
+}

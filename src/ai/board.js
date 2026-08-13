@@ -74,12 +74,12 @@ class Board {
       return false;
     }
     this.board[i][j] = role;
-    this.history.push({ i, j, role });
+    this.history.push({ i, j, role, previousRole: this.role });
     this.zobrist.togglePiece(i, j, role);
     this.evaluator.move(i, j, role);
     this.emptyCount -= 1;
     this.winner = this.hasFiveAt(i, j, role) ? role : 0;
-    this.role *= -1;  // Switch role
+    this.role = -role;  // The next player is determined by the placed stone.
     return true;
   }
 
@@ -91,7 +91,7 @@ class Board {
 
     let lastMove = this.history.pop();
     this.board[lastMove.i][lastMove.j] = 0;  // Remove the piece from the board
-    this.role = lastMove.role;  // Switch back to the previous player
+    this.role = lastMove.previousRole ?? lastMove.role;
     this.zobrist.togglePiece(lastMove.i, lastMove.j, lastMove.role);
     this.evaluator.undo(lastMove.i, lastMove.j);
     this.emptyCount += 1;

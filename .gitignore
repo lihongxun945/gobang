@@ -2,6 +2,7 @@
 node_modules
 /dist
 /.ai-build
+/.ai-eval
 *.orig
 
 # local env files

@@ -1,6 +1,40 @@
-import Evaluate, { FOUR } from '../eval';
+import Evaluate, {
+  BLOCK_FOUR, FOUR, THREE,
+} from '../eval';
+import { shapes } from '../shape';
+
+const createShapePoints = () => Object.fromEntries(
+  Object.values(shapes).map((shape) => [shape, new Set()]),
+);
 
 describe('Eval', () => {
+  test('incremental threat lookup matches a full score scan after moves and undos', () => {
+    const evaluator = new Evaluate(15);
+    const steps = [
+      [7, 6], [6, 6], [7, 7], [6, 7], [7, 8], [5, 8], [8, 8], [5, 7],
+    ];
+    const fullScan = (threshold) => (
+      evaluator.blackScores.some((row) => row.some((score) => score >= threshold))
+      || evaluator.whiteScores.some((row) => row.some((score) => score >= threshold))
+    );
+    const expectParity = () => {
+      [THREE, BLOCK_FOUR, FOUR].forEach((threshold) => {
+        expect(evaluator.hasThreatAtLeast(threshold)).toBe(fullScan(threshold));
+      });
+    };
+
+    expectParity();
+    steps.forEach(([x, y], index) => {
+      evaluator.move(x, y, index % 2 === 0 ? 1 : -1);
+      expectParity();
+    });
+    steps.forEach(() => {
+      const [position] = evaluator.history[evaluator.history.length - 1];
+      evaluator.undo(Math.floor(position / evaluator.size), position % evaluator.size);
+      expectParity();
+    });
+  });
+
   test('test five', () => {
     const evaluator = new Evaluate(15);
     // 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -26,8 +60,24 @@ describe('Eval', () => {
     const score = evaluator.evaluate(1);
     expect(score).toBeLessThan(FOUR);
     const moves = evaluator.getMoves(1);
-    expect(moves).toStrictEqual([[6, 5], [6, 10], [7, 8]])
+    expect(moves).toHaveLength(3);
+    expect(moves.slice(0, 2)).toEqual(expect.arrayContaining([[6, 5], [6, 10]]));
+    expect(moves[2]).toStrictEqual([7, 8]);
     console.log(moves);
+  });
+  test('sorts all positional candidates before applying the root limit', () => {
+    const evaluator = new Evaluate(15);
+    const byRole = { 1: createShapePoints(), [-1]: createShapePoints() };
+    for (let point = 0; point < 40; point += 1) {
+      byRole[1][shapes.TWO].add(point);
+      evaluator.blackScores[Math.floor(point / 15)][point % 15] = point;
+    }
+    evaluator.getPoints = () => byRole[1];
+
+    const moves = evaluator.getMoves(1, 0);
+    expect(moves).toHaveLength(32);
+    expect(moves[0]).toStrictEqual([2, 9]);
+    expect(moves).not.toContainEqual([0, 0]);
   });
   test('test four', () => {
     const evaluator = new Evaluate(15);
