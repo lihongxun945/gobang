@@ -5,10 +5,16 @@ import { getOpeningBookMoves } from '../openingBook';
 const MAX = 1000000000;
 const onlyThreeThreshold = 6;
 const QUIESCENCE_DEPTH = 2;
+const QUIESCENCE_THREE_LIMIT = 2;
+const QUIESCENCE_THREE_TIED_LIMIT = 3;
 const SEARCH_TIMEOUT = Symbol('search-timeout');
 
 export const TT_FLAG = { EXACT: 'exact', LOWER: 'lower', UPPER: 'upper' };
-export const searchStats = { nodes: 0, stores: 0, hits: 0, bookHits: 0, openingBook: null };
+export const searchStats = {
+  nodes: 0, stores: 0, hits: 0, bookHits: 0,
+  qThreeExtensions: 0, qThreeThirdMoves: 0,
+  pvsScouts: 0, normalCompletedDepth: 0, openingBook: null,
+};
 
 let boardTables = new WeakMap();
 const getTable = (board) => {
@@ -30,6 +36,10 @@ export const resetSearchStats = () => {
   searchStats.stores = 0;
   searchStats.hits = 0;
   searchStats.bookHits = 0;
+  searchStats.qThreeExtensions = 0;
+  searchStats.qThreeThirdMoves = 0;
+  searchStats.pvsScouts = 0;
+  searchStats.normalCompletedDepth = 0;
   searchStats.openingBook = null;
 };
 
@@ -95,18 +105,12 @@ const recordCutoffMove = (context, ply, remainingDepth, point, size) => {
 };
 
 const hasThreatAtLeast = (board, threshold) => {
-  const { blackScores, whiteScores } = board.evaluator;
-  for (let row = 0; row < board.size; row += 1) {
-    for (let col = 0; col < board.size; col += 1) {
-      if (blackScores[row][col] >= threshold || whiteScores[row][col] >= threshold) {
-        return true;
-      }
-    }
-  }
-  return false;
+  return board.evaluator.hasThreatAtLeast(threshold);
 };
 
-const quiescence = (board, role, ply, remainingDepth, alpha, beta, context) => {
+const quiescence = (
+  board, role, ply, remainingDepth, alpha, beta, context, allowThree,
+) => {
   const originalAlpha = alpha;
   const originalBeta = beta;
   searchStats.nodes += 1;
@@ -114,11 +118,27 @@ const quiescence = (board, role, ply, remainingDepth, alpha, beta, context) => {
     throw SEARCH_TIMEOUT;
   }
   const staticScore = board.evaluate(role);
-  if (!remainingDepth || board.isGameOver() || !hasThreatAtLeast(board, BLOCK_FOUR)) {
+  if (!remainingDepth || board.isGameOver()) {
     return { score: staticScore, flag: TT_FLAG.EXACT };
   }
+  const hasFourThreat = hasThreatAtLeast(board, BLOCK_FOUR);
+  if (!hasFourThreat && (!allowThree || !hasThreatAtLeast(board, THREE))) {
+    return { score: staticScore, flag: TT_FLAG.EXACT };
+  }
+  if (!hasFourThreat) searchStats.qThreeExtensions += 1;
 
-  const forcingMoves = board.getValuableMoves(role, ply, false, true);
+  let forcingMoves = board.getValuableMoves(
+    role, ply, !hasFourThreat, hasFourThreat,
+  );
+  if (!hasFourThreat) {
+    const includeTiedThird = forcingMoves.length > QUIESCENCE_THREE_LIMIT
+      && pointScore(board, role, forcingMoves[QUIESCENCE_THREE_LIMIT - 1])
+        === pointScore(board, role, forcingMoves[QUIESCENCE_THREE_LIMIT]);
+    const limit = includeTiedThird
+      ? QUIESCENCE_THREE_TIED_LIMIT : QUIESCENCE_THREE_LIMIT;
+    if (includeTiedThird) searchStats.qThreeThirdMoves += 1;
+    forcingMoves = forcingMoves.slice(0, limit);
+  }
   if (!forcingMoves.length) return { score: staticScore, flag: TT_FLAG.EXACT };
 
   let bestScore = -MAX;
@@ -127,7 +147,7 @@ const quiescence = (board, role, ply, remainingDepth, alpha, beta, context) => {
     let childScore;
     try {
       childScore = quiescence(
-        board, -role, ply + 1, remainingDepth - 1, -beta, -alpha, context,
+        board, -role, ply + 1, remainingDepth - 1, -beta, -alpha, context, allowThree,
       ).score;
     } finally {
       board.undo();
@@ -151,7 +171,9 @@ const factory = (onlyThree = false, onlyFour = false) => {
     }
     if (ply >= depth || board.isGameOver()) {
       const leaf = !board.isGameOver() && enableQuiescence && !context.disableQuiescence
-        ? quiescence(board, role, ply, QUIESCENCE_DEPTH, alpha, beta, context)
+        ? quiescence(
+          board, role, ply, QUIESCENCE_DEPTH, alpha, beta, context, depth <= 2,
+        )
         : { score: board.evaluate(role), flag: TT_FLAG.EXACT };
       const { score } = leaf;
       const distanceScore = Math.abs(score) >= FIVE
@@ -224,6 +246,7 @@ const factory = (onlyThree = false, onlyFour = false) => {
       let child;
       try {
         if (context.experimentalPvs && ply === 0 && searchedMoves > 0) {
+          searchStats.pvsScouts += 1;
           const alphaBefore = alpha;
           const scout = search(
             board, -role, depth, ply + 1, -alpha - 1, -alpha, context, true,
@@ -316,6 +339,10 @@ const factory = (onlyThree = false, onlyFour = false) => {
   return (board, role, maxDepth = 4, options = {}) => {
     let completed = null;
     let completedDepth = 0;
+    const fixedDepthPvs = !options.timeLimitMs && !options.deadline;
+    const usePvs = !onlyThree && !onlyFour && options.experimentalPvs !== false
+      && options.disablePvs !== true
+      && (fixedDepthPvs || options.experimentalPvs === true);
     const moveOrderingMode = options.experimentalMoveOrderingMode
       || (options.experimentalMoveOrdering === true
         ? 'combined' : options.disableMoveOrdering === true ? null : 'killer');
@@ -336,10 +363,10 @@ const factory = (onlyThree = false, onlyFour = false) => {
     }
     const context = {
       deadline: options.deadline || (options.timeLimitMs ? performance.now() + options.timeLimitMs : 0),
-      experimentalPvs: options.experimentalPvs === true && !onlyThree && !onlyFour,
+      experimentalPvs: usePvs,
       traceRoot: options.traceRoot,
       disableTtCutoffs: options.disableTtCutoffs === true,
-      exactTtOnly: options.exactTtOnly === true || options.experimentalPvs === true,
+      exactTtOnly: options.exactTtOnly === true || usePvs,
       disableTt: options.disableTt === true,
       disableQuiescence: options.disableQuiescence === true,
       verifyScoutAtPly: options.verifyScoutAtPly,
@@ -370,8 +397,10 @@ const factory = (onlyThree = false, onlyFour = false) => {
     }
     if (!completed) {
       const fallback = board.getValuableMoves(role, 0, onlyThree, onlyFour)[0] || null;
+      if (!onlyThree && !onlyFour) searchStats.normalCompletedDepth = 0;
       return [board.evaluate(role), fallback, fallback ? [fallback] : [], 0];
     }
+    if (!onlyThree && !onlyFour) searchStats.normalCompletedDepth = completedDepth;
     return [normalizeScore(completed.score), completed.move, completed.pv, completedDepth];
   };
 };
@@ -398,6 +427,8 @@ export const candidateMinmax = (board, role, depth = 4, enableVCT = true, option
   const startedAt = performance.now();
   const timeLimitMs = Number(options.timeLimitMs) || 0;
   const phaseOptions = (fraction) => (timeLimitMs ? {
+    ...options,
+    timeLimitMs: 0,
     deadline: startedAt + timeLimitMs * fraction,
   } : options);
   const vctDepth = depth + 8;
@@ -406,12 +437,12 @@ export const candidateMinmax = (board, role, depth = 4, enableVCT = true, option
 
   // If the opponent already has a forcing line, first try occupying its
   // principal threat point. Verify the block before preferring positional play.
-  const [threatScore, threatMove] = candidateVct(board.reverse(), role, vctDepth, phaseOptions(0.6));
+  const [threatScore, threatMove] = candidateVct(board, -role, vctDepth, phaseOptions(0.6));
   if (threatScore >= FIVE && threatMove && board.board[threatMove[0]][threatMove[1]] === 0) {
     board.put(threatMove[0], threatMove[1], role);
     let afterBlock;
     try {
-      afterBlock = candidateVct(board.reverse(), role, vctDepth, phaseOptions(0.75));
+      afterBlock = candidateVct(board, -role, vctDepth, phaseOptions(0.75));
     } finally {
       board.undo();
     }
@@ -425,13 +456,13 @@ export const candidateMinmax = (board, role, depth = 4, enableVCT = true, option
   if (!board.put(move[0], move[1], role)) return [score, move, bestPath, completedDepth];
   let opponentResult;
   try {
-    opponentResult = candidateVct(board.reverse(), role, vctDepth, phaseOptions(1));
+    opponentResult = candidateVct(board, -role, vctDepth, phaseOptions(1));
   } finally {
     board.undo();
   }
   const [opponentScore, opponentMove, opponentPath] = opponentResult;
   if (score < FIVE && opponentScore === FIVE && opponentPath.length > bestPath.length) {
-    const [, , originalOpponentPath] = candidateVct(board.reverse(), role, vctDepth, phaseOptions(1));
+    const [, , originalOpponentPath] = candidateVct(board, -role, vctDepth, phaseOptions(1));
     if (opponentPath.length <= originalOpponentPath.length && opponentMove) {
       return [score, opponentMove, opponentPath, completedDepth];
     }

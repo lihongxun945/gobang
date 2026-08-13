@@ -19,6 +19,8 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
+    "ai:evaluate": "node scripts/ai-evaluate-strength.cjs",
+    "ai:tactics": "node scripts/ai-tactical-suite.cjs",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject"
   },

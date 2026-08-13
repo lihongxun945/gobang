@@ -116,34 +116,6 @@
       ]
     },
     {
-      "id": "rapfi-natural-first-offset1-diagonal",
-      "minPrefixLength": 1,
-      "coordinates": [
-        [
-          6,
-          6
-        ],
-        [
-          6,
-          7
-        ]
-      ]
-    },
-    {
-      "id": "rapfi-natural-first-offset2-orthogonal",
-      "minPrefixLength": 1,
-      "coordinates": [
-        [
-          5,
-          7
-        ],
-        [
-          6,
-          7
-        ]
-      ]
-    },
-    {
       "id": "rapfi-natural-first-offset2-diagonal",
       "minPrefixLength": 1,
       "coordinates": [
@@ -176,6 +148,36 @@
         ]
       ],
       "reason": "Rejected by depth-4 paired self-play: control won and book move lost."
+    },
+    {
+      "id": "rapfi-natural-first-offset1-diagonal",
+      "minPrefixLength": 1,
+      "coordinates": [
+        [
+          6,
+          6
+        ],
+        [
+          6,
+          7
+        ]
+      ],
+      "reason": "Rejected after shallow tactical extension: control won and book move lost."
+    },
+    {
+      "id": "rapfi-natural-first-offset2-orthogonal",
+      "minPrefixLength": 1,
+      "coordinates": [
+        [
+          5,
+          7
+        ],
+        [
+          6,
+          7
+        ]
+      ],
+      "reason": "Rejected after shallow tactical extension: control won and book move lost."
     }
   ]
 }

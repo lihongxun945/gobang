@@ -1,6 +1,6 @@
-import Board from './board';
-import { minmax, cache_hits } from './minmax';
-import { FOUR } from './eval';
+import Board from '../board';
+import { minmax, cache_hits } from '../minmax';
+import { FOUR } from '../eval';
 import { min } from 'lodash';
 
 describe('minmax', () => {

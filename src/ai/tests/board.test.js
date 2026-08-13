@@ -53,6 +53,18 @@ describe('Board', () => {
     expect(board.role).toBe(1); // Check if the role was switched back correctly
   });
 
+  test('undo restores the actual role after an explicit out-of-turn move', () => {
+    board.put(1, 1);
+    expect(board.role).toBe(-1);
+
+    board.put(2, 2, 1);
+    expect(board.role).toBe(-1);
+    board.undo();
+
+    expect(board.role).toBe(-1);
+    expect(board.board[2][2]).toBe(0);
+  });
+
   test('test getWinner', () => {
     wins.forEach(win => {
       const board = new Board(win[0]);
