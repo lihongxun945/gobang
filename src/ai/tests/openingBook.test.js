@@ -78,10 +78,11 @@ describe('opening book', () => {
     expect(candidates[0].sources[0]).toContain('rapfi-verified-freestyle-15x15');
   });
 
-  test('does not prescribe a move for an empty or unknown position', () => {
+  test('does not prescribe a move for an empty or unknown multi-stone position', () => {
     expect(getOpeningBookMoves(new Board(15))).toEqual([]);
     const unknown = new Board(15);
     unknown.put(0, 0);
+    unknown.put(14, 14);
     expect(getOpeningBookMoves(unknown)).toEqual([]);
   });
 
@@ -111,6 +112,34 @@ describe('opening book', () => {
     expect(searchStats.openingBook.adopted).toBe(true);
     expect(containsMove(getOpeningBookMoves(board), result[1])).toBe(true);
     expect(Math.max(Math.abs(row - 7), Math.abs(col - 7))).toBe(1);
+  });
+
+  test('translates a verified first reply when the opening stone is off-book', () => {
+    const board = new Board(15);
+    board.put(6, 6);
+
+    const candidates = getOpeningBookMoves(board);
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(candidates.every(({ move: [row, col] }) => (
+      Math.max(Math.abs(row - 6), Math.abs(col - 6)) === 1
+    ))).toBe(true);
+
+    resetSearchStats();
+    const [, move] = candidateMinmax(board, board.role, 2, false);
+    expect(searchStats.openingBook.adopted).toBe(true);
+    expect(containsMove(candidates, move)).toBe(true);
+  });
+
+  test('filters translated first replies at the edge of the board', () => {
+    const board = new Board(15);
+    board.put(0, 0);
+
+    const candidates = getOpeningBookMoves(board);
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(candidates.every(({ move: [row, col] }) => (
+      row >= 0 && row < board.size && col >= 0 && col < board.size
+        && Math.max(row, col) === 1
+    ))).toBe(true);
   });
 
   test('candidate search enables the book by default and supports disabling it', () => {
