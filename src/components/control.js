@@ -1,108 +1,84 @@
 import './control.css';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  startGame, endGame, undoMove, setAiFirst, setDepth, setIndex, setDebug, setOpeningBook,
-} from '../store/gameSlice';
+import { startGame, endGame, undoMove, setAiFirst, setDepth, setIndex, setDebug, setOpeningBook } from '../store/gameSlice';
 import { board_size } from '../config';
 import { Button, Switch, Select } from 'antd';
 import { STATUS } from '../status';
 import { useCallback } from 'react';
 
+const depthOptions = [
+  { value: '2', label: '新手' },
+  { value: '4', label: '入门' },
+  { value: '6', label: '普通' },
+  { value: '8', label: '高手' },
+];
+
 function Control() {
   const dispatch = useDispatch();
-  const {
-    loading, winner, status, history, aiFirst, depth, index, score, path,
-    currentDepth, debug, openingBook, openingBookDebug,
-  } = useSelector((state) => state.game);
-  const start = useCallback(() => {
-    dispatch(startGame({ board_size, aiFirst, depth, openingBook }));
-  }, [dispatch, aiFirst, depth, openingBook]);
-  const end = useCallback(() => {
-    dispatch(endGame());
-  }, [dispatch]);
-  const undo = useCallback(() => {
-    dispatch(undoMove());
-  }, [dispatch]);
-  const onFirstChange = useCallback((checked) => {
-    dispatch(setAiFirst(checked));
-  }, [dispatch]);
-  const onDepthChange = useCallback((value) => {
-    dispatch(setDepth(value));
-  }, [dispatch]);
-  const onIndexChange = useCallback((checked) => {
-    dispatch(setIndex(checked));
-  }, [dispatch]);
-  const onDebugChange = useCallback((checked) => {
-    dispatch(setDebug(checked));
-  }, [dispatch]);
-  const onOpeningBookChange = useCallback((checked) => {
-    dispatch(setOpeningBook(checked));
-  }, [dispatch]);
+  const { loading, winner, status, history, aiFirst, depth, index, score, scoreAssessment, path, currentDepth, debug, openingBook, openingBookDebug } = useSelector((state) => state.game);
+  const gaming = status === STATUS.GAMING;
+  const statusText = loading ? 'AI 思考中' : winner ? (winner === 1 ? '黑棋胜出' : '白棋胜出') : gaming ? '对局进行中' : '准备就绪';
+
+  const start = useCallback(() => dispatch(startGame({ board_size, aiFirst, depth, openingBook })), [dispatch, aiFirst, depth, openingBook]);
+  const end = useCallback(() => dispatch(endGame()), [dispatch]);
+  const undo = useCallback(() => dispatch(undoMove()), [dispatch]);
+
   return (
     <div className="control">
-      <div className="buttons">
-        <Button className="button" type="primary" onClick={start} disabled={loading || status !== STATUS.IDLE}>开始</Button>
-        <Button className="button" type="primary" onClick={undo} disabled={loading || status !== STATUS.GAMING || history.length === 0}>悔棋</Button>
-        <Button className="button" type="primary" onClick={end} disabled={loading || status !== STATUS.GAMING}>认输</Button>
+      <div className="control-header">
+        <span className="eyebrow">Game console</span>
+        <div className="game-state"><span className={`state-dot ${loading ? 'busy' : gaming ? 'active' : ''}`} />{statusText}</div>
+        <div className="move-count"><strong>{history.length}</strong><span>已落子</span></div>
       </div>
-      <div className="setting">
-        <div className="setting-row">
-          <div className="setting-item">
-            电脑先手: <Switch defaultChecked={aiFirst} onChange={onFirstChange} disabled={loading} />
-          </div>
-          <div className="setting-item">
-            难度:
-            <Select
-              defaultValue={String(depth)}
-              style={{ width: 160 }}
-              onChange={onDepthChange}
-              disabled={loading}
-              options={[
-                { value: '2', label: '弱智(2~10层)超快' },
-                { value: '4', label: '简单(4~12层)快' },
-                { value: '6', label: '普通(6~14层)慢' },
-                { value: '8', label: '困难(8~16层)超慢' },
-              ]}
-            />
-          </div>
+
+      {gaming && scoreAssessment && (
+        <div className={`position-assessment ${scoreAssessment.tone}`}>
+          <div><span>局面判断</span><strong>{scoreAssessment.label}</strong></div>
+          <small>{scoreAssessment.detail}</small>
         </div>
-        <div className="setting-row">
-          <div className="setting-item">
-            序号: <Switch defaultChecked={index} onChange={onIndexChange} />
-          </div>
-          <div className="setting-item">
-            调试: <Switch checked={debug} onChange={onDebugChange} disabled={loading} />
-          </div>
-          <div className="setting-item">
-            开局库: <Switch checked={openingBook} onChange={onOpeningBookChange} disabled={loading} />
-          </div>
+      )}
+
+      <div className="primary-actions">
+        <Button className="start-button" type="primary" size="large" onClick={start} disabled={loading || gaming}>开始新对局</Button>
+        <div className="secondary-actions">
+          <Button onClick={undo} disabled={loading || !gaming || history.length === 0}>悔棋</Button>
+          <Button danger onClick={end} disabled={loading || !gaming}>认输</Button>
         </div>
       </div>
-      {
-        debug && <div className="status">
-          <div className="status-item">评分：{score}</div>
-          <div className="status-item">深度: {path?.length || 0}</div>
-          <div className="status-item">思考: {JSON.stringify(path)}</div>
-          <div className="status-item">历史: {JSON.stringify(history.map(h => [h.i, h.j]))}</div>
-          <div className="status-item">开局库: {openingBookDebug?.enabled ? '已启用' : '已关闭'}</div>
-          <div className="status-item">开局命中: {openingBookDebug?.hit ? '是' : '否'}</div>
-          <div className="status-item">采用开局着法: {openingBookDebug?.adopted ? '是' : '否'}</div>
-          {openingBookDebug?.adopted && (
-            <div className="status-item">
-              采用着法: {JSON.stringify(openingBookDebug.selectedMove)}
-            </div>
-          )}
-          {openingBookDebug?.hit && (
-            <div className="status-item">
-              开局候选: {openingBookDebug.candidates.map(({ move, weight, sources }) => (
-                `${move[0]},${move[1]}（权重 ${weight}，来源 ${sources.join(', ')}）`
-              )).join('；')}
-            </div>
-          )}
-        </div>
-      }
+
+      <section className="settings-section">
+        <h3>对局设置</h3>
+        <label className="select-setting">
+          <span><b>难度</b><small>搜索越深，思考时间越长</small></span>
+          <Select value={String(depth)} onChange={(value) => dispatch(setDepth(value))} disabled={loading} options={depthOptions} />
+        </label>
+        <Setting label="电脑先手" hint="AI 执黑棋率先落子"><Switch checked={aiFirst} onChange={(checked) => dispatch(setAiFirst(checked))} disabled={loading || gaming} /></Setting>
+        <Setting label="实战开局库" hint="优先采用已验证的开局"><Switch checked={openingBook} onChange={(checked) => dispatch(setOpeningBook(checked))} disabled={loading || gaming} /></Setting>
+        <Setting label="显示手数" hint="在棋子上标记落子顺序"><Switch checked={index} onChange={(checked) => dispatch(setIndex(checked))} /></Setting>
+        <Setting label="调试信息" hint="展示搜索和开局库详情"><Switch checked={debug} onChange={(checked) => dispatch(setDebug(checked))} disabled={loading} /></Setting>
+      </section>
+
+      {debug && (
+        <section className="debug-panel">
+          <div className="debug-title"><h3>搜索诊断</h3><span>LIVE</span></div>
+          <div className="debug-metrics">
+            <Metric label="评分" value={score ?? 0} />
+            <Metric label="深度" value={currentDepth || path?.length || 0} />
+            <Metric label="开局命中" value={openingBookDebug?.hit ? '是' : '否'} />
+            <Metric label="采用着法" value={openingBookDebug?.adopted ? '是' : '否'} />
+          </div>
+          <DebugLine label="思考路径" value={JSON.stringify(path || [])} />
+          <DebugLine label="历史坐标" value={JSON.stringify(history.map(({ i, j }) => [i, j]))} />
+          {openingBookDebug?.adopted && <DebugLine label="开局着法" value={JSON.stringify(openingBookDebug.selectedMove)} />}
+          {openingBookDebug?.hit && <DebugLine label="开局候选" value={openingBookDebug.candidates.map(({ move, weight, sources }) => `${move.join(',')} · ${weight} · ${sources.join('/')}`).join('；')} />}
+        </section>
+      )}
     </div>
   );
 }
+
+const Setting = ({ label, hint, children }) => <label className="setting-item"><span><b>{label}</b><small>{hint}</small></span>{children}</label>;
+const Metric = ({ label, value }) => <div className="metric"><span>{label}</span><strong>{value}</strong></div>;
+const DebugLine = ({ label, value }) => <div className="debug-line"><b>{label}</b><code>{value}</code></div>;
 
 export default Control;

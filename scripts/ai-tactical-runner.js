@@ -3,23 +3,28 @@ import path from 'path';
 import Board from '../src/ai/board';
 import { candidateMinmax, candidateVct, clearSearchCache, resetSearchStats, searchStats } from '../src/ai/candidate/minmax';
 import { FIVE } from '../src/ai/eval';
+import { config } from '../src/ai/config';
 import { tacticalPositions } from '../src/ai/fixtures/tactics';
 
 const parseArgs = (argv) => {
   const options = {
     filter: '', repeat: 1, output: null, baselineReport: null,
-    details: false, symmetries: false,
+    details: false, symmetries: false, evaluation: 'classic',
   };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
     if (argument === '--details') options.details = true;
     else if (argument === '--symmetries') options.symmetries = true;
     else if (argument === '--filter') options.filter = argv[++index] || '';
+    else if (argument === '--evaluation') options.evaluation = argv[++index] || '';
     else if (argument === '--repeat') options.repeat = Number(argv[++index]);
     else if (argument === '--output') options.output = argv[++index];
     else if (argument === '--baseline-report') options.baselineReport = argv[++index];
     else if (argument === '--help') options.help = true;
     else throw new Error(`Unknown option: ${argument}`);
+  }
+  if (!['classic', 'threat', 'capped', 'hybrid'].includes(options.evaluation)) {
+    throw new Error('--evaluation must be classic, threat, capped, or hybrid');
   }
   if (!Number.isInteger(options.repeat) || options.repeat < 1) {
     throw new Error('--repeat must be a positive integer');
@@ -99,9 +104,10 @@ const runPosition = (position) => {
 
 const options = parseArgs(process.argv.slice(2));
 if (options.help) {
-  console.log('Usage: npm run ai:tactics -- [--filter text] [--symmetries] [--repeat n] [--details] [--output path] [--baseline-report path]');
+  console.log('Usage: npm run ai:tactics -- [--evaluation classic|threat|capped] [--filter text] [--symmetries] [--repeat n] [--details] [--output path] [--baseline-report path]');
   process.exit(0);
 }
+config.evaluationMode = options.evaluation;
 const filter = options.filter.toLowerCase();
 const filtered = tacticalPositions.filter((position) => (
   !filter || position.id.toLowerCase().includes(filter)
@@ -154,6 +160,7 @@ const symmetryDiagnostics = options.symmetries ? [...familyMap].map(([familyId, 
   };
 }) : undefined;
 const summary = {
+  evaluation: options.evaluation,
   positions: selected.length, basePositions: filtered.length,
   symmetries: options.symmetries, repeat: options.repeat, runs: runs.length,
   passed: runs.length - failures.length, failed: failures.length,

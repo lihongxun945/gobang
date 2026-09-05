@@ -39,6 +39,7 @@ const initialState = {
   depth: 6, // 搜索深度
   index: false, // 是否显示序号
   score: 0,
+  scoreAssessment: { label: '开局阶段', detail: '等待开始对局', tone: 'even', confidence: 'low' },
   path: [],
   currentDepth: 0,
   debug: false, // 显示调试面板
@@ -91,6 +92,7 @@ export const gameSlice = createSlice({
         state.sessionId = action.payload.session_id;
         state.size = action.payload.size;
         state.score = action.payload.score;
+        state.scoreAssessment = action.payload.scoreAssessment;
         state.path = action.payload.bestPath;
         state.currentDepth = action.payload.currentDepth;
         state.openingBookDebug = action.payload.openingBookDebug;
@@ -105,6 +107,7 @@ export const gameSlice = createSlice({
         state.winner = action.payload.winner;
         state.history = action.payload.history;
         state.score = action.payload.score;
+        state.scoreAssessment = action.payload.scoreAssessment;
         state.path = action.payload.bestPath;
         state.currentDepth = action.payload.currentDepth;
         state.openingBookDebug = action.payload.openingBookDebug;
@@ -122,6 +125,7 @@ export const gameSlice = createSlice({
         state.winner = action.payload.winner;
         state.history = action.payload.history;
         state.score = action.payload.score;
+        state.scoreAssessment = action.payload.scoreAssessment;
         state.path = action.payload.bestPath;
         state.currentDepth = action.payload.currentDepth;
         state.openingBookDebug = action.payload.openingBookDebug;
@@ -138,6 +142,7 @@ export const gameSlice = createSlice({
         state.loading = initialState.loading;
         state.depth = initialState.depth;
         state.score = initialState.score;
+        state.scoreAssessment = initialState.scoreAssessment;
         state.path = initialState.path;
         state.currentDepth = initialState.currentDepth;
         state.openingBookDebug = initialState.openingBookDebug;

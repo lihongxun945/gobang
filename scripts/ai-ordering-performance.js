@@ -6,6 +6,7 @@ import { loadOpeningSet, gomocup2026 } from '../src/ai/fixtures/openings';
 const depth = Number(process.env.AI_DEPTH || 4);
 const rounds = Number(process.env.AI_ROUNDS || 5);
 const orderingMode = process.env.AI_ORDERING_MODE || 'combined';
+const baselineOrderingMode = process.env.AI_BASELINE_ORDERING_MODE || 'killer';
 const openings = loadOpeningSet();
 
 const createBoard = (opening) => {
@@ -14,14 +15,14 @@ const createBoard = (opening) => {
   return board;
 };
 
-const measure = (opening, experimentalMoveOrdering) => {
+const measure = (opening, mode) => {
   const board = createBoard(opening);
   clearSearchCache(board);
   resetSearchStats();
   const startedAt = performance.now();
-  const result = candidateMinmax(board, board.role, depth, false, experimentalMoveOrdering ? {
-    experimentalMoveOrderingMode: orderingMode,
-  } : { disableMoveOrdering: true });
+  const result = candidateMinmax(board, board.role, depth, false, mode === 'none'
+    ? { disableMoveOrdering: true }
+    : { experimentalMoveOrderingMode: mode });
   return { result, elapsedMs: performance.now() - startedAt, nodes: searchStats.nodes };
 };
 
@@ -35,8 +36,8 @@ for (let round = 0; round < rounds; round += 1) {
   for (let index = 0; index < openings.length; index += 1) {
     const opening = openings[index];
     const experimentalFirst = (round + index) % 2 === 0;
-    const first = measure(opening, experimentalFirst);
-    const second = measure(opening, !experimentalFirst);
+    const first = measure(opening, experimentalFirst ? orderingMode : baselineOrderingMode);
+    const second = measure(opening, experimentalFirst ? baselineOrderingMode : orderingMode);
     const current = experimentalFirst ? second : first;
     const experimental = experimentalFirst ? first : second;
     assert.strictEqual(
@@ -80,6 +81,7 @@ console.log(JSON.stringify({
   depth,
   rounds,
   orderingMode,
+  baselineOrderingMode,
   positionsPerRound: openings.length,
   experimentalFasterEveryRound: samples.every(({ currentMs, experimentalMs }) => (
     experimentalMs < currentMs

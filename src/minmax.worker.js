@@ -1,5 +1,6 @@
 import Board from './ai/board';
 import { minmax, resetSearchStats, searchStats } from './ai/candidate/minmax';
+import { assessScore } from './ai/scoreAssessment';
 import { board_size } from './config';
 
 // @ts-ignore
@@ -33,6 +34,7 @@ onmessage = function (event) {
 
 let board = new Board(board_size);
 let score = 0, bestPath = [], currentDepth = 0;
+let scoreAssessment = assessScore(0, []);
 let openingBookDebug = {
   enabled: true, hit: false, adopted: false, selectedMove: null, candidates: [],
 };
@@ -45,6 +47,7 @@ const getBoardData = () => {
     history: JSON.parse(JSON.stringify(board.history)),
     size: board.size,
     score,
+    scoreAssessment,
     bestPath,
     currentDepth,
     openingBookDebug,
@@ -73,6 +76,8 @@ export const start = (
 ) => {
   console.log('start', board_size, aiFirst, depth);
   board = new Board(board_size);
+  score = 0;
+  scoreAssessment = assessScore(0, []);
   openingBookDebug = {
     enabled: openingBook, mode: openingBookMode,
     hit: false, adopted: false, selectedMove: null, candidates: [],
@@ -82,6 +87,7 @@ export const start = (
       const res = search(depth, openingBook, openingBookMode);
       let move;
       [score, move, bestPath, currentDepth] = res;
+      scoreAssessment = assessScore(score, searchStats.scoreTrace);
       board.put(move[0], move[1]);
     }
   } catch (e) {
@@ -106,6 +112,7 @@ export const move = (
     const res = search(depth, openingBook, openingBookMode);
     let move;
     [score, move, bestPath, currentDepth] = res;
+    scoreAssessment = assessScore(score, searchStats.scoreTrace);
     board.put(move[0], move[1]);
   }
   return getBoardData();

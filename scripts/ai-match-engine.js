@@ -2,6 +2,7 @@ import Board from '../src/ai/board';
 import {
   candidateMinmax, clearSearchCache, resetSearchStats, searchStats,
 } from '../src/ai/candidate/minmax';
+import { config } from '../src/ai/config';
 
 let board = null;
 let settings = null;
@@ -11,6 +12,9 @@ const serializableHash = () => String(board.hash());
 const handle = ({ action, payload = {} }) => {
   if (action === 'init') {
     settings = payload.settings;
+    config.evaluationMode = settings.evaluationMode || 'classic';
+    config.hybridWeight = Number(settings.hybridWeight) || 0.35;
+    config.hybridCap = Number(settings.hybridCap) || 3000;
     board = new Board(payload.size);
     payload.moves.forEach(([x, y]) => {
       if (!board.put(x, y)) throw new Error(`Invalid opening move: ${x},${y}`);

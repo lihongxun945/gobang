@@ -13,7 +13,7 @@ export const TT_FLAG = { EXACT: 'exact', LOWER: 'lower', UPPER: 'upper' };
 export const searchStats = {
   nodes: 0, stores: 0, hits: 0, bookHits: 0,
   qThreeExtensions: 0, qThreeThirdMoves: 0,
-  pvsScouts: 0, normalCompletedDepth: 0, openingBook: null,
+  pvsScouts: 0, normalCompletedDepth: 0, openingBook: null, scoreTrace: [],
 };
 
 let boardTables = new WeakMap();
@@ -41,6 +41,7 @@ export const resetSearchStats = () => {
   searchStats.pvsScouts = 0;
   searchStats.normalCompletedDepth = 0;
   searchStats.openingBook = null;
+  searchStats.scoreTrace = [];
 };
 
 const modeKey = (onlyThree, onlyFour) => `${onlyThree ? 1 : 0}:${onlyFour ? 1 : 0}`;
@@ -388,6 +389,11 @@ const factory = (onlyThree = false, onlyFour = false) => {
       } catch (error) {
         if (error === SEARCH_TIMEOUT) break;
         throw error;
+      }
+      if (!onlyThree && !onlyFour) {
+        searchStats.scoreTrace.push({
+          depth, score: normalizeScore(result.score), move: result.move,
+        });
       }
       if (result.move || board.isGameOver()) {
         completed = result;

@@ -1,102 +1,39 @@
+.board-wrap { width: 100%; display: grid; place-items: center; }
 .board {
-  display: flex;
-  margin: 10px auto;
-  flex-direction: column;
-  position: relative;
-  height: 375px;
-  width: 375px;
-  max-width: 600px;
-  max-height: 600px;
-  background-size: cover;
+  width: min(100%, 680px); aspect-ratio: 1; display: flex; flex-direction: column;
+  position: relative; padding: clamp(10px, 2.4vw, 22px); border: 1px solid var(--board-edge);
+  border-radius: 18px; overflow: hidden;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255,255,255,.16), transparent 28%),
+    linear-gradient(145deg, color-mix(in srgb, var(--board) 94%, white), var(--board));
+  box-shadow: inset 0 1px rgba(255,255,255,.22), inset 0 -12px 30px rgba(25,30,26,.08), 0 16px 38px rgba(24,31,26,.16);
 }
-
-.board-row {
-  display: flex;
-}
-
+.board-row { display: flex; flex: 1; min-height: 0; }
 .cell {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  appearance: none; position: relative; flex: 1; min-width: 0; padding: 0; border: 0;
+  display: grid; place-items: center; background: transparent; cursor: pointer;
 }
-
-.cell::before,
-.cell::after {
-  content: "";
-  position: absolute;
-  background: #000;
-}
-
-.cell::before {
-  left: 50%;
-  height: 100%;
-  width: 1px;
-}
-
-.cell::after {
-  top: 50%;
-  width: 100%;
-  height: 1px;
-}
-
-.cell.top::before {
-  top: 50%;
-}
-.cell.bottom::before {
-  bottom: 50%;
-}
-.cell.left::after {
-  left: 50%;
-}
-.cell.right::after {
-  right: 50%;
-}
-
-
+.cell:disabled { cursor: default; }
+.cell::before, .cell::after { content: ''; position: absolute; z-index: 0; background: var(--grid); }
+.cell::before { left: 50%; width: 1px; height: 100%; }
+.cell::after { top: 50%; width: 100%; height: 1px; }
+.cell.top::before { top: 50%; height: 50%; }
+.cell.bottom::before { bottom: 50%; height: 50%; }
+.cell.left::after { left: 50%; width: 50%; }
+.cell.right::after { right: 50%; width: 50%; }
+.cell:not(:disabled):hover::before, .cell:not(:disabled):hover::after { background: var(--accent); }
+.cell:not(:disabled):hover { background: radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent) 0 18%, transparent 20%); }
 .piece {
-  width: 70%;
-  height: 70%;
-  border-radius: 50%;
-  position: relative;
-  z-index: 10;
-  font-size: 11px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 76%; aspect-ratio: 1; border-radius: 50%; position: relative; z-index: 2;
+  display: grid; place-items: center; font-size: clamp(8px, 1.25vw, 12px); font-weight: 700;
+  animation: place-piece 150ms cubic-bezier(.2,.8,.3,1.2);
 }
-
-.piece.black {
-  background: #000;
-  color: white;
-}
-
-.piece.white {
-  background: #fff;
-  color: black;
-}
-
-.last {
-  width: 80%;
-  height: 80%;
-  border: 1px solid red;
-  z-index: 100;
-  position: absolute;
-}
-
-.loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  z-index: 9999;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.1);
-  left: 0;
-  top: 0;
-}
-.loading-text {
-  font-size: 16px;
-  color: red;
-}
+.piece.black { color: #fff; background: radial-gradient(circle at 34% 28%, #4a504c 0, #161a17 46%, #080a09 100%); box-shadow: inset 1px 1px 2px rgba(255,255,255,.25), 0 3px 7px rgba(0,0,0,.34); }
+.piece.white { color: #18201b; background: radial-gradient(circle at 34% 27%, #fff 0, #f1f2ee 55%, #cdd1cb 100%); border: 1px solid rgba(23,32,27,.16); box-shadow: inset 1px 1px 2px #fff, 0 3px 7px rgba(0,0,0,.22); }
+.last { position: absolute; z-index: 3; width: 22%; aspect-ratio: 1; border-radius: 50%; background: #e26654; box-shadow: 0 0 0 2px rgba(255,255,255,.4); }
+.loading { position: absolute; z-index: 20; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--text); font-size: 13px; font-weight: 600; background: color-mix(in srgb, var(--surface-solid) 38%, transparent); backdrop-filter: blur(2px); }
+.thinking-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 40%, transparent); animation: think 1.2s infinite; }
+.winner-banner { position: absolute; z-index: 21; left: 50%; top: 50%; transform: translate(-50%,-50%); padding: 13px 20px; border-radius: 14px; color: #fff; background: rgba(21,28,23,.9); box-shadow: 0 10px 30px rgba(0,0,0,.24); font-size: 16px; font-weight: 700; letter-spacing: .08em; backdrop-filter: blur(12px); }
+@keyframes place-piece { from { transform: scale(.45); opacity: .2; } to { transform: scale(1); opacity: 1; } }
+@keyframes think { 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .piece, .thinking-dot { animation: none; } }

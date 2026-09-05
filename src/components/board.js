@@ -1,96 +1,52 @@
-
-import React, { useState, useEffect } from "react";
+import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { movePiece, tempMove } from '../store/gameSlice';
 import './board.css';
-import bg from '../assets/bg.jpg';
 import { board_size } from '../config';
 import { STATUS } from '../status';
 
-/*
-帮我用React实现一个Board组件，实现的功能是：
-显示五子棋棋盘，当用户点击棋盘的时候，可以把点击位置换算成对应的棋子坐标。内部状态包括棋盘上所有棋子的坐标，历史记录，以及下一步轮到谁下。
-不要用图片，直接用CSS画棋盘和棋子。
-*/
-
 const Board = () => {
   const dispatch = useDispatch();
-  const {
-    board, currentPlayer, history, status, size, loading, winner, depth, index,
-    openingBook,
-  } = useSelector((state) => state.game);
+  const { board, history, status, loading, winner, depth, index, openingBook } = useSelector((state) => state.game);
 
   const handleClick = (i, j) => {
-    if (loading || status !== STATUS.GAMING) return;
-    if (board[i][j] === 0) {
-      dispatch(tempMove([i, j]))
-      dispatch(movePiece({ position: [i, j], depth, openingBook }));
-    }
+    if (loading || status !== STATUS.GAMING || board[i][j] !== 0) return;
+    dispatch(tempMove([i, j]));
+    dispatch(movePiece({ position: [i, j], depth, openingBook }));
   };
 
-  useEffect(() => {
-    if (winner === 1 || winner === -1) {
-      window.alert(winner === 1 ? '黑棋获胜' : '白棋获胜')
-    }
-  }, [winner]);
-
-  const cellStyle = {
-    width: `${375 / board_size}px`,
-    height: `${375 / board_size}px`,
-  };
+  const moveNumbers = new Map(history.map((move, moveIndex) => [`${move.i}-${move.j}`, moveIndex + 1]));
+  const lastMove = history[history.length - 1];
 
   return (
-    <div className="board" style={{ backgroundImage: `url(${bg})` }}>
-      {board.map((row, i) => (
-        <div key={i} className="board-row">
-          {row.map((cell, j) => {
-            let cellClassName = 'cell';
-            if (i === 0) {
-              cellClassName += ' top';
-            }
-            if (i === board_size - 1) {
-              cellClassName += ' bottom';
-            }
-            if (j === 0) {
-              cellClassName += ' left';
-            }
-            if (j === board_size - 1) {
-              cellClassName += ' right';
-            }
-            let pieceClassname = 'piece';
-            if (cell === 1) {
-              pieceClassname += ' black';
-            } else if (cell === -1) {
-              pieceClassname += ' white';
-            }
-            let isLastCell = false;
-            const lastMove = history[history.length - 1];
-            if (lastMove && (lastMove.i === i && lastMove.j === j)) {
-              isLastCell = true;
-            }
-            let number = 0;
-            if (index) {
-              for(let x = 0; x < history.length; x++) {
-                if (history[x].i === i && history[x].j === j) {
-                  number = x + 1;
-                  break;
-                }
-              }
-            }
-            return (
-              <div key={j} className={cellClassName} style={cellStyle} onClick={() => handleClick(i, j)}>
-                {cell == 0 ? '' : <div className={pieceClassname}>{ number === 0 ? '' : number}</div>}
-                {isLastCell && <div className="last" />}
-              </div>
-            )
-          })}
-        </div>
-      ))} 
-      {
-        loading && <div className="loading">
-          <div className="loading-text">AI思考中...</div>
-        </div>
-      }
+    <div className="board-wrap">
+      <div className="board" role="grid" aria-label="十五路五子棋棋盘">
+        {board.map((row, i) => (
+          <div key={i} className="board-row" role="row">
+            {row.map((cell, j) => {
+              const edges = [i === 0 && 'top', i === board_size - 1 && 'bottom', j === 0 && 'left', j === board_size - 1 && 'right'].filter(Boolean).join(' ');
+              const isLast = lastMove?.i === i && lastMove?.j === j;
+              const number = index ? moveNumbers.get(`${i}-${j}`) : null;
+              return (
+                <button
+                  key={j}
+                  type="button"
+                  role="gridcell"
+                  className={`cell ${edges}`}
+                  onClick={() => handleClick(i, j)}
+                  disabled={cell !== 0 || loading || status !== STATUS.GAMING}
+                  aria-label={`${i + 1} 行 ${j + 1} 列${cell === 1 ? '，黑棋' : cell === -1 ? '，白棋' : ''}`}
+                >
+                  {cell !== 0 && <span className={`piece ${cell === 1 ? 'black' : 'white'}`}>{number}</span>}
+                  {isLast && <span className="last" aria-label="最后一步" />}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+        {loading && <div className="loading"><span className="thinking-dot" /><span>AI 正在思考</span></div>}
+        {winner !== 0 && winner != null && <div className="winner-banner">{winner === 1 ? '黑棋胜出' : '白棋胜出'}</div>}
+      </div>
     </div>
   );
 };

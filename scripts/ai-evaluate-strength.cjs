@@ -17,14 +17,16 @@ const parseArgs = (argv) => {
     baseline: 'HEAD', games: 200, depth: 2, timeLimitMs: 0, maxMoves: 80,
     seed: 20260812, bootstrapSamples: 5000, enableVCT: true,
     openingBook: false, openingBookMode: 'strength', details: false,
-    concurrency: 1, output: null, baselineBundle: null,
+    concurrency: 1, output: null, baselineBundle: null, candidateEvaluation: 'classic',
+    hybridWeight: 0.35, hybridCap: 3000,
   };
   const keys = {
     '--baseline': 'baseline', '--games': 'games', '--depth': 'depth',
     '--time-ms': 'timeLimitMs', '--max-moves': 'maxMoves', '--seed': 'seed',
     '--bootstrap': 'bootstrapSamples', '--opening-book-mode': 'openingBookMode',
     '--concurrency': 'concurrency', '--output': 'output',
-    '--baseline-bundle': 'baselineBundle',
+    '--baseline-bundle': 'baselineBundle', '--candidate-evaluation': 'candidateEvaluation',
+    '--hybrid-weight': 'hybridWeight', '--hybrid-cap': 'hybridCap',
   };
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index];
@@ -35,7 +37,7 @@ const parseArgs = (argv) => {
       const key = keys[argument];
       const value = argv[++index];
       if (value === undefined) throw new Error(`${argument} requires a value`);
-      options[key] = ['baseline', 'baselineBundle', 'openingBookMode', 'output'].includes(key)
+      options[key] = ['baseline', 'baselineBundle', 'openingBookMode', 'output', 'candidateEvaluation'].includes(key)
         ? value : Number(value);
     } else if (argument === '--help') options.help = true;
     else throw new Error(`Unknown option: ${argument}`);
@@ -57,6 +59,8 @@ const usage = () => {
   --concurrency <n>      Opening pairs evaluated in parallel (default: 1)
   --output <path>        Also write the JSON report to this file
   --opening-book         Enable opening books during play
+  --candidate-evaluation <mode>  Candidate evaluator: classic or hybrid
+  --hybrid-weight <n> --hybrid-cap <n>  Hybrid strongest-threat parameters
   --no-vct               Disable VCT for both engines
   --details              Include every game in JSON output`);
 };
@@ -261,8 +265,10 @@ const playGame = async (position, candidateRole, settings) => {
   let moves = 0;
   let termination = null;
   try {
-    const initialized = await Promise.all(Object.values(engines).map((engine) => engine.request('init', {
-      size: position.size, moves: position.moves, settings,
+    const initialized = await Promise.all(Object.entries(engines).map(([name, engine]) => engine.request('init', {
+      size: position.size, moves: position.moves,
+      settings: { ...settings, evaluationMode: name === 'candidate'
+        ? settings.candidateEvaluation : 'classic' },
     })));
     initialized.forEach(({ role }) => assert(role === referee.role, `${position.id}: role mismatch`));
     while (!referee.winner && !referee.full && moves < settings.maxMoves) {
@@ -370,7 +376,9 @@ const main = async () => {
   const settings = {
     depth: options.depth, timeLimitMs: options.timeLimitMs, maxMoves: options.maxMoves,
     enableVCT: options.enableVCT, openingBook: options.openingBook,
-    openingBookMode: options.openingBookMode,
+    openingBookMode: options.openingBookMode, candidateEvaluation: options.candidateEvaluation,
+    hybridWeight: options.hybridWeight,
+    hybridCap: options.hybridCap,
   };
   const temporary = prepareEngines(options.baseline, options.baselineBundle);
   const pairedGames = new Array(selected.length);
