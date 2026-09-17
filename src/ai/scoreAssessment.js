@@ -18,16 +18,23 @@ const advantageLabel = (score) => {
   return { label: `${side}大幅领先`, tone: score > 0 ? 'positive' : 'negative' };
 };
 
-export const assessScore = (score, trace = []) => {
+export const assessScore = (score, trace = [], fromOpeningBook = false) => {
   if (score >= FIVE) return {
     label: 'AI 已找到必胜', detail: '搜索已证明强制胜利', tone: 'winning', confidence: 'proven',
   };
   if (score <= -FIVE) return {
     label: 'AI 已找到必败', detail: '搜索已证明无法避免失败', tone: 'losing', confidence: 'proven',
   };
-  if (!trace.length) return {
+  if (fromOpeningBook) return {
     label: '开局阶段', detail: '当前着法来自开局库，尚无完整搜索评分', tone: 'even', confidence: 'low',
   };
+  if (!trace.length) {
+    const { label, tone } = advantageLabel(score);
+    return {
+      label, tone, confidence: 'low', score,
+      detail: '未完成深度搜索，评分来自静态评估（战术应对或超时）',
+    };
+  }
 
   const recent = trace.slice(-3).map(({ score: traceScore }) => traceScore);
   const directions = recent.map(direction).filter(Boolean);

@@ -13,46 +13,49 @@ import { shapes, getShapeFast, isFive, isFour, getAllShapesOfPoint } from './sha
 import { coordinate2Position, isLine, isAllInLine, hasInLine, position2Coordinate } from './position';
 import { config } from './config';
 
-export const FIVE = 10000000;
+export const FIVE = 10000000;   // 终局/必胜局面分，minmax 以此判赢，保持不变
 export const BLOCK_FIVE = FIVE;
-export const FOUR = 100000;
-export const FOUR_FOUR = FOUR; // 双冲四
-export const FOUR_THREE = FOUR; // 冲四活三
-export const THREE_THREE = FOUR / 2; // 双三
-export const BLOCK_FOUR = 1500;
-export const THREE = 1000;
-export const BLOCK_THREE = 150;
-export const TWO_TWO = 200; // 双活二
-export const TWO = 100;
-export const BLOCK_TWO = 15;
-export const ONE = 10;
+export const FOUR = 100000;     // 活四（必胜威胁）
+export const FOUR_FOUR = FOUR;  // 双冲四（必胜）
+export const FOUR_THREE = FOUR; // 冲四活三（必胜）
+export const THREE_THREE = FOUR; // 双活三（必胜）
+export const BLOCK_FOUR = 10000; // 冲四（强制威胁）
+export const THREE = 1000;       // 活三（强制威胁）
+export const BLOCK_THREE = 100;  // 眠三
+export const TWO_TWO = 100;      // 双活二
+export const TWO = 10;           // 活二
+export const BLOCK_TWO = 1;      // 眠二
+export const ONE = 1;            // 单子
 export const BLOCK_ONE = 1;
 
-// 形状转换分数，注意这里的分数是当前位置还没有落子的分数
+// 形状转换分数：落在该空位后形成的棋型对应的威胁价值。
+// 采用等比权重（base=10）：FOUR > BLOCK_FOUR > THREE > BLOCK_THREE > TWO > BLOCK_TWO，
+// 每级是上一级的 10 倍，保证强威胁指数级占优；阈值常量与点分保持同一标度，
+// 使 hasThreatAtLeast 的阈值语义自洽。
 export const getRealShapeScore = (shape) => {
   switch (shape) {
     case shapes.FIVE:
-      return FOUR;
+      return FOUR;             // 成五 ≈ 活四（均为必胜，但不与终局分 FIVE 混淆）
     case shapes.BLOCK_FIVE:
-      return BLOCK_FOUR;
+      return BLOCK_FOUR;       // 被堵成五 ≈ 冲四
     case shapes.FOUR:
-      return THREE;
+      return FOUR;             // 活四
     case shapes.FOUR_FOUR:
-      return THREE;
+      return FOUR;             // 双冲四
     case shapes.FOUR_THREE:
-      return THREE;
+      return FOUR;             // 冲四活三
     case shapes.BLOCK_FOUR:
-      return BLOCK_THREE;
+      return BLOCK_FOUR;       // 冲四
     case shapes.THREE:
-      return TWO;
+      return THREE;            // 活三
     case shapes.THREE_THREE:
-      return THREE_THREE / 10;
+      return FOUR;             // 双活三（必胜级）
     case shapes.BLOCK_THREE:
-      return BLOCK_TWO;
+      return BLOCK_THREE;      // 眠三
     case shapes.TWO:
-      return ONE;
+      return TWO;              // 活二
     case shapes.TWO_TWO:
-      return TWO_TWO / 10;
+      return BLOCK_THREE;      // 双活二（眠三级）
     default:
       return 0;
   }
@@ -282,10 +285,15 @@ export default class Evaluate {
                   if (shape === shapes.BLOCK_FOUR && getAllShapesOfPoint(this.shapeCache, i, j, r).length === 1) continue;
                 }
               }
-              // 对面只防守，只考虑自己的冲四，活四，和对方的活三
+              // 对面（防守方）：考虑自己的冲四/活四/成五、对方的活三/冲四/活四，
+              // 以及自己的活三（反威胁 counter-threat，用于抢先成五）。
               else {
                 if (shape !== shapes.THREE && !isFour(shape) && !isFive(shape)) continue;
-                if (shape === shapes.THREE && r === -first) continue; // 不考虑防守方的活三
+                // 防守方自己的活三只有构成反威胁（counter-threat）时才保留，否则攻方 VCT 会漏掉
+                // “防守方抢先成五”的线，导致“必胜”误判（例如黑 [5,9] 反击）。
+                // 孤立活三（该点仅一个 THREE，无眠三/冲四/双三）不是立即威胁，剪掉以压最坏耗时；
+                // 复合威胁（活三+眠三/冲四、四三、双三）必须保留。
+                if (shape === shapes.THREE && r === -first && getAllShapesOfPoint(this.shapeCache, i, j, r).length === 1) continue;
                 if (depth > 1) {
                   // 有损剪枝，如果单纯冲四无法和任何棋子联系在一起，则直接剪掉
                   if (shape === shapes.BLOCK_FOUR && getAllShapesOfPoint(this.shapeCache, i, j).length === 1) continue;

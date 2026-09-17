@@ -20,6 +20,9 @@ onmessage = function (event) {
     case 'undo':
       res = undo();
       break;
+    case 'load':
+      res = load(payload);
+      break;
     case 'end':
       res = end();
       break;
@@ -33,6 +36,7 @@ onmessage = function (event) {
 };
 
 let board = new Board(board_size);
+let currentAiFirst = true;
 let score = 0, bestPath = [], currentDepth = 0;
 let scoreAssessment = assessScore(0, []);
 let openingBookDebug = {
@@ -46,6 +50,8 @@ const getBoardData = () => {
     current_player: board.role,
     history: JSON.parse(JSON.stringify(board.history)),
     size: board.size,
+    aiFirst: currentAiFirst,
+    gameOver: board.isGameOver(),
     score,
     scoreAssessment,
     bestPath,
@@ -76,6 +82,7 @@ export const start = (
 ) => {
   console.log('start', board_size, aiFirst, depth);
   board = new Board(board_size);
+  currentAiFirst = aiFirst;
   score = 0;
   scoreAssessment = assessScore(0, []);
   openingBookDebug = {
@@ -87,7 +94,7 @@ export const start = (
       const res = search(depth, openingBook, openingBookMode);
       let move;
       [score, move, bestPath, currentDepth] = res;
-      scoreAssessment = assessScore(score, searchStats.scoreTrace);
+      scoreAssessment = assessScore(score, searchStats.scoreTrace, searchStats.openingBook?.adopted === true);
       board.put(move[0], move[1]);
     }
   } catch (e) {
@@ -112,8 +119,48 @@ export const move = (
     const res = search(depth, openingBook, openingBookMode);
     let move;
     [score, move, bestPath, currentDepth] = res;
-    scoreAssessment = assessScore(score, searchStats.scoreTrace);
+    scoreAssessment = assessScore(score, searchStats.scoreTrace, searchStats.openingBook?.adopted === true);
     board.put(move[0], move[1]);
+  }
+  return getBoardData();
+};
+
+export const load = ({
+  size, aiFirst, depth, openingBook, history,
+}) => {
+  currentAiFirst = Boolean(aiFirst);
+  const loadedDepth = Number(depth) || 6;
+  const loadedBook = Boolean(openingBook);
+  board = new Board(Number(size) || 15);
+  score = 0;
+  bestPath = [];
+  currentDepth = 0;
+  scoreAssessment = assessScore(0, []);
+  openingBookDebug = {
+    enabled: loadedBook, mode: 'strength',
+    hit: false, adopted: false, selectedMove: null, candidates: [],
+  };
+
+  try {
+    for (const { i, j, role } of history) {
+      board.put(i, j, role);
+    }
+  } catch (e) {
+    console.log(e);
+  }
+
+  // 棋局未结束且轮到 AI 时，自动走一步，保持“导入后轮到玩家或已结束”的交互一致性。
+  const aiRole = currentAiFirst ? 1 : -1;
+  if (!board.isGameOver() && board.role === aiRole) {
+    try {
+      const res = search(loadedDepth, loadedBook, 'strength');
+      let move;
+      [score, move, bestPath, currentDepth] = res;
+      scoreAssessment = assessScore(score, searchStats.scoreTrace, searchStats.openingBook?.adopted === true);
+      board.put(move[0], move[1]);
+    } catch (e) {
+      console.log(e);
+    }
   }
   return getBoardData();
 };

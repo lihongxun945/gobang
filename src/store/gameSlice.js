@@ -1,8 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
 import { board_size } from '../config';
 import { STATUS } from '../status';
-import { start, end, move, undo } from '../bridge';
+import { start, end, move, undo, loadGame } from '../bridge';
 
 export const startGame = createAsyncThunk('game/start', async ({ board_size, aiFirst, depth, openingBook }) => {
   const data = await start(board_size, aiFirst, depth, openingBook, 'strength');
@@ -22,6 +21,15 @@ export const endGame = createAsyncThunk('game/end', async (sessionId) => {
 export const undoMove = createAsyncThunk('game/undo', async (sessionId) => {
   const data = await undo();
   return data;
+});
+
+export const importGame = createAsyncThunk('game/import', async (gameData) => {
+  const data = await loadGame(gameData);
+  return {
+    ...data,
+    importedDepth: gameData.depth,
+    importedOpeningBook: gameData.openingBook,
+  };
 });
 
 const initBoard = Array.from({ length: board_size }).map(() => Array.from({ length: board_size }).fill(0));
@@ -91,6 +99,7 @@ export const gameSlice = createSlice({
         state.status = STATUS.GAMING;
         state.sessionId = action.payload.session_id;
         state.size = action.payload.size;
+        state.aiFirst = action.payload.aiFirst;
         state.score = action.payload.score;
         state.scoreAssessment = action.payload.scoreAssessment;
         state.path = action.payload.bestPath;
@@ -129,6 +138,30 @@ export const gameSlice = createSlice({
         state.path = action.payload.bestPath;
         state.currentDepth = action.payload.currentDepth;
         state.openingBookDebug = action.payload.openingBookDebug;
+        state.loading = false;
+      })
+      .addCase(importGame.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(importGame.fulfilled, (state, action) => {
+        state.board = action.payload.board;
+        state.currentPlayer = action.payload.current_player;
+        state.winner = action.payload.winner;
+        state.history = action.payload.history;
+        state.score = action.payload.score;
+        state.scoreAssessment = action.payload.scoreAssessment;
+        state.path = action.payload.bestPath;
+        state.currentDepth = action.payload.currentDepth;
+        state.openingBookDebug = action.payload.openingBookDebug;
+        state.size = action.payload.size;
+        state.aiFirst = action.payload.aiFirst;
+        state.sessionId = action.payload.session_id;
+        state.depth = action.payload.importedDepth ?? state.depth;
+        state.openingBook = action.payload.importedOpeningBook ?? state.openingBook;
+        state.loading = false;
+        state.status = action.payload.gameOver ? STATUS.IDLE : STATUS.GAMING;
+      })
+      .addCase(importGame.rejected, (state) => {
         state.loading = false;
       })
       .addCase(endGame.fulfilled, (state) => {

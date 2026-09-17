@@ -70,3 +70,18 @@ export const undo = async () => {
     };
   })
 };
+
+export const loadGame = async (gameData) => {
+  return new Promise((resolve, reject) => {
+    worker.postMessage({
+      action: 'load',
+      payload: gameData,
+    });
+    worker.onmessage = (event) => {
+      const { action, payload } = event.data;
+      if (action === 'load') {
+        resolve(payload);
+      }
+    };
+  })
+};
