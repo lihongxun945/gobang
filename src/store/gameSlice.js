@@ -121,7 +121,7 @@ export const gameSlice = createSlice({
         state.currentDepth = action.payload.currentDepth;
         state.openingBookDebug = action.payload.openingBookDebug;
         state.loading = false;
-        if (action.payload.winner !== 0) {
+        if (action.payload.gameOver) {
           state.status = STATUS.IDLE;
         }
       })
