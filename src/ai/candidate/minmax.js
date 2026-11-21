@@ -402,7 +402,8 @@ const factory = (onlyThree = false, onlyFour = false) => {
       if (result.score >= FIVE) break;
     }
     if (!completed) {
-      const fallback = board.getValuableMoves(role, 0, onlyThree, onlyFour)[0] || null;
+      const fallback = board.getValuableMoves(role, 0, onlyThree, onlyFour)[0]
+        || board.getValidMoves()[0] || null;
       if (!onlyThree && !onlyFour) searchStats.normalCompletedDepth = 0;
       return [board.evaluate(role), fallback, fallback ? [fallback] : [], 0];
     }
